@@ -1,0 +1,13 @@
+The very start of an SVG renderer for Prawn.
+
+This will take an SVG file as input and render it into your PDF.
+
+Usage:
+
+  pdf.svg svg_data, :at => [x, y], :width => w
+  
+:at must be specified.  :width, :height, or neither may be specified; if neither is present,
+the resolution specified in the SVG will be used.
+
+Note that only a very small subset of SVG is currently supported; it's just enough so that
+it renders a simple graph made by Scruffy.
