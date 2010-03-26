@@ -135,11 +135,14 @@ class Prawn::Svg
       calls << ['text_box', [element.text, opts], []]
 
     when 'line'
+      return unless attrs['x1'] && attrs['y1'] && attrs['x2'] && attrs['y2']      
       calls << ['line', [x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])], []]
 
     when 'polyline'
+      return unless attrs['points']
       points = attrs['points'].split(/\s+/)
-      x, y = points.shift.split(",")
+      return unless base_point = points.shift
+      x, y = base_point.split(",")
       calls << ['move_to', [x(x), y(y)], []]
       calls << ['stroke', [], []]
       calls = calls.last.last
@@ -149,6 +152,7 @@ class Prawn::Svg
       end
     
     when 'polygon'
+      return unless attrs['points']      
       points = attrs['points'].split(/\s+/).collect do |point|
         x, y = point.split(",")
         [x(x), y(y)]
@@ -156,16 +160,19 @@ class Prawn::Svg
       calls << ["polygon", points, []]      
       
     when 'circle'
+      return unless attrs['r']      
       calls << ["circle_at", 
         [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], {:radius => distance(attrs['r'])}], 
         []]
       
     when 'ellipse'
+      return unless attrs['rx'] && attrs['ry']
       calls << ["ellipse_at", 
         [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])],
         []]
       
     when 'rect'
+      return unless attrs['x'] && attrs['y'] && attrs['width'] && attrs['height']
       radius = distance(attrs['rx'] || attrs['ry'])
       args = [[x(attrs['x']), y(attrs['y'])], distance(attrs['width']), distance(attrs['height'])]
       if radius
