@@ -1,4 +1,4 @@
-The very start of an SVG renderer for Prawn.
+An SVG renderer for the Prawn PDF library.
 
 This will take an SVG file as input and render it into your PDF.  Find out more about the Prawn PDF library at:
 
@@ -32,7 +32,7 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
   attributes: size, text-anchor
   partially supported attributes: font-family
   
-- attributes/styles: fill, stroke, stroke_width, opacity, fill_opacity, stroke_opacity, transform
+- attributes/styles: fill, stroke, stroke-width, opacity, fill-opacity, stroke-opacity, transform
 
 - transform methods: translate, rotate, scale
 
