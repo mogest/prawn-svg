@@ -280,18 +280,18 @@ class Prawn::Svg
   end
   
   def x(value)
-    (pixels(value) - @x_offset) * scale
+    (points(value) - @x_offset) * scale
   end
   
   def y(value)
-    (@actual_height - (pixels(value) - @y_offset)) * scale
+    (@actual_height - (points(value) - @y_offset)) * scale
   end
   
   def distance(value)
-    value && (pixels(value) * scale)
+    value && (points(value) * scale)
   end
   
-  def pixels(value)
+  def points(value)
     if value.is_a?(String) && match = value.match(/\d(cm|dm|ft|in|m|mm|yd)$/)
       send("#{match[1]}2pt", value.to_f)
     else

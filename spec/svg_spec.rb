@@ -29,6 +29,25 @@ describe Prawn::Svg do
     end
   end
   
+  describe :points do
+    before(:each) do
+      @svg = Prawn::Svg.new(nil, nil, {})
+    end
+
+    it "converts a variety of measurement units to points" do
+      @svg.send(:points, 32).should == 32.0      
+      @svg.send(:points, 32.0).should == 32.0      
+      @svg.send(:points, "32").should == 32.0
+      @svg.send(:points, "32unknown").should == 32.0
+      @svg.send(:points, "32pt").should == 32.0      
+      @svg.send(:points, "32in").should == 32.0 * 72
+      @svg.send(:points, "32ft").should == 32.0 * 72 * 12
+      @svg.send(:points, "32mm").should be_close(32 * 72 * 0.0393700787, 0.0001)
+      @svg.send(:points, "32cm").should be_close(32 * 72 * 0.393700787, 0.0001)
+      @svg.send(:points, "32m").should be_close(32 * 72 * 39.3700787, 0.0001)
+    end
+  end
+  
   it "renders all sample svg files without crashing" do
     Dir["spec/sample_svg/*.svg"].each do |file|
       Prawn::Document.generate("spec/sample_output/#{File.basename file}.pdf") do
