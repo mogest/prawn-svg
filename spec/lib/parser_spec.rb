@@ -1,10 +1,9 @@
 require 'spec_helper'
-require 'prawn'
 
-describe Prawn::Svg do
+describe Prawn::Svg::Parser do
   describe :color_to_hex do
     before(:each) do
-      @svg = Prawn::Svg.new(nil, nil, {})
+      @svg = Prawn::Svg::Parser.new(nil, {})
     end
     
     it "converts #xxx to a hex value" do
@@ -31,7 +30,7 @@ describe Prawn::Svg do
   
   describe :points do
     before(:each) do
-      @svg = Prawn::Svg.new(nil, nil, {})
+      @svg = Prawn::Svg::Parser.new(nil, {})
     end
 
     it "converts a variety of measurement units to points" do
@@ -45,14 +44,6 @@ describe Prawn::Svg do
       @svg.send(:points, "32mm").should be_close(32 * 72 * 0.0393700787, 0.0001)
       @svg.send(:points, "32cm").should be_close(32 * 72 * 0.393700787, 0.0001)
       @svg.send(:points, "32m").should be_close(32 * 72 * 39.3700787, 0.0001)
-    end
-  end
-  
-  it "renders all sample svg files without crashing" do
-    Dir["spec/sample_svg/*.svg"].each do |file|
-      Prawn::Document.generate("spec/sample_output/#{File.basename file}.pdf") do
-        svg IO.read(file), :at => [0, y], :width => 500
-      end
     end
   end
 end

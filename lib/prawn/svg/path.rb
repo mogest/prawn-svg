@@ -1,4 +1,4 @@
-class Prawn::Svg::Path
+class Prawn::Svg::Parser::Path
   def parse(data)
     cmd = values = value = nil
     @subpath_initial_point = @last_point = nil
