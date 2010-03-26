@@ -1,32 +1,9 @@
-#
-# Renders a SVG document with Prawn
-#
-# Requires prawn and rexml
-#
-# Copyright 2010 Roger Nesbitt (http://seriousorange.com/)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-
 require 'rexml/document'
+require 'prawn'
 
 class Prawn::Svg
+  include Prawn::Measurements
+  
   attr_reader :data, :prawn, :options
   attr_accessor :scale
 
@@ -38,42 +15,35 @@ class Prawn::Svg
 
   def draw
     root = parse_document
-    @actual_width = root.attributes['width'].to_f
-    @actual_height = root.attributes['height'].to_f
-
     calculate_dimensions
 
-    prawn.bounding_box(@options[:at], :width => @width, :height => @height) do    
-      proc_creator(prawn, generate_call_tree(root)).call
+    prawn.bounding_box(@options[:at], :width => @width, :height => @height) do
+      prawn.save_graphics_state do
+        call_tree = generate_call_tree(root)
+        proc_creator(prawn, call_tree).call
+      end
     end
   end
   
-  def calculate_dimensions    
-    if @options[:width]
-      @width = @options[:width]      
-      @scale = @options[:width] / @actual_width.to_f
-    elsif @options[:height]
-      @height = @options[:height]
-      @scale = @options[:height] / @actual_height.to_f
-    else
-      @scale = 1
-    end
-    
-    @width ||= @actual_width * @scale
-    @height ||= @actual_height * @scale
-  end        
+  def generate_call_tree(element)
+    [].tap {|calls| parse_element(element, calls, {})}
+  end
   
+  
+  protected  
   def proc_creator(prawn, calls)
-    Proc.new do
-      calls.each do |call, arguments, children|
-        if children.empty?
-          rewrite_call_arguments(prawn, call, arguments)
-          prawn.send(call, *arguments)
-        else
-          prawn.send(call, *arguments, &proc_creator(prawn, children))
-        end
+    Proc.new {issue_prawn_command(prawn, calls)}
+  end
+  
+  def issue_prawn_command(prawn, calls)
+    calls.each do |call, arguments, children|
+      if children.empty?
+        rewrite_call_arguments(prawn, call, arguments)
+        prawn.send(call, *arguments)
+      else
+        prawn.send(call, *arguments, &proc_creator(prawn, children))
       end
-    end    
+    end
   end
   
   def rewrite_call_arguments(prawn, call, arguments)
@@ -89,47 +59,69 @@ class Prawn::Svg
   end
 
   def parse_document
-    REXML::Document.new(@data).root
+    REXML::Document.new(@data).root.tap do |root|    
+      if vb = root.attributes['viewBox']
+        x1, y1, x2, y2 = vb.strip.split(/\s+/)
+        @x_offset, @y_offset = [x1.to_f, y1.to_f]
+        @actual_width, @actual_height = [x2.to_f - x1.to_f, y2.to_f - y1.to_f]
+      else
+        @x_offset, @y_offset = [0, 0]
+        @actual_width = root.attributes['width'].to_f
+        @actual_height = root.attributes['height'].to_f
+      end
+    end
   end
-  
-  def generate_call_tree(element)
-    [].tap {|calls| parse_element(element, calls)}
-  end
-  
-  private
-  def parse_element(element, calls)
+    
+  def parse_element(element, calls, state)
     attrs = element.attributes
 
     if transform = attrs['transform']
       parse_css_method_calls(transform).each do |name, arguments|
         case name
         when 'translate'
-          calls << [name, [distance(arguments.first), -distance(arguments.second)], []]
+          x, y = arguments
+          x, y = x.split(/\s+/) if y.nil?
+          calls << [name, [distance(x), -distance(y)], []]
           calls = calls.last.last
-        when 'rotate'
-          rotation = arguments.first.to_f
-          if rotation != 0
-            calls << [name, [rotation], []]
-            calls = calls.last.last
-          end
+        when 'rotate'          
+          calls << [name, [-arguments.first.to_f, {:origin => [0, y('0')]}], []]
+          calls = calls.last.last
+        when 'scale'
+          calls << [name, [arguments.first.to_f], []]
+          calls = calls.last.last
         else
-          raise "unknown transformation '#{name}'"
+          #raise "unknown transformation '#{name}'"
         end
       end
     end
 
-    calls, style_attrs, draw_type = apply_styles(attrs, calls)
+    calls, style_attrs, draw_type = apply_styles(attrs, calls, state)    
+
+    state[:draw_type] = draw_type if draw_type != ""
+    if state[:draw_type] && !%w(g svg).include?(element.name)
+      calls << [state[:draw_type], [], []]
+      calls = calls.last.last
+    end
   
     case element.name
-    when 'defs'
-      # skip over the defs section
+    when 'defs', 'desc'
+      # ignore these tags
       
     when 'g', 'svg'
       element.elements.each do |child|
-        parse_element(child, calls)
+        parse_element(child, calls, state.dup)
       end
 
     when 'text'
+      # very primitive support for fonts
+      if (font = style_attrs['font-family']) && !font.match(/[\/\\]/)
+        font = font.strip
+        if font != ""
+          calls << ['font', [font], []]
+          calls = calls.last.last
+        end
+      end
+      
       opts = {:at => [x(attrs['x']), y(attrs['y'])]}
       if size = style_attrs['font-size']
         opts[:size] = size.to_f * @scale
@@ -143,20 +135,60 @@ class Prawn::Svg
       calls << ['text_box', [element.text, opts], []]
 
     when 'line'
-      calls << ['stroke_line', [x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])], []]
+      calls << ['line', [x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])], []]
 
     when 'polyline'
-      attrs['points'].split(/\s+/).each_cons(2) do |point_a, point_b|
-        x1, y1 = point_a.split(",")
-        x2, y2 = point_b.split(",")
-        calls << ['stroke_line', [x(x1), y(y1), x(x2), y(y2)], []]
+      points = attrs['points'].split(/\s+/)
+      x, y = points.shift.split(",")
+      calls << ['move_to', [x(x), y(y)], []]
+      calls << ['stroke', [], []]
+      calls = calls.last.last
+      points.each do |point|
+        x, y = point.split(",")
+        calls << ["line_to", [x(x), y(y)], []]
+      end
+    
+    when 'polygon'
+      points = attrs['points'].split(/\s+/).collect do |point|
+        x, y = point.split(",")
+        [x(x), y(y)]
+      end
+      calls << ["polygon", points, []]      
+      
+    when 'circle'
+      calls << ["circle_at", 
+        [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], {:radius => distance(attrs['r'])}], 
+        []]
+      
+    when 'ellipse'
+      calls << ["ellipse_at", 
+        [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])],
+        []]
+      
+    when 'rect'
+      radius = distance(attrs['rx'] || attrs['ry'])
+      args = [[x(attrs['x']), y(attrs['y'])], distance(attrs['width']), distance(attrs['height'])]
+      if radius
+        # n.b. does not support both rx and ry being specified with different values
+        calls << ["rounded_rectangle", args + [radius], []]
+      else
+        calls << ["rectangle", args, []]
       end
       
-    when 'rect'      
-      raise "one of fill or stroke must be specified" if draw_type.blank?
-      calls << ["#{draw_type}_rectangle", [[x(attrs['x']), y(attrs['y'])], distance(attrs['width']), distance(attrs['height'])], []]
-      
-    else raise "unknown tag #{element.name}"
+    when 'path'
+      @svg_path ||= Path.new
+      @svg_path.parse(attrs['d']).each do |command, args|
+        point_to = [x(args[0]), y(args[1])]
+        if command == 'curve_to'
+          bounds = [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]
+          calls << [command, [point_to, {:bounds => bounds}], []]
+        else
+          calls << [command, point_to, []]
+        end
+      end
+
+    else 
+      #raise "unknown tag #{element.name}"
     end
   end
   
@@ -164,21 +196,33 @@ class Prawn::Svg
     # copied from css_parser
     declarations.gsub!(/(^[\s]*)|([\s]*$)/, '')
 
-    declarations.split(/[\;$]+/m).each_with_object({}) do |decs, o|
-      if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
-        property, value, end_of_declaration = matches.captures
-        o[property] = value
+    {}.tap do |o|
+      declarations.split(/[\;$]+/m).each do |decs|
+        if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
+          property, value, end_of_declaration = matches.captures
+          o[property] = value
+        end
       end
     end
   end
   
-  def apply_styles(attrs, calls)
+  def apply_styles(attrs, calls, state)
+    draw_types = []
+
     decs = attrs["style"] ? parse_css_declarations(attrs["style"]) : {}
     attrs.each {|n,v| decs[n] = v unless decs[n]}
+            
+    # Opacity:
+    # We can't do nested opacities quite like the SVG requires, but this is close enough.
+    fill_opacity = stroke_opacity = clamp(decs['opacity'].to_f, 0, 1) if decs['opacity']
+    fill_opacity = clamp(decs['fill-opacity'].to_f, 0, 1) if decs['fill-opacity']
+    stroke_opacity = clamp(decs['stroke-opacity'].to_f, 0, 1) if decs['stroke-opacity']
     
-    draw_types = []
-    if decs['fill-opacity']
-      calls << ['transparent', [decs['fill-opacity'].to_f, 1], []] 
+    if fill_opacity || stroke_opacity      
+      state[:fill_opacity] = (state[:fill_opacity] || 1) * (fill_opacity || 1)
+      state[:stroke_opacity] = (state[:stroke_opacity] || 1) * (stroke_opacity || 1)
+
+      calls << ['transparent', [state[:fill_opacity], state[:stroke_opacity]], []] 
       calls = calls.last.last
     end
 
@@ -196,7 +240,7 @@ class Prawn::Svg
       draw_types << 'stroke'
     end
     
-    calls << ['line_width', [decs['stroke-width'].to_f], []] if decs['stroke-width']          
+    calls << ['line_width', [distance(decs['stroke-width'])], []] if decs['stroke-width']          
         
     [calls, decs, draw_types.join("_and_")]
   end
@@ -208,28 +252,69 @@ class Prawn::Svg
       [name, arguments]
     end    
   end
+
+  # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords
+  HTML_COLORS = {    
+  	'black' => "000000", 'green' => "008000", 'silver' => "c0c0c0", 'lime' => "00ff00",
+  	'gray' => "808080", 'olive' => "808000", 'white' => "ffffff", 'yellow' => "ffff00",
+  	'maroon' => "800000", 'navy' => "000080", 'red' => "ff0000", 'blue' => "0000ff",
+  	'purple' => "800080", 'teal' => "008080", 'fuchsia' => "ff00ff", 'aqua' => "00ffff"
+  }.freeze
   
-  def color_to_hex(color)
-    html_colors = {"black" => "000000", "white" => "ffffff"} # TODO - get the official list from somewhere
-    
-    color = color.split(' ').last # we always take the fallback option
-    
-    if color.first == "#"
-      color[1..-1]
-    elsif hex = html_colors[color.downcase]
-      hex
-    end    
+  def color_to_hex(color_string)
+    color_string.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
+      if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
+        break "#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}"
+      elsif color.match(/\A#[0-9a-f]{6}\z/i)
+        break color[1..6]
+      elsif hex = HTML_COLORS[color.downcase]
+        break hex
+      elsif m = color.match(/\Argb\(\s*(-?[0-9.]+%?)\s*,\s*(-?[0-9.]+%?)\s*,\s*(-?[0-9.]+%?)\s*\)\z/i)
+        break (1..3).collect do |n|
+          value = m[n].to_f
+          value *= 2.55 if m[n][-1..-1] == '%'
+          "%02x" % clamp(value.round, 0, 255)
+        end.join        
+      end    
+    end
   end
   
   def x(value)
-    value.to_f * scale
+    (pixels(value) - @x_offset) * scale
   end
   
   def y(value)
-    (@actual_height - (value.to_f)) * scale
+    (@actual_height - (pixels(value) - @y_offset)) * scale
   end
   
   def distance(value)
-    value.to_f * scale
+    value && (pixels(value) * scale)
   end
+  
+  def pixels(value)
+    if value.is_a?(String) && match = value.match(/\d(cm|dm|ft|in|m|mm|yd)$/)
+      send("#{match[1]}2pt", value.to_f)
+    else
+      value.to_f
+    end
+  end
+  
+  def calculate_dimensions    
+    if @options[:width]
+      @width = @options[:width]      
+      @scale = @options[:width] / @actual_width.to_f
+    elsif @options[:height]
+      @height = @options[:height]
+      @scale = @options[:height] / @actual_height.to_f
+    else
+      @scale = 1
+    end
+    
+    @width ||= @actual_width * @scale
+    @height ||= @actual_height * @scale
+  end
+  
+  def clamp(value, min_value, max_value)
+    [[value, min_value].max, max_value].min
+  end  
 end
