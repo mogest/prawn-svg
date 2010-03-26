@@ -1,11 +1,36 @@
 require 'spec_helper'
 
 describe Prawn::Svg::Parser do
-  describe :color_to_hex do
-    before(:each) do
-      @svg = Prawn::Svg::Parser.new(nil, {})
+  before(:each) do
+    @svg = Prawn::Svg::Parser.new(nil, {})
+  end
+  
+  describe :parse_element do
+    def mock_element(name, attributes = {})
+      mock("Element").tap do |m|
+        m.stub!(:name).and_return(name)
+        m.stub!(:attributes).and_return(attributes)
+      end
     end
     
+    it "ignores tags it doesn't know about" do
+      calls = []
+      @svg.send :parse_element, mock_element("unknown"), calls, {}
+      calls.should == []
+      @svg.warnings.length.should == 1
+      @svg.warnings.first.should include("Unknown tag")
+    end
+    
+    it "ignores tags that don't have all required attributes set" do
+      calls = []
+      @svg.send :parse_element, mock_element("ellipse", "rx" => "1"), calls, {}
+      calls.should == []
+      @svg.warnings.length.should == 1
+      @svg.warnings.first.should include("Must have attributes ry on tag ellipse")
+    end
+  end
+  
+  describe :color_to_hex do
     it "converts #xxx to a hex value" do
       @svg.send(:color_to_hex, "#9ab").should == "99aabb"
     end
@@ -29,10 +54,6 @@ describe Prawn::Svg::Parser do
   end
   
   describe :points do
-    before(:each) do
-      @svg = Prawn::Svg::Parser.new(nil, {})
-    end
-
     it "converts a variety of measurement units to points" do
       @svg.send(:points, 32).should == 32.0      
       @svg.send(:points, 32.0).should == 32.0      

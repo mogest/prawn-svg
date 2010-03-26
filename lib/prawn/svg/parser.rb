@@ -1,14 +1,37 @@
 require 'rexml/document'
 
+#
+# Prawn::Svg::Parser is responsible for parsing an SVG file and converting it into a tree of
+# prawn-compatible method calls.
+#
+# You probably do not want to use this class directly.  Instead, use Prawn::Svg to draw
+# SVG data to your Prawn::Document object.
+#
+# This class is not passed the prawn object, so knows nothing about
+# prawn specifically - this might be useful if you want to take this code and use it to convert
+# SVG to another format.
+#
 class Prawn::Svg::Parser
   include Prawn::Measurements
   
   attr_reader :width, :height
+  
+  # An +Array+ of warnings that occurred while parsing the SVG data.
+  attr_reader :warnings
+
+  # The scaling factor, as determined by the :width or :height options.
   attr_accessor :scale
   
+  #
+  # Construct a Parser object.  
+  #
+  # The +data+ argument is SVG data.  +options+ can optionally contain
+  # the key :width or :height.  If both are specified, only :width will be used.
+  #
   def initialize(data, options)
     @data = data
     @options = options
+    @warnings = []
     
     if data
       parse_document
@@ -16,12 +39,23 @@ class Prawn::Svg::Parser
     end
   end
 
+  #
+  # Parse the SVG data and return a call tree.  The returned +Array+ is in the format:
+  #
+  #   [
+  #     ['prawn_method_name', ['argument1', 'argument2'], []],
+  #     ['method_that_takes_a_block', ['argument1', 'argument2'], [
+  #       ['method_called_inside_block', ['argument'], []]
+  #     ]
+  #   ]
+  #
   def parse
+    @warnings = []
     [].tap {|calls| parse_element(@root, calls, {})}
   end
 
 
-  protected  
+  private  
   def parse_document
     @root = REXML::Document.new(@data).root
 
@@ -35,6 +69,16 @@ class Prawn::Svg::Parser
       @actual_height = @root.attributes['height'].to_f
     end
   end
+    
+  REQUIRED_ATTRIBUTES = {
+    "line"      => %w(x1 y1 x2 y2),
+    "polyline"  => %w(points),
+    "polygon"   => %w(points),
+    "circle"    => %w(r),
+    "ellipse"   => %w(rx ry),
+    "rect"      => %w(x y width height),
+    "path"      => %w(d)    
+  }
     
   def parse_element(element, calls, state)
     attrs = element.attributes
@@ -54,7 +98,7 @@ class Prawn::Svg::Parser
           calls << [name, [arguments.first.to_f], []]
           calls = calls.last.last
         else
-          #raise "unknown transformation '#{name}'"
+          @warnings << "Unknown transformation '#{name}'; ignoring"
         end
       end
     end
@@ -65,6 +109,10 @@ class Prawn::Svg::Parser
     if state[:draw_type] && !%w(g svg).include?(element.name)
       calls << [state[:draw_type], [], []]
       calls = calls.last.last
+    end
+    
+    if required_attributes = REQUIRED_ATTRIBUTES[element.name]
+      return unless check_attrs_present(element, required_attributes)
     end
   
     case element.name
@@ -99,11 +147,9 @@ class Prawn::Svg::Parser
       calls << ['text_box', [element.text, opts], []]
 
     when 'line'
-      return unless attrs['x1'] && attrs['y1'] && attrs['x2'] && attrs['y2']      
       calls << ['line', [x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])], []]
 
     when 'polyline'
-      return unless attrs['points']
       points = attrs['points'].split(/\s+/)
       return unless base_point = points.shift
       x, y = base_point.split(",")
@@ -116,7 +162,6 @@ class Prawn::Svg::Parser
       end
     
     when 'polygon'
-      return unless attrs['points']      
       points = attrs['points'].split(/\s+/).collect do |point|
         x, y = point.split(",")
         [x(x), y(y)]
@@ -124,19 +169,16 @@ class Prawn::Svg::Parser
       calls << ["polygon", points, []]      
       
     when 'circle'
-      return unless attrs['r']      
       calls << ["circle_at", 
         [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], {:radius => distance(attrs['r'])}], 
         []]
       
     when 'ellipse'
-      return unless attrs['rx'] && attrs['ry']
       calls << ["ellipse_at", 
         [[x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])],
         []]
       
     when 'rect'
-      return unless attrs['x'] && attrs['y'] && attrs['width'] && attrs['height']
       radius = distance(attrs['rx'] || attrs['ry'])
       args = [[x(attrs['x']), y(attrs['y'])], distance(attrs['width']), distance(attrs['height'])]
       if radius
@@ -148,7 +190,15 @@ class Prawn::Svg::Parser
       
     when 'path'
       @svg_path ||= Path.new
-      @svg_path.parse(attrs['d']).each do |command, args|
+
+      begin
+        commands = @svg_path.parse(attrs['d'])
+      rescue Prawn::Svg::Parser::Path::InvalidError => e
+        commands = []
+        @warnings << e.message
+      end
+
+      commands.each do |command, args|
         point_to = [x(args[0]), y(args[1])]
         if command == 'curve_to'
           bounds = [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]
@@ -159,7 +209,7 @@ class Prawn::Svg::Parser
       end
 
     else 
-      #raise "unknown tag #{element.name}"
+      @warnings << "Unknown tag '#{element.name}'; ignoring"
     end
   end
   
@@ -232,6 +282,9 @@ class Prawn::Svg::Parser
   	'purple' => "800080", 'teal' => "008080", 'fuchsia' => "ff00ff", 'aqua' => "00ffff"
   }.freeze
   
+  RGB_VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
+  RGB_REGEXP = /\Argb\(#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP}\)\z/i
+  
   def color_to_hex(color_string)
     color_string.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
       if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
@@ -240,7 +293,7 @@ class Prawn::Svg::Parser
         break color[1..6]
       elsif hex = HTML_COLORS[color.downcase]
         break hex
-      elsif m = color.match(/\Argb\(\s*(-?[0-9.]+%?)\s*,\s*(-?[0-9.]+%?)\s*,\s*(-?[0-9.]+%?)\s*\)\z/i)
+      elsif m = color.match(RGB_REGEXP)
         break (1..3).collect do |n|
           value = m[n].to_f
           value *= 2.55 if m[n][-1..-1] == '%'
@@ -288,4 +341,12 @@ class Prawn::Svg::Parser
   def clamp(value, min_value, max_value)
     [[value, min_value].max, max_value].min
   end  
+  
+  def check_attrs_present(element, attrs)
+    missing_attrs = attrs - element.attributes.keys
+    if missing_attrs.any?
+      @warnings << "Must have attributes #{missing_attrs.join(", ")} on tag #{element.name}; skipping tag"
+    end
+    missing_attrs.empty?
+  end
 end

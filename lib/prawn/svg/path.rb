@@ -1,17 +1,28 @@
 class Prawn::Svg::Parser::Path
+  # Raised if the SVG path cannot be parsed.
+  InvalidError = Class.new(StandardError)
+
+  #
+  # Parses an SVG path and returns a Prawn-compatible call tree.
+  #
   def parse(data)
-    cmd = values = value = nil
+    cmd = values = nil
+    value = ""
     @subpath_initial_point = @last_point = nil
     @previous_control_point = @previous_quadratic_control_point = nil
     @calls = []
 
     data.each_char do |c|
       if c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z'
+        values << value.to_f if value != ""
         run_path_command(cmd, values) if cmd
         cmd = c
         values = []
         value = ""
       elsif c >= '0' && c <= '9' || c == '.' || c == "-"
+        unless cmd
+          raise InvalidError, "Numerical value specified before character command in SVG path data"
+        end
         value << c
       elsif c == ' ' || c == "\t" || c == "\r" || c == "\n" || c == ","
         if value != ""
@@ -19,7 +30,7 @@ class Prawn::Svg::Parser::Path
           value = ""
         end
       else
-        raise "invalid character '#{c}' in path data"
+        raise InvalidError, "Invalid character '#{c}' in SVG path data"
       end
     end
     
@@ -29,6 +40,8 @@ class Prawn::Svg::Parser::Path
     @calls
   end
   
+  
+  private
   def run_path_command(command, values)
     upcase_command = command.upcase
     relative = command != upcase_command

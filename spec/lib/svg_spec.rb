@@ -10,9 +10,10 @@ describe Prawn::Svg do
     end
     
     files.each do |file|
-      it "renders the #{File.basename file} sample file without crashing" do
+      it "renders the #{File.basename file} sample file without warnings or crashing" do
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do
-          svg IO.read(file), :at => [0, y], :width => 500
+          r = svg IO.read(file), :at => [0, y], :width => 500
+          r[:warnings].should == []
         end
       end
     end

@@ -38,4 +38,6 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
 
 - colors: html standard names, #xxx, #xxxxxx, rgb(1, 2, 3), rgb(1%, 2%, 3%)
 
+- measurements specified in pt, cm, dm, ft, in, m, mm, yd
+
 prawn-svg does NOT support CSS classes, named elements, anything in the defs tag, the tspan tag, gradients/patterns or markers.
