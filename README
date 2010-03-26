@@ -13,5 +13,29 @@ Using prawn-svg:
 :at must be specified.  :width, :height, or neither may be specified; if neither is present,
 the resolution specified in the SVG will be used.
 
-Note that only a very small subset of SVG is currently supported.  It's just enough so that
-it renders a simple graph made by Scruffy.
+prawn-svg is in its infancy and does not support the full SVG specifications.  It currently supports:
+
+- line tag
+- polyline tag
+- polygon tag
+- circle tag
+- ellipse tag (although this seems to be buggy)
+
+- rect tag
+  supports rounded rects, but only one radius is applied to all corners
+
+- path tag
+  supports moveto, closepath, lineto, horiz lineto, vert lineto, curveto, smooth curveto, quad curveto, smooth quad curveto
+  does not support elliptical arc
+
+- text tag
+  attributes: size, text-anchor
+  partially supported attributes: font-family
+  
+- attributes/styles: fill, stroke, stroke_width, opacity, fill_opacity, stroke_opacity, transform
+
+- transform methods: translate, rotate, scale
+
+- colors: html standard names, #xxx, #xxxxxx, rgb(1, 2, 3), rgb(1%, 2%, 3%)
+
+prawn-svg does NOT support CSS classes, named elements, anything in the defs tag, the tspan tag, gradients/patterns or markers.
