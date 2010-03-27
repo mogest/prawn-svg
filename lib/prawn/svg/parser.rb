@@ -12,6 +12,13 @@ require 'rexml/document'
 # SVG to another format.
 #
 class Prawn::Svg::Parser
+  begin
+    require 'css_parser'
+    CSS_PARSER_LOADED = true
+  rescue LoadError
+    CSS_PARSER_LOADED = false
+  end
+  
   include Prawn::Measurements
   
   attr_reader :width, :height
@@ -32,6 +39,7 @@ class Prawn::Svg::Parser
     @data = data
     @options = options
     @warnings = []
+    @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
     
     if data
       parse_document
@@ -82,35 +90,8 @@ class Prawn::Svg::Parser
     
   def parse_element(element, calls, state)
     attrs = element.attributes
+    calls, style_attrs = apply_styles(element, calls, state)    
 
-    if transform = attrs['transform']
-      parse_css_method_calls(transform).each do |name, arguments|
-        case name
-        when 'translate'
-          x, y = arguments
-          x, y = x.split(/\s+/) if y.nil?
-          calls << [name, [distance(x), -distance(y)], []]
-          calls = calls.last.last
-        when 'rotate'          
-          calls << [name, [-arguments.first.to_f, {:origin => [0, y('0')]}], []]
-          calls = calls.last.last
-        when 'scale'
-          calls << [name, [arguments.first.to_f], []]
-          calls = calls.last.last
-        else
-          @warnings << "Unknown transformation '#{name}'; ignoring"
-        end
-      end
-    end
-
-    calls, style_attrs, draw_type = apply_styles(attrs, calls, state)    
-
-    state[:draw_type] = draw_type if draw_type != ""
-    if state[:draw_type] && !%w(g svg).include?(element.name)
-      calls << [state[:draw_type], [], []]
-      calls = calls.last.last
-    end
-    
     if required_attributes = REQUIRED_ATTRIBUTES[element.name]
       return unless check_attrs_present(element, required_attributes)
     end
@@ -123,9 +104,22 @@ class Prawn::Svg::Parser
       element.elements.each do |child|
         parse_element(child, calls, state.dup)
       end
+    
+    when 'style'
+      if @css_parser
+        data = if element.cdatas.any?
+          element.cdatas.collect(&:to_s).join
+        else
+          element.text
+        end
+      
+        @css_parser.add_block!(data) 
+      end
 
     when 'text'
-      # very primitive support for fonts
+      # Very primitive support for font-family; it won't work in most cases because
+      # PDF only has a few built-in fonts, and they're not the same as the names
+      # used typically with the web fonts.
       if (font = style_attrs['font-family']) && !font.match(/[\/\\]/)
         font = font.strip
         if font != ""
@@ -139,7 +133,8 @@ class Prawn::Svg::Parser
         opts[:size] = size.to_f * @scale
       end
             
-      # This is not a prawn option but we can't work out how to render it here - it's handled by #rewrite_call
+      # This is not a prawn option but we can't work out how to render it here -
+      # it's handled by Svg#rewrite_call_arguments
       if anchor = style_attrs['text-anchor']
         opts[:text_anchor] = anchor        
       end
@@ -227,11 +222,55 @@ class Prawn::Svg::Parser
     end
   end
   
-  def apply_styles(attrs, calls, state)
-    draw_types = []
+  def determine_style_for(element)
+    if @css_parser
+      tag_style = @css_parser.find_by_selector(element.name)
+      id_style = @css_parser.find_by_selector("##{element.attributes["id"]}") if element.attributes["id"]
+      
+      if classes = element.attributes["class"]
+        class_styles = classes.strip.split(/\s+/).collect do |class_name|
+          @css_parser.find_by_selector(".#{class_name}")
+        end
+      end
+      
+      element_style = element.attributes['style']
 
-    decs = attrs["style"] ? parse_css_declarations(attrs["style"]) : {}
-    attrs.each {|n,v| decs[n] = v unless decs[n]}
+      style = [tag_style, class_styles, id_style, element_style].flatten.collect do |s|
+        s.nil? || s.strip == "" ? "" : "#{s}#{";" unless s.match(/;\s*\z/)}"
+      end.join
+    else
+      style = element.attributes['style'] || ""
+    end
+
+    decs = parse_css_declarations(style)
+    element.attributes.each {|n,v| decs[n] = v unless decs[n]}
+    decs
+  end
+  
+  def apply_styles(element, calls, state)
+    decs = determine_style_for(element)    
+    draw_types = []
+    
+    # Transform
+    if transform = decs['transform']
+      parse_css_method_calls(transform).each do |name, arguments|
+        case name
+        when 'translate'
+          x, y = arguments
+          x, y = x.split(/\s+/) if y.nil?
+          calls << [name, [distance(x), -distance(y)], []]
+          calls = calls.last.last
+        when 'rotate'          
+          calls << [name, [-arguments.first.to_f, {:origin => [0, y('0')]}], []]
+          calls = calls.last.last
+        when 'scale'
+          calls << [name, [arguments.first.to_f], []]
+          calls = calls.last.last
+        else
+          @warnings << "Unknown transformation '#{name}'; ignoring"
+        end
+      end
+    end    
             
     # Opacity:
     # We can't do nested opacities quite like the SVG requires, but this is close enough.
@@ -247,6 +286,7 @@ class Prawn::Svg::Parser
       calls = calls.last.last
     end
 
+    # Fill and stroke
     if decs['fill'] && decs['fill'] != "none"
       if color = color_to_hex(decs['fill'])
         calls << ['fill_color', [color], []]
@@ -261,9 +301,16 @@ class Prawn::Svg::Parser
       draw_types << 'stroke'
     end
     
-    calls << ['line_width', [distance(decs['stroke-width'])], []] if decs['stroke-width']          
+    calls << ['line_width', [distance(decs['stroke-width'])], []] if decs['stroke-width']  
+    
+    draw_type = draw_types.join("_and_")
+    state[:draw_type] = draw_type if draw_type != ""
+    if state[:draw_type] && !%w(g svg).include?(element.name)
+      calls << [state[:draw_type], [], []]
+      calls = calls.last.last
+    end            
         
-    [calls, decs, draw_types.join("_and_")]
+    [calls, decs]
   end
   
   def parse_css_method_calls(string)

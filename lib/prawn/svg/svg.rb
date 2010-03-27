@@ -49,17 +49,21 @@ class Prawn::Svg
   
   def issue_prawn_command(prawn, calls)
     calls.each do |call, arguments, children|
-      if children.empty?
-        rewrite_call_arguments(prawn, call, arguments)
-        prawn.send(call, *arguments)
+      if rewrite_call_arguments(prawn, call, arguments) == false
+        issue_prawn_command(prawn, children) if children.any?
       else
-        prawn.send(call, *arguments, &proc_creator(prawn, children))
+        if children.empty?
+          prawn.send(call, *arguments)
+        else
+          prawn.send(call, *arguments, &proc_creator(prawn, children))
+        end
       end
     end
   end
   
   def rewrite_call_arguments(prawn, call, arguments)
-    if call == 'text_box'
+    case call
+    when 'text_box'
       if (anchor = arguments.last.delete(:text_anchor)) && %w(middle end).include?(anchor)
         width = prawn.width_of(*arguments)
         width /= 2 if anchor == 'middle'
@@ -67,6 +71,12 @@ class Prawn::Svg
       end
       
       arguments.last[:at][1] += prawn.height_of(*arguments) / 3 * 2
+      
+    when 'font'
+      unless prawn.font_families.member?(arguments.first)      
+        @parser_warnings << "#{arguments.first} is not a known font."
+        false
+      end
     end
   end
 end
