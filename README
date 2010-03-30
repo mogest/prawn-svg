@@ -42,6 +42,6 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
 
 - measurements specified in pt, cm, dm, ft, in, m, mm, yd
 
-prawn-svg does NOT support named elements, anything in the defs tag, the tspan tag, gradients/patterns or markers.
+prawn-svg does NOT support named elements, external references, the tspan tag, gradients/patterns or markers.
 
 [1] If the css_parser gem is installed, it will handle CSS style definitions, but only simple tag, class or id definitions.
