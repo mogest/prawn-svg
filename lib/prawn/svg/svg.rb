@@ -26,7 +26,7 @@ class Prawn::Svg
     
     @options[:at] or raise "options[:at] must be specified"
 
-    @parser = Parser.new(data, options)
+    @parser = Parser.new(data, [prawn.bounds.width, prawn.bounds.height], options)
     @parser_warnings = @parser.warnings
   end
 

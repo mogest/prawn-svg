@@ -32,11 +32,16 @@ class Prawn::Svg::Parser
   #
   # Construct a Parser object.  
   #
-  # The +data+ argument is SVG data.  +options+ can optionally contain
+  # The +data+ argument is SVG data.  
+  #
+  # +bounds+ is a tuple [width, height] that specifies the bounds of the drawing space in points.
+  #
+  # +options+ can optionally contain
   # the key :width or :height.  If both are specified, only :width will be used.
   #
-  def initialize(data, options)
+  def initialize(data, bounds, options)
     @data = data
+    @bounds = bounds
     @options = options
     @warnings = []
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
@@ -66,6 +71,7 @@ class Prawn::Svg::Parser
   private  
   def parse_document
     @root = REXML::Document.new(@data).root
+    @actual_width, @actual_height = @bounds # set this first so % width/heights can be used
 
     if vb = @root.attributes['viewBox']
       x1, y1, x2, y2 = vb.strip.split(/\s+/)
@@ -73,8 +79,8 @@ class Prawn::Svg::Parser
       @actual_width, @actual_height = [x2.to_f - x1.to_f, y2.to_f - y1.to_f]
     else
       @x_offset, @y_offset = [0, 0]
-      @actual_width = @root.attributes['width'].to_f
-      @actual_height = @root.attributes['height'].to_f
+      @actual_width = points(@root.attributes['width'], :x)
+      @actual_height = points(@root.attributes['height'], :y)
     end
   end
     
@@ -361,20 +367,26 @@ class Prawn::Svg::Parser
   end
   
   def x(value)
-    (points(value) - @x_offset) * scale
+    (points(value, :x) - @x_offset) * scale
   end
   
   def y(value)
-    (@actual_height - (points(value) - @y_offset)) * scale
+    (@actual_height - (points(value, :y) - @y_offset)) * scale
   end
   
-  def distance(value)
-    value && (points(value) * scale)
+  def distance(value, axis = nil)
+    value && (points(value, axis) * scale)
   end
   
-  def points(value)
-    if value.is_a?(String) && match = value.match(/\d(cm|dm|ft|in|m|mm|yd)$/)
-      send("#{match[1]}2pt", value.to_f)
+  def points(value, axis = nil)
+    if value.is_a?(String)
+      if match = value.match(/\d(cm|dm|ft|in|m|mm|yd)$/)
+        send("#{match[1]}2pt", value.to_f)
+      elsif value[-1..-1] == "%"
+        value.to_f * (axis == :y ? @actual_height : @actual_width) / 100.0
+      else
+        value.to_f
+      end
     else
       value.to_f
     end

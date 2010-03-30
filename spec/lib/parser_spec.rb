@@ -2,7 +2,31 @@ require 'spec_helper'
 
 describe Prawn::Svg::Parser do
   before(:each) do
-    @svg = Prawn::Svg::Parser.new(nil, {})
+    @svg = Prawn::Svg::Parser.new(nil, [100, 100], {})
+  end
+  
+  describe "document width and height" do
+    it "handles the width and height being set as a %" do
+      svg = <<-SVG
+        <svg width="50%" height="50%" version="1.1">
+          <line x1="10%" y1="10%" x2="90%" y2="90%" />
+        </svg>
+      SVG
+    
+      parser = Prawn::Svg::Parser.new(svg, [2000, 2000], {})
+      parser.parse.should == [["line", [100.0, 900.0, 900.0, 100.0], []]]
+    end
+
+    it "handles the width and height being set in inches" do
+      svg = <<-SVG
+        <svg width="10in" height="10in" version="1.1">
+          <line x1="1in" y1="1in" x2="9in" y2="9in" />
+        </svg>
+      SVG
+    
+      parser = Prawn::Svg::Parser.new(svg, [2000, 2000], {})
+      parser.parse.should == [["line", [72.0, 720.0 - 72.0, 720.0 - 72.0, 72.0], []]]
+    end
   end
   
   describe :parse_element do
@@ -65,6 +89,11 @@ describe Prawn::Svg::Parser do
       @svg.send(:points, "32mm").should be_close(32 * 72 * 0.0393700787, 0.0001)
       @svg.send(:points, "32cm").should be_close(32 * 72 * 0.393700787, 0.0001)
       @svg.send(:points, "32m").should be_close(32 * 72 * 39.3700787, 0.0001)
+      
+      @svg.send :instance_variable_set, "@actual_width", 600
+      @svg.send :instance_variable_set, "@actual_height", 400
+      @svg.send(:points, "50%").should == 300
+      @svg.send(:points, "50%", :y).should == 200
     end
   end
 end
