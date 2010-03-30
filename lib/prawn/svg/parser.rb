@@ -95,26 +95,24 @@ class Prawn::Svg::Parser
     if required_attributes = REQUIRED_ATTRIBUTES[element.name]
       return unless check_attrs_present(element, required_attributes)
     end
-  
+    
     case element.name
-    when 'defs', 'desc'
-      # ignore these tags
+    when 'title', 'desc'
+      # ignore
       
     when 'g', 'svg'
       element.elements.each do |child|
         parse_element(child, calls, state.dup)
       end
     
-    when 'style'
-      if @css_parser
-        data = if element.cdatas.any?
-          element.cdatas.collect(&:to_s).join
-        else
-          element.text
-        end
-      
-        @css_parser.add_block!(data) 
+    when 'defs'
+      # Pass calls as a blank array so that nothing under this tag can be added to our call tree.
+      element.elements.each do |child|
+        parse_element(child, [], state.dup.merge(:display => false))
       end
+            
+    when 'style'
+      load_css_styles(element)
 
     when 'text'
       # Very primitive support for font-family; it won't work in most cases because
@@ -206,6 +204,18 @@ class Prawn::Svg::Parser
     else 
       @warnings << "Unknown tag '#{element.name}'; ignoring"
     end
+  end
+  
+  def load_css_styles(element)
+    if @css_parser
+      data = if element.cdatas.any?
+        element.cdatas.collect(&:to_s).join
+      else
+        element.text
+      end
+    
+      @css_parser.add_block!(data) 
+    end    
   end
   
   def parse_css_declarations(declarations)
