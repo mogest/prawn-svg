@@ -124,11 +124,12 @@ class Prawn::Svg::Parser
       # Very primitive support for font-family; it won't work in most cases because
       # PDF only has a few built-in fonts, and they're not the same as the names
       # used typically with the web fonts.
-      if (font = style_attrs['font-family']) && !font.match(/[\/\\]/)
-        font = font.strip
-        if font != ""
-          calls << ['font', [font], []]
+      if font_family = style_attrs["font-family"]
+        if font_family != "" && pdf_font = map_font_family_to_pdf_font(font_family)
+          calls << ['font', [pdf_font], []]
           calls = calls.last.last
+        else
+          @warnings << "#{font_family} is not a known font."
         end
       end
       
@@ -335,6 +336,35 @@ class Prawn::Svg::Parser
       arguments = argument_string.split(",").collect(&:strip)
       [name, arguments]
     end    
+  end
+  
+  BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"]
+  GENERIC_CSS_FONT_MAPPING = {
+    "serif"      => "Times-Roman",
+    "sans-serif" => "Helvetica",
+    "cursive"    => "Times-Roman",
+    "fantasy"    => "Times-Roman",
+    "monospace"  => "Courier"}
+    
+  def installed_fonts
+    @installed_fonts ||= Prawn::Svg.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten
+  end
+  
+  def map_font_family_to_pdf_font(font_family)
+    font_family.split(",").detect do |font|
+      font = font.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
+      
+      built_in_font = BUILT_IN_FONTS.detect {|f| f.downcase == font}
+      break built_in_font if built_in_font
+      
+      generic_font = GENERIC_CSS_FONT_MAPPING[font]
+      break generic_font if generic_font
+      
+      installed_font = installed_fonts.detect do |file|
+        (matches = File.basename(file).match(/(.+)\./)) && matches[1].downcase == font
+      end
+      break installed_font if installed_font
+    end
   end
 
   # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords

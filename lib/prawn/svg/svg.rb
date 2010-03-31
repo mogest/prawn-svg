@@ -3,7 +3,14 @@
 # SVG into Prawn-compatible method calls, and then calls the Prawn methods.
 #
 class Prawn::Svg
-  attr_reader :data, :prawn, :options
+  DEFAULT_FONT_PATHS = ["/Library/Fonts", "/usr/share/fonts/truetype/**"]
+
+  @font_path = []
+  DEFAULT_FONT_PATHS.each {|path| @font_path << path if File.exists?(path)}
+  
+  class << self; attr_accessor :font_path; end
+  
+  attr_reader :data, :prawn, :parser, :options
   
   # An +Array+ of warnings that occurred while parsing the SVG data.  If this array is non-empty,
   # it's likely that the SVG failed to render correctly.
@@ -71,12 +78,6 @@ class Prawn::Svg
       end
       
       arguments.last[:at][1] += prawn.height_of(*arguments) / 3 * 2
-      
-    when 'font'
-      unless prawn.font_families.member?(arguments.first)      
-        @parser_warnings << "#{arguments.first} is not a known font."
-        false
-      end
     end
   end
 end

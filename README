@@ -40,7 +40,14 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
 
 - colors: html standard names, #xxx, #xxxxxx, rgb(1, 2, 3), rgb(1%, 2%, 3%)
 
-- measurements specified in pt, cm, dm, ft, in, m, mm, yd
+- measurements specified in pt, cm, dm, ft, in, m, mm, yd, %
+
+- fonts: generic CSS fonts, built in PDF fonts, and any TTF fonts in your fonts path
+
+By default, prawn-svg has a fonts path of ["/Library/Fonts", "/usr/share/fonts/truetype/**"] to catch
+Mac OS X and Debian Linux users.  You can add to the font path:
+
+  Prawn::Svg.font_path << "/my/font/directory"
 
 prawn-svg does NOT support named elements, external references, the tspan tag, gradients/patterns or markers.
 

@@ -16,7 +16,7 @@ module Prawn
     def svg(data, options={})
       svg = Prawn::Svg.new(data, self, options)
       svg.draw
-      {:warnings => svg.parser_warnings}
+      {:warnings => svg.parser_warnings, :width => svg.parser.width, :height => svg.parser.height}
     end
   end
 end
