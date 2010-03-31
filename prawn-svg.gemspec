@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name = 'prawn-svg'
-  s.version = '0.9.1.5'
+  s.version = '0.9.1.6'
   s.summary = "SVG renderer for Prawn PDF library"
   s.description = "SVG renderer for Prawn PDF library"
   s.files = ['README', 'LICENSE'] + Dir['lib/**/*.rb']
