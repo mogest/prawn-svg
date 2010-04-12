@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Prawn::Svg do  
+describe Prawn::Svg::Interface do  
   describe "sample file rendering" do
     root = "#{File.dirname(__FILE__)}/../.."
     files = Dir["#{root}/spec/sample_svg/*.svg"]
