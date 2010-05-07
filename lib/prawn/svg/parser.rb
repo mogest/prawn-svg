@@ -66,7 +66,9 @@ module Prawn
       #
       def parse
         @warnings = []
-        [].tap {|calls| parse_element(@root, calls, {})}
+        calls = []
+        parse_element(@root, calls, {})
+        calls
       end
 
 
@@ -231,14 +233,14 @@ module Prawn
         # copied from css_parser
         declarations.gsub!(/(^[\s]*)|([\s]*$)/, '')
 
-        {}.tap do |o|
-          declarations.split(/[\;$]+/m).each do |decs|
-            if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
-              property, value, end_of_declaration = matches.captures
-              o[property] = value
-            end
+        output = {}
+        declarations.split(/[\;$]+/m).each do |decs|
+          if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
+            property, value, end_of_declaration = matches.captures
+            output[property] = value
           end
         end
+        output
       end
   
       def determine_style_for(element)
