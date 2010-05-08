@@ -220,7 +220,7 @@ module Prawn
       def load_css_styles(element)
         if @css_parser
           data = if element.cdatas.any?
-            element.cdatas.collect(&:to_s).join
+            element.cdatas.collect {|d| d.to_s}.join
           else
             element.text
           end
@@ -337,7 +337,7 @@ module Prawn
       def parse_css_method_calls(string)
         string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|
           name, argument_string = call
-          arguments = argument_string.split(",").collect(&:strip)
+          arguments = argument_string.split(",").collect {|s| s.strip}
           [name, arguments]
         end    
       end
