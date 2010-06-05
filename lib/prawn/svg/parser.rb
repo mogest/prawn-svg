@@ -14,6 +14,9 @@ require 'rexml/document'
 module Prawn
   module Svg
     class Parser
+      DEFAULT_WIDTH  = 640
+      DEFAULT_HEIGHT = 480
+      
       begin
         require 'css_parser'
         CSS_PARSER_LOADED = true
@@ -83,8 +86,8 @@ module Prawn
           @actual_width, @actual_height = [x2.to_f - x1.to_f, y2.to_f - y1.to_f]
         else
           @x_offset, @y_offset = [0, 0]
-          @actual_width = points(@root.attributes['width'], :x)
-          @actual_height = points(@root.attributes['height'], :y)
+          @actual_width = points(@root.attributes['width'] || DEFAULT_WIDTH, :x)
+          @actual_height = points(@root.attributes['height'] || DEFAULT_HEIGHT, :y)
         end
       end
     
