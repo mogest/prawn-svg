@@ -67,7 +67,7 @@ module Prawn
       def parse
         @warnings = []
         calls = []
-        parse_element(@root, calls, {})
+        parse_element(@root, calls, {:ids => {}})
         calls
       end
 
@@ -202,15 +202,25 @@ module Prawn
             @warnings << e.message
           end
 
-          commands.each do |command, args|
-            point_to = [x(args[0]), y(args[1])]
-            if command == 'curve_to'
-              bounds = [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]
-              calls << [command, [point_to, {:bounds => bounds}], []]
+          state[:ids][attrs['id']] = commands if attrs['id']          
+          apply_path_commands_to_calls(calls, commands)
+          
+        when 'use'
+          if href = attrs['href']
+            if href[0..0] == '#'
+              id = href[1..-1]
+              if commands = state[:ids][id]
+                calls << ["translate", [distance(attrs['x']), -distance(attrs['y'])], []]
+                apply_path_commands_to_calls(calls.last.last, commands)
+              else
+                @warnings << "no path tag with ID '#{id}' was found, referenced by use tag"
+              end
             else
-              calls << [command, point_to, []]
+              @warnings << "use tag has an href that is not a reference to an id"
             end
-          end
+          else
+            @warnings << "no xlink:href specified on use tag"
+          end              
 
         else 
           @warnings << "Unknown tag '#{element.name}'; ignoring"
@@ -287,6 +297,7 @@ module Prawn
             when 'scale'
               calls << [name, [arguments.first.to_f], []]
               calls = calls.last.last
+            # when 'matrix'
             else
               @warnings << "Unknown transformation '#{name}'; ignoring"
             end
@@ -452,6 +463,18 @@ module Prawn
         end
         missing_attrs.empty?
       end
+      
+      def apply_path_commands_to_calls(calls, commands)
+        commands.each do |command, args|
+          point_to = [x(args[0]), y(args[1])]
+          if command == 'curve_to'
+            bounds = [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]
+            calls << [command, [point_to, {:bounds => bounds}], []]
+          else
+            calls << [command, point_to, []]
+          end
+        end
+      end      
     end
   end
 end
