@@ -29,14 +29,17 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
   does not support elliptical arc
 
 - text tag
-  attributes: size, text-anchor
-  partially supported attributes: font-family
+  attributes: size, text-anchor, font-family
+  
+- svg, g and symbol tags
+  
+- use tag
   
 - style tag, if css_parser gem is installed on the system [1]
   
 - attributes/styles: fill, stroke, stroke-width, opacity, fill-opacity, stroke-opacity, transform
 
-- transform methods: translate, rotate, scale
+- transform methods: translate, rotate, scale, matrix
 
 - colors: html standard names, #xxx, #xxxxxx, rgb(1, 2, 3), rgb(1%, 2%, 3%)
 
@@ -49,6 +52,6 @@ Mac OS X and Debian Linux users.  You can add to the font path:
 
   Prawn::Svg.font_path << "/my/font/directory"
 
-prawn-svg does NOT support named elements, external references, the tspan tag, gradients/patterns or markers.
+prawn-svg does NOT support external references, the tspan tag, gradients/patterns or markers.
 
 [1] If the css_parser gem is installed, it will handle CSS style definitions, but only simple tag, class or id definitions.

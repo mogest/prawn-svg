@@ -1,5 +1,5 @@
 #
-# Prawn::Svg::Interface makes a Prawn::Svg::Parser instance, uses that object to parse the supplied
+# Prawn::Svg::Interface makes a Prawn::Svg::Document instance, uses that object to parse the supplied
 # SVG into Prawn-compatible method calls, and then calls the Prawn methods.
 #
 module Prawn
@@ -12,12 +12,8 @@ module Prawn
   
       class << self; attr_accessor :font_path; end
   
-      attr_reader :data, :prawn, :parser, :options
+      attr_reader :data, :prawn, :document, :options
   
-      # An +Array+ of warnings that occurred while parsing the SVG data.  If this array is non-empty,
-      # it's likely that the SVG failed to render correctly.
-      attr_reader :parser_warnings
-
       #
       # Creates a Prawn::Svg object.
       #
@@ -35,17 +31,16 @@ module Prawn
     
         @options[:at] or raise "options[:at] must be specified"
 
-        @parser = Parser.new(data, [prawn.bounds.width, prawn.bounds.height], options)
-        @parser_warnings = @parser.warnings
+        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options)        
       end
 
       #
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
-        prawn.bounding_box(@options[:at], :width => @parser.width, :height => @parser.height) do
+        prawn.bounding_box(@options[:at], :width => @document.width, :height => @document.height) do
           prawn.save_graphics_state do
-            proc_creator(prawn, @parser.parse).call
+            proc_creator(prawn, Parser.new(@document).parse).call
           end
         end
       end
