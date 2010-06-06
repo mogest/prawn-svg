@@ -17,6 +17,8 @@ module Prawn
       DEFAULT_WIDTH  = 640
       DEFAULT_HEIGHT = 480
       
+      CONTAINER_TAGS = %w(g svg symbol defs)
+      
       begin
         require 'css_parser'
         CSS_PARSER_LOADED = true
@@ -69,8 +71,8 @@ module Prawn
       #
       def parse
         @warnings = []
-        calls = []
-        parse_element(@root, calls, {:ids => {}})
+        calls = [['fill_color', '000000', []]]
+        parse_element(@root, calls, {:ids => {}, :fill => true})
         calls
       end
 
@@ -114,8 +116,9 @@ module Prawn
         case element.name
         when 'title', 'desc'
           # ignore
+          do_not_append_calls = true
       
-        when 'g', 'svg', 'symbol', 'defs'
+        when *CONTAINER_TAGS
           element.elements.each do |child|
             parse_element(child, calls, state.dup)
           end
@@ -284,7 +287,6 @@ module Prawn
   
       def apply_styles(element, calls, state)
         decs = determine_style_for(element)    
-        draw_types = []
     
         # Transform
         if transform = decs['transform']
@@ -323,26 +325,26 @@ module Prawn
         end
 
         # Fill and stroke
-        if decs['fill'] && decs['fill'] != "none"
-          if color = color_to_hex(decs['fill'])
-            calls << ['fill_color', [color], []]
+        draw_types = []  
+        [:fill, :stroke].each do |type|
+          dec = decs[type.to_s]
+          if dec == "none"
+            state[type] = false
+          elsif dec
+            state[type] = true
+            if color = color_to_hex(dec)
+              calls << ["#{type}_color", [color], []]
+            end
           end
-          draw_types << 'fill'
-        end
-    
-        if decs['stroke'] && decs['stroke'] != "none"
-          if color = color_to_hex(decs['stroke'])
-            calls << ['stroke_color', [color], []]
-          end
-          draw_types << 'stroke'
+
+          draw_types << type.to_s if state[type]
         end
     
         calls << ['line_width', [distance(decs['stroke-width'])], []] if decs['stroke-width']  
     
         draw_type = draw_types.join("_and_")
-        state[:draw_type] = draw_type if draw_type != ""
-        if state[:draw_type] && !%w(g svg).include?(element.name)
-          calls << [state[:draw_type], [], []]
+        if draw_type != "" && !CONTAINER_TAGS.include?(element.name)
+          calls << [draw_type, [], []]
           calls = calls.last.last
         end            
         
