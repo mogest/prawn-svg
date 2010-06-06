@@ -72,7 +72,7 @@ module Prawn
       def parse
         @warnings = []
         calls = [['fill_color', '000000', []]]
-        parse_element(@root, calls, {:ids => {}, :fill => true, :height => @height})
+        parse_element(@root, calls, {:ids => {}, :fill => true})
         calls
       end
 
@@ -433,7 +433,7 @@ module Prawn
         (points(value, :x) - @x_offset) * scale
       end
   
-      def y(value)        
+      def y(value)
         (@actual_height - (points(value, :y) - @y_offset)) * scale
       end
   
