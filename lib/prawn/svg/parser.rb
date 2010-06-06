@@ -101,36 +101,31 @@ module Prawn
         "path"      => %w(d)    
       }
     
-      def parse_element(element, calls, state)
+      def parse_element(element, parent_calls, state)
         attrs = element.attributes
-        calls, style_attrs = apply_styles(element, calls, state)    
+
+        element_calls = []
+        calls, style_attrs = apply_styles(element, element_calls, state)
 
         if required_attributes = REQUIRED_ATTRIBUTES[element.name]
           return unless check_attrs_present(element, required_attributes)
         end
-    
+            
         case element.name
         when 'title', 'desc'
           # ignore
       
-        when 'g', 'svg'
+        when 'g', 'svg', 'symbol', 'defs'
           element.elements.each do |child|
             parse_element(child, calls, state.dup)
           end
-    
-        when 'defs'
-          # Pass calls as a blank array so that nothing under this tag can be added to our call tree.
-          element.elements.each do |child|
-            parse_element(child, [], state.dup.merge(:display => false))
-          end
-            
+          
+          do_not_append_calls = %w(symbol defs).include?(element.name)
+              
         when 'style'
           load_css_styles(element)
 
         when 'text'
-          # Very primitive support for font-family; it won't work in most cases because
-          # PDF only has a few built-in fonts, and they're not the same as the names
-          # used typically with the web fonts.
           if font_family = style_attrs["font-family"]
             if font_family != "" && pdf_font = map_font_family_to_pdf_font(font_family)
               calls << ['font', [pdf_font], []]
@@ -205,21 +200,24 @@ module Prawn
             @warnings << e.message
           end
 
-          state[:ids][attrs['id']] = commands if attrs['id']          
-          apply_path_commands_to_calls(calls, commands)
+          run_path_commands(commands, calls)
           
         when 'use'
           if href = attrs['href']
             if href[0..0] == '#'
               id = href[1..-1]
-              if commands = state[:ids][id]
-                calls << ["translate", [distance(attrs['x']), -distance(attrs['y'])], []]
-                apply_path_commands_to_calls(calls.last.last, commands)
+              if id_calls = state[:ids][id]
+                if attrs['x'] || attrs['y']
+                  calls << ["translate", [distance(attrs['x']), -distance(attrs['y'])], []]
+                  calls = calls.last.last
+                end
+                
+                calls.concat(id_calls)              
               else
-                @warnings << "no path tag with ID '#{id}' was found, referenced by use tag"
+                @warnings << "no tag with ID '#{id}' was found, referenced by use tag"
               end
             else
-              @warnings << "use tag has an href that is not a reference to an id"
+              @warnings << "use tag has an href that is not a reference to an id; this is not supported"
             end
           else
             @warnings << "no xlink:href specified on use tag"
@@ -228,6 +226,9 @@ module Prawn
         else 
           @warnings << "Unknown tag '#{element.name}'; ignoring"
         end
+        
+        state[:ids][attrs['id']] = element_calls if attrs['id']
+        parent_calls.concat(element_calls) unless do_not_append_calls
       end
   
       def load_css_styles(element)
@@ -467,8 +468,8 @@ module Prawn
         missing_attrs.empty?
       end
       
-      def apply_path_commands_to_calls(calls, commands)
-        commands.each do |command, args|
+      def run_path_commands(commands, calls)
+        commands.collect do |command, args|
           point_to = [x(args[0]), y(args[1])]
           if command == 'curve_to'
             bounds = [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]
