@@ -10,6 +10,9 @@
   <use xlink:href="#two-rects" x="90" y="90"/>  
   <use xlink:href="#two-rects" x="180" y="180"/>
 
-  <circle id="circle" cx="600" cy="200" r="100" fill="red" stroke="blue" stroke-width="10" />  
-  <use xlink:href="#circle" x="50" y="50" style="opacity: 0.3"/>
+  <xcircle id="circle" cx="600" cy="200" r="100" fill="red" stroke="blue" stroke-width="10" />  
+  <circle id="circle" cx="600" cy="200" r="100" fill="red" stroke="blue" stroke-width="10" transform="scale(2)" />  
+
+  <xuse xlink:href="#circle" x="50" y="50" style="opacity: 0.5;" transform="scale(1.5)"/>
+  <xuse xlink:href="#circle" x="100" y="100" style="opacity: 0.3;" transform="scale(3)"/>
 </svg>

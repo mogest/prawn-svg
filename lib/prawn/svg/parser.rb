@@ -72,7 +72,7 @@ module Prawn
       def parse
         @warnings = []
         calls = [['fill_color', '000000', []]]
-        parse_element(@root, calls, {:ids => {}, :fill => true})
+        parse_element(@root, calls, {:ids => {}, :fill => true, :height => @height})
         calls
       end
 
@@ -149,7 +149,8 @@ module Prawn
             opts[:text_anchor] = anchor        
           end
       
-          calls << ['text_box', [element.text, opts], []]
+          text = element.text.strip.gsub(/\s+/, " ")
+          calls << ['draw_text', [text, opts], []]
 
         when 'line'
           calls << ['line', [x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])], []]
@@ -301,9 +302,20 @@ module Prawn
               calls << [name, [-arguments.first.to_f, {:origin => [0, y('0')]}], []]
               calls = calls.last.last
             when 'scale'
-              calls << [name, [arguments.first.to_f], []]
+              args = arguments.first.split(/\s+/)
+              x_scale = args[0].to_f
+              y_scale = (args[1] || x_scale).to_f
+              calls << ["transformation_matrix", [x_scale, 0, 0, y_scale, 0, 0], []]
               calls = calls.last.last
-            # when 'matrix'
+            when 'matrix'
+              args = arguments.first.split(/\s+/)
+              if args.length != 6
+                @warnings << "transform 'matrix' must have six arguments"
+              else
+                a, b, c, d, e, f = args.collect {|a| a.to_f}
+                calls << ["transformation_matrix", [a, b, c, d, distance(e), -distance(f)], []]
+                calls = calls.last.last
+              end
             else
               @warnings << "Unknown transformation '#{name}'; ignoring"
             end
@@ -421,7 +433,7 @@ module Prawn
         (points(value, :x) - @x_offset) * scale
       end
   
-      def y(value)
+      def y(value)        
         (@actual_height - (points(value, :y) - @y_offset)) * scale
       end
   

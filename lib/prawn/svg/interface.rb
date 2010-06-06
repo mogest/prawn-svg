@@ -72,14 +72,17 @@ module Prawn
   
       def rewrite_call_arguments(prawn, call, arguments)
         case call
-        when 'text_box'
-          if (anchor = arguments.last.delete(:text_anchor)) && %w(middle end).include?(anchor)
-            width = prawn.width_of(*arguments)
+        when 'draw_text'
+          text, options = arguments
+          if (anchor = options.delete(:text_anchor)) && %w(middle end).include?(anchor)
+            width = prawn.width_of(text, options.merge(:kerning => true))
             width /= 2 if anchor == 'middle'
             arguments.last[:at][0] -= width
           end
-      
-          arguments.last[:at][1] += prawn.height_of(*arguments) / 3 * 2
+          
+        when 'transformation_matrix'
+          arguments[4] += prawn.bounds.absolute_left * (1 - arguments[0])
+          arguments[5] += prawn.bounds.absolute_top * (1 - arguments[3])
         end
       end
     end

@@ -14,7 +14,7 @@ describe Prawn::Svg::Parser do
       SVG
     
       parser = Prawn::Svg::Parser.new(svg, [2000, 2000], {})
-      parser.parse.should == [["line", [100.0, 900.0, 900.0, 100.0], []]]
+      parser.parse.last.last.should == [["line", [100.0, 900.0, 900.0, 100.0], []]]
     end
 
     it "handles the width and height being set in inches" do
@@ -25,7 +25,7 @@ describe Prawn::Svg::Parser do
       SVG
     
       parser = Prawn::Svg::Parser.new(svg, [2000, 2000], {})
-      parser.parse.should == [["line", [72.0, 720.0 - 72.0, 720.0 - 72.0, 72.0], []]]
+      parser.parse.last.last.should == [["line", [72.0, 720.0 - 72.0, 720.0 - 72.0, 72.0], []]]
     end
   end
   
