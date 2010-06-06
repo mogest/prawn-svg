@@ -107,9 +107,32 @@ class Prawn::Svg::Element
 
       draw_types << type.to_s if state[type]
     end
+    
+    # Stroke width
+    add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']      
 
-    add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']  
-
+    # Fonts        
+    if size = @attributes['font-size']
+      @state[:font_size] = size.to_f * @document.scale
+    end
+    if weight = @attributes['font-weight']
+      font_updated = true
+      @state[:font_style] = weight == 'bold' ? :bold : nil
+    end
+    if (family = @attributes['font-family']) && family.strip != ""
+      font_updated = true
+      @state[:font_family] = family
+    end
+    
+    if @state[:font_family] && font_updated
+      if pdf_font = Prawn::Svg::Font.map_font_family_to_pdf_font(@state[:font_family], @state[:font_style])
+        add_call_and_enter 'font', pdf_font
+      else
+        @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font."
+      end
+    end    
+    
+    # Call fill, stroke, or both
     draw_type = draw_types.join("_and_")
     if draw_type != "" && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
       add_call_and_enter draw_type

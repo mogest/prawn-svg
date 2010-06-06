@@ -70,7 +70,9 @@ class Prawn::Svg::Parser
     case element.name
     when *CONTAINER_TAGS
       element.each_child_element do |child|
+        element.add_call "save"
         parse_element(child)
+        element.add_call "restore"
       end
       
       do_not_append_calls = %w(symbol defs).include?(element.name)

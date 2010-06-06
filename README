@@ -28,8 +28,8 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
   supports moveto, closepath, lineto, horiz lineto, vert lineto, curveto, smooth curveto, quad curveto, smooth quad curveto
   does not support elliptical arc
 
-- text tag
-  attributes: size, text-anchor, font-family
+- text and tspan tags
+  attributes: size, text-anchor, font-family, font-weight, dx, dy
   
 - svg, g and symbol tags
   
@@ -52,6 +52,6 @@ Mac OS X and Debian Linux users.  You can add to the font path:
 
   Prawn::Svg.font_path << "/my/font/directory"
 
-prawn-svg does NOT support external references, the tspan tag, gradients/patterns or markers.
+prawn-svg does NOT support external references, gradients/patterns or markers.
 
 [1] If the css_parser gem is installed, it will handle CSS style definitions, but only simple tag, class or id definitions.

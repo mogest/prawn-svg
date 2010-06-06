@@ -1,27 +1,29 @@
 class Prawn::Svg::Parser::Text
-  BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"]
-
-  GENERIC_CSS_FONT_MAPPING = {
-    "serif"      => "Times-Roman",
-    "sans-serif" => "Helvetica",
-    "cursive"    => "Times-Roman",
-    "fantasy"    => "Times-Roman",
-    "monospace"  => "Courier"}
+  def parse(element)
+    element.add_call_and_enter "text_group"
+    internal_parse(element, [element.document.x(0)], [element.document.y(0)], false)
+  end
     
-  def parse(element)    
+  protected
+  def internal_parse(element, x_positions, y_positions, relative)
     attrs = element.attributes
     
-    if (font_family = attrs["font-family"]) && font_family.strip != ""
-      if pdf_font = map_font_family_to_pdf_font(font_family)
-        element.add_call_and_enter 'font', pdf_font
-      else
-        element.warnings << "#{font_family} is not a known font."
-      end
+    if attrs['x'] || attrs['y']
+      relative = false
+      x_positions = attrs['x'].split(/[\s,]+/).collect {|n| element.document.x(n)} if attrs['x']
+      y_positions = attrs['y'].split(/[\s,]+/).collect {|n| element.document.y(n)} if attrs['y']
+    end
+    
+    if attrs['dx'] || attrs['dy']
+      element.add_call_and_enter "translate", element.document.distance(attrs['dx'] || 0), -element.document.distance(attrs['dy'] || 0)
     end
 
-    opts = {:at => [element.document.x(attrs['x']), element.document.y(attrs['y'])]}
-    if size = attrs['font-size']
-      opts[:size] = size.to_f * element.document.scale
+    opts = {}
+    if size = element.state[:font_size]
+      opts[:size] = size
+    end
+    if style = element.state[:font_style]
+      opts[:style] = style
     end
       
     # This is not a prawn option but we can't work out how to render it here -
@@ -30,30 +32,36 @@ class Prawn::Svg::Parser::Text
       opts[:text_anchor] = anchor        
     end
 
-    text = element.element.text.strip.gsub(/\s+/, " ")
-    element.add_call 'draw_text', text, opts
-  end
-  
-  
-  private
-  def installed_fonts
-    @installed_fonts ||= Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten
-  end
+    element.element.children.each do |child|
+      if child.node_type == :text
+        text = child.to_s.strip.gsub(/\s+/, " ")
 
-  def map_font_family_to_pdf_font(font_family)
-    font_family.split(",").detect do |font|
-      font = font.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
+        while text != "" 
+          opts[:at] = [x_positions.first, y_positions.first]
 
-      built_in_font = BUILT_IN_FONTS.detect {|f| f.downcase == font}
-      break built_in_font if built_in_font
+          if x_positions.length > 1 || y_positions.length > 1
+            element.add_call 'draw_text', text[0..0], opts.dup
+            text = text[1..-1]
 
-      generic_font = GENERIC_CSS_FONT_MAPPING[font]
-      break generic_font if generic_font
+            x_positions.shift if x_positions.length > 1
+            y_positions.shift if y_positions.length > 1
+          else
+            element.add_call relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
+            relative = true
+            break
+          end
+        end
 
-      installed_font = installed_fonts.detect do |file|
-        (matches = File.basename(file).match(/(.+)\./)) && matches[1].downcase == font
+      elsif child.name == "tspan"
+        element.add_call 'save'
+        child_element = Prawn::Svg::Element.new(element.document, child, element.calls, element.state.dup)
+        internal_parse(child_element, x_positions, y_positions, relative)
+        child_element.append_calls_to_parent
+        element.add_call 'restore'
+        
+      else
+        element.warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
       end
-      break installed_font if installed_font
-    end
+    end    
   end
 end
