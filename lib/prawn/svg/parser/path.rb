@@ -21,7 +21,7 @@ module Prawn
             cmd = c
             values = []
             value = ""
-          elsif c >= '0' && c <= '9' || c == '.' || c == "-"
+          elsif c >= '0' && c <= '9' || c == '.' || (c == "-" && value == "")
             unless cmd
               raise InvalidError, "Numerical value specified before character command in SVG path data"
             end
@@ -31,6 +31,9 @@ module Prawn
               values << value.to_f
               value = ""
             end
+          elsif c == '-'
+            values << value.to_f
+            value = c
           else
             raise InvalidError, "Invalid character '#{c}' in SVG path data"
           end

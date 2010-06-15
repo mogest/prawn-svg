@@ -103,7 +103,7 @@ class Prawn::Svg::Parser
         x, y = point.split(",")
         [x(x), y(y)]
       end
-      element.add_call "polygon", points
+      element.add_call "polygon", *points
   
     when 'circle'
       element.add_call "circle_at", 
