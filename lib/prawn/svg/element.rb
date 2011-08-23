@@ -56,8 +56,13 @@ class Prawn::Svg::Element
           x, y = x.split(/\s+/) if y.nil?
           add_call_and_enter name, @document.distance(x), -@document.distance(y)
 
-        when 'rotate'          
-          add_call_and_enter name, -arguments.first.to_f, :origin => [0, @document.y('0')]
+        when 'rotate'
+          rotation_arguments = arguments.first.split(/\s+/)
+          if (rotation_arguments.length == 3)
+            add_call_and_enter name, -rotation_arguments.first.to_f, :origin => [@document.x(rotation_arguments[1].to_f), @document.y(rotation_arguments[2].to_f)]
+          else
+            add_call_and_enter name, -arguments.first.to_f, :origin => [0, @document.y('0')]
+          end
 
         when 'scale'
           args = arguments.first.split(/\s+/)

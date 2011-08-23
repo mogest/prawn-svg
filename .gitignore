@@ -1,3 +1,5 @@
 .DS_Store
 spec/sample_output/*.pdf
 prawn-svg-*.gem
+Gemfile*
+.rvmrc
