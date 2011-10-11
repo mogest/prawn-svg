@@ -59,6 +59,9 @@ class Prawn::Svg::Parser
     "rect"      => %w(width height),
     "path"      => %w(d)    
   }
+  
+  USE_NEW_CIRCLE_CALL = Prawn::Document.new.respond_to?(:circle)
+  USE_NEW_ELLIPSE_CALL = Prawn::Document.new.respond_to?(:ellipse)
 
   def parse_element(element)
     attrs = element.attributes
@@ -106,11 +109,16 @@ class Prawn::Svg::Parser
       element.add_call "polygon", *points
   
     when 'circle'
-      element.add_call "circle_at", 
-        [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], :radius => distance(attrs['r'])
-  
+      if USE_NEW_CIRCLE_CALL
+        element.add_call "circle", 
+          [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['r'])
+      else
+        element.add_call "circle_at", 
+          [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], :radius => distance(attrs['r'])
+      end
+      
     when 'ellipse'
-      element.add_call "ellipse_at", 
+      element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at", 
         [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])
   
     when 'rect'
