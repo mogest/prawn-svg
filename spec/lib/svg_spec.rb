@@ -13,7 +13,7 @@ describe Prawn::Svg::Interface do
       it "renders the #{File.basename file} sample file without warnings or crashing" do
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do
           r = svg IO.read(file), :at => [0, y], :width => 612 - 72
-          warnings = r[:warnings].reject {|w| w == "Verdana is not a known font."}
+          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ }
           warnings.should == []
         end
       end
