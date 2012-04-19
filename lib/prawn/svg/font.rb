@@ -1,5 +1,3 @@
-require 'iconv'
-
 class Prawn::Svg::Font
   BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"]
 
@@ -59,7 +57,7 @@ class Prawn::Svg::Font
   def self.font_information(filename)
     File.open(filename, "r") do |f|
       x = f.read(12)
-      table_count = x[4] * 256 + x[5]
+      table_count = x[4].ord * 256 + x[5].ord
       tables = f.read(table_count * 16)
 
       offset, length = table_count.times do |index|
@@ -86,7 +84,12 @@ class Prawn::Svg::Font
         field = data[offset..offset+length-1]        
         names[name_id] = if platform_id == 0
           begin
-            Iconv.iconv('UTF-8', 'UTF-16', field)
+            if field.respond_to?(:encode)
+              field.encode(Encoding::UTF16)
+            else
+              require "iconv"
+              Iconv.iconv('UTF-8', 'UTF-16', field)
+            end
           rescue
             field
           end
