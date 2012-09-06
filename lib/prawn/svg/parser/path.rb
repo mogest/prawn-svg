@@ -68,7 +68,8 @@ module Prawn
       
         when 'Z' # closepath
           if @subpath_initial_point
-            @calls << ["line_to", @subpath_initial_point]
+            #@calls << ["line_to", @subpath_initial_point]
+            @calls << ["close_path"]
             @last_point = @subpath_initial_point
           end
     
