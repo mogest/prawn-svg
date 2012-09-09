@@ -164,11 +164,15 @@ class Prawn::Svg::Parser
     end
 
     commands.collect do |command, args|
-      point_to = [x(args[0]), y(args[1])]
-      if command == 'curve_to'
-        opts = {:bounds => [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]}
+      if args && args.length > 0
+        point_to = [x(args[0]), y(args[1])]
+        if command == 'curve_to'
+          opts = {:bounds => [[x(args[2]), y(args[3])], [x(args[4]), y(args[5])]]}
+        end
+        element.add_call command, point_to, opts
+      else
+        element.add_call command
       end
-      element.add_call command, point_to, opts
     end  
   end
   
