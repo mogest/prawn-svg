@@ -1,4 +1,5 @@
 require 'rexml/document'
+require 'open-uri'
 
 #
 # Prawn::Svg::Parser is responsible for parsing an SVG file and converting it into a tree of
@@ -144,7 +145,14 @@ class Prawn::Svg::Parser
     when 'font-face'
       # not supported
       do_not_append_calls = true
-  
+
+    when 'image'
+      options = {}
+      options[:at] = [x(attrs['x'] || "0"), y(attrs['y'] || "0")]
+      options[:width] = distance(attrs['width']) 
+      options[:height] =  distance(attrs['height']) if attrs['height']
+      element.add_call "image", open(attrs['href']), options
+    
     else 
       @document.warnings << "Unknown tag '#{element.name}'; ignoring"
     end
