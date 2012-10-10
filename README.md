@@ -10,13 +10,13 @@ This will take an SVG file as input and render it into your PDF.  Find out more 
 Using prawn-svg
 ---------------
 
-<code>
-  Prawn::Document.generate("svg.pdf") do
-    svg svg_data, :at => [x, y], :width => w
-  end
-</code>
+```ruby
+Prawn::Document.generate("svg.pdf") do
+  svg svg_data, :at => [x, y], :width => w
+end
+```
   
-:at must be specified.  :width, :height, or neither may be specified; if neither is present,
+<tt>:at</tt> must be specified.  <tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
 the resolution specified in the SVG will be used.
 
 Supported features
@@ -46,22 +46,22 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
    
  - <tt>style</tt> tag, if css_parser gem is installed on the system (see CSS section below)
    
- - attributes/styles: fill, stroke, stroke-width, opacity, fill-opacity, stroke-opacity, transform
+ - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>
  
- - transform methods: translate, rotate, scale, matrix
+ - transform methods: <tt>translate</tt>, <tt>rotate</tt>, <tt>scale</tt>, <tt>matrix</tt>
  
- - colors: html standard names, #xxx, #xxxxxx, rgb(1, 2, 3), rgb(1%, 2%, 3%)
+ - colors: HTML standard names, <tt>#xxx</tt>, <tt>#xxxxxx</tt>, <tt>rgb(1, 2, 3)</tt>, <tt>rgb(1%, 2%, 3%)</tt>
  
- - measurements specified in pt, cm, dm, ft, in, m, mm, yd, %
+ - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>%</tt>
  
  - fonts: generic CSS fonts, built in PDF fonts, and any TTF fonts in your fonts path
 
-By default, prawn-svg has a fonts path of ["/Library/Fonts", "/usr/share/fonts/truetype/**"] to catch
+By default, prawn-svg has a fonts path of <tt>["/Library/Fonts", "/usr/share/fonts/truetype/**"]</tt> to catch
 Mac OS X and Debian Linux users.  You can add to the font path:
 
-<code>
+```ruby
   Prawn::Svg.font_path &lt;&lt; "/my/font/directory"
-</code>
+```
 
 CSS
 ---
