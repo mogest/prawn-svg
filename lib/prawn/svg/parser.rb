@@ -51,7 +51,6 @@ class Prawn::Svg::Parser
 
   private  
   REQUIRED_ATTRIBUTES = {
-    "line"      => %w(x1 y1 x2 y2),
     "polyline"  => %w(points),
     "polygon"   => %w(points),
     "circle"    => %w(r),
@@ -88,7 +87,7 @@ class Prawn::Svg::Parser
       @svg_text.parse(element)
 
     when 'line'
-      element.add_call 'line', x(attrs['x1']), y(attrs['y1']), x(attrs['x2']), y(attrs['y2'])
+      element.add_call 'line', x(attrs['x1'] || '0'), y(attrs['y1'] || '0'), x(attrs['x2'] || '0'), y(attrs['y2'] || '0')
 
     when 'polyline'
       points = attrs['points'].split(/\s+/)

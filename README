@@ -52,6 +52,6 @@ Mac OS X and Debian Linux users.  You can add to the font path:
 
   Prawn::Svg.font_path << "/my/font/directory"
 
-prawn-svg does NOT support external references, gradients/patterns or markers.
+prawn-svg does NOT support external references, measurements in en or em, gradients/patterns or markers.
 
 [1] If the css_parser gem is installed, it will handle CSS style definitions, but only simple tag, class or id definitions.
