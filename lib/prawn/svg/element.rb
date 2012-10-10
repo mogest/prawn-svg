@@ -53,37 +53,34 @@ class Prawn::Svg::Element
         case name
         when 'translate'
           x, y = arguments
-          x, y = x.split(/\s+/) if y.nil?
           add_call_and_enter name, @document.distance(x), -@document.distance(y)
 
         when 'rotate'
-          rotation_arguments = arguments.first.split(/\s+/)
-          if (rotation_arguments.length == 3)
-            add_call_and_enter name, -rotation_arguments.first.to_f, :origin => [@document.x(rotation_arguments[1].to_f), @document.y(rotation_arguments[2].to_f)]
+          r, x, y = arguments.collect {|a| a.to_f}
+          if arguments.length == 3
+            add_call_and_enter name, -r, :origin => [@document.x(x), @document.y(y)]
           else
-            add_call_and_enter name, -arguments.first.to_f, :origin => [0, @document.y('0')]
+            add_call_and_enter name, -r, :origin => [0, @document.y('0')]
           end
 
         when 'scale'
-          args = arguments.first.split(/\s+/)
-          x_scale = args[0].to_f
-          y_scale = (args[1] || x_scale).to_f
+          x_scale = arguments[0].to_f
+          y_scale = (arguments[1] || x_scale).to_f
           add_call_and_enter "transformation_matrix", x_scale, 0, 0, y_scale, 0, 0
 
         when 'matrix'
-          args = arguments.first.split(/\s+/)
-          if args.length != 6
+          if arguments.length != 6
             @document.warnings << "transform 'matrix' must have six arguments"
           else
-            a, b, c, d, e, f = args.collect {|a| a.to_f}
-            add_call_and_enter "transformation_matrix", a, b, c, d, @document.distance(e), -@document.distance(f)
+            a, b, c, d, e, f = arguments.collect {|argument| argument.to_f}
+            add_call_and_enter "transformation_matrix", a, -b, -c, d, @document.distance(e), -@document.distance(f)
           end
         else
           @document.warnings << "Unknown transformation '#{name}'; ignoring"
         end
       end
-    end    
-        
+    end
+
     # Opacity:
     # We can't do nested opacities quite like the SVG requires, but this is close enough.
     fill_opacity = stroke_opacity = clamp(@attributes['opacity'].to_f, 0, 1) if @attributes['opacity']
@@ -147,9 +144,9 @@ class Prawn::Svg::Element
   def parse_css_method_calls(string)
     string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|
       name, argument_string = call
-      arguments = argument_string.split(",").collect {|s| s.strip}
+      arguments = argument_string.strip.split(/\s*[,\s]\s*/)
       [name, arguments]
-    end    
+    end
   end
 
   # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords
