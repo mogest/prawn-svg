@@ -58,7 +58,8 @@ class Prawn::Svg::Parser
     "circle"    => %w(r),
     "ellipse"   => %w(rx ry),
     "rect"      => %w(width height),
-    "path"      => %w(d)    
+    "path"      => %w(d),
+    "image"     => %w(width height preserveAspectRatio)
   }
   
   USE_NEW_CIRCLE_CALL = Prawn::Document.new.respond_to?(:circle)
@@ -147,12 +148,15 @@ class Prawn::Svg::Parser
       do_not_append_calls = true
 
     when 'image'
-      options = {}
-      options[:at] = [x(attrs['x'] || "0"), y(attrs['y'] || "0")]
-      options[:width] = distance(attrs['width']) 
-      options[:height] =  distance(attrs['height']) if attrs['height']
-      element.add_call "image", open(attrs['href']), options
-    
+      if attrs['preserveAspectRatio'] == 'none'
+      options = {:at => [x(attrs['x'] || '0'), y(attrs['y'] || '0')]}
+      options[:width] = distance(attrs['width'])
+      options[:height] =  distance(attrs['height'])
+      image = open(attrs['xlink:href'] || attrs['href'])
+      element.add_call "image", image, options
+      else
+        @document.warnings << "preserveAspectRatio attribute must be set to none on image tag"
+      end
     else 
       @document.warnings << "Unknown tag '#{element.name}'; ignoring"
     end
