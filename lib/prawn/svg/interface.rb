@@ -92,8 +92,10 @@ module Prawn
           @relative_text_position = options[:at][0] + width + space_width
           
         when 'transformation_matrix'
-          arguments[4] += prawn.bounds.absolute_left * (1 - arguments[0])
-          arguments[5] += prawn.bounds.absolute_top * (1 - arguments[3])
+          x = prawn.bounds.absolute_left
+          y = prawn.bounds.absolute_top
+          arguments[4] += x - (x * arguments[0] - y * arguments[1])
+          arguments[5] += y - (x * arguments[1] + y * arguments[0])
           
         when 'save'
           prawn.save_graphics_state

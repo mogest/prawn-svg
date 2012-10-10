@@ -1,5 +1,5 @@
 module Prawn
   module Svg
-    VERSION = '0.9.1.11'
+    VERSION = '0.12.0.1'
   end
 end

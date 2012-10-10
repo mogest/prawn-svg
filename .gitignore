@@ -3,3 +3,4 @@ spec/sample_output/*.pdf
 prawn-svg-*.gem
 Gemfile.lock
 .rvmrc
+.*.swp
