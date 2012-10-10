@@ -55,6 +55,7 @@ class Prawn::Svg::Parser::Text
       elsif child.name == "tspan"
         element.add_call 'save'
         child_element = Prawn::Svg::Element.new(element.document, child, element.calls, element.state.dup)
+        child_element.attributes['text-anchor'] = opts[:text_anchor] if opts[:text_anchor]
         internal_parse(child_element, x_positions, y_positions, relative)
         child_element.append_calls_to_parent
         element.add_call 'restore'
