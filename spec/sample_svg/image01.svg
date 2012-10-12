@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="12cm" height="8cm" viewBox="0 0 1200 800"
+     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+  <desc>Example rect01 - rectangle with sharp corners</desc>
+  <!-- Show outline of canvas using 'rect' element -->
+  <rect x="1" y="1" width="1198" height="798"
+        fill="none" stroke="blue" stroke-width="2"/>
+
+  <rect x="50" y="50" width="100" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="50" y="50" width="100" height="100" preserveAspectRatio="xMidYMid" xlink:href="http://files.myopera.com/baby2u/albums/423302/smiley-cool.jpg"></image>
+
+  <rect x="50" y="200" width="150" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="50" y="200" width="150" height="100" xlink:href="http://files.myopera.com/baby2u/albums/423302/smiley-cool.jpg"></image>
+
+  <rect x="50" y="350" width="100" height="150" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="50" y="350" width="100" height="150" xlink:href="http://files.myopera.com/baby2u/albums/423302/smiley-cool.jpg"></image>
+
+  <rect x="250" y="50" width="100" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="250" y="50" width="100" height="100" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+  <rect x="250" y="200" width="150" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="250" y="200" width="150" height="100" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+  <rect x="250" y="350" width="100" height="200" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="250" y="350" width="100" height="200" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+  <rect x="450" y="50" width="100" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="450" y="50" width="100" height="100" preserveAspectRatio="none" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+  <rect x="450" y="200" width="150" height="100" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="450" y="200" width="150" height="100" preserveAspectRatio="none" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+  <rect x="450" y="350" width="100" height="200" fill="none" stroke="blue" stroke-width="2"/>
+  <image x="450" y="350" width="100" height="200" preserveAspectRatio="none" xlink:href="http://imalbum.aufeminin.com/album/D20090809/583007_KWWH1ZQ8FU5ATJXSR84C5MRBUWW33L_989174388_H143954_L.jpg"></image>
+
+</svg>
+
