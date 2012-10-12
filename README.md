@@ -46,7 +46,7 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
    
  - <tt>style</tt> tag, if css_parser gem is installed on the system (see CSS section below)
 
- - <tt>image</tt> tag, only with preserveAspectRatio of 'xMidyMid'(default) or 'none'
+ - <tt>image</tt> tag, only with http/https schemes and preserveAspectRatio of 'xMidYMid' (default) or 'none'
    
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>
  

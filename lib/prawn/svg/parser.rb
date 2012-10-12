@@ -1,6 +1,4 @@
 require 'rexml/document'
-require 'open-uri'
-require 'fastimage'
 
 #
 # Prawn::Svg::Parser is responsible for parsing an SVG file and converting it into a tree of
@@ -148,44 +146,10 @@ class Prawn::Svg::Parser
       do_not_append_calls = true
 
     when 'image'
-      options = {}
-      image = open(attrs['xlink:href'] || attrs['href'])
-      #Get image real dimension, and rewind so prawn can catch format header
-      width,height = FastImage.size(image); image.rewind
-      ratio = width.to_f/height.to_f
-      case attrs['preserveAspectRatio']
-      when 'xMidYMid', nil
-        if distance(attrs['width']) < distance(attrs['height'])
-          options[:width] = distance(attrs['width'])
-          x = x(attrs['x'])
-          y = y(attrs['y']) - distance(attrs['height'])/2 + distance(attrs['width'])/ratio/2
-        elsif distance(attrs['width']) > distance(attrs['height'])
-          options[:height] = distance(attrs['height'])
-          x = x(attrs['x']) + distance(attrs['width'])/2 - distance(attrs['height'])*ratio/2
-          y = y(attrs['y'])
-        else
-          options[:fit] = [distance(attrs['width']),distance(attrs['height'])]
-          if ratio >= 1
-            x = x(attrs['x'])
-            y = y(attrs['y']) - distance(attrs['height'])/2 + distance(attrs['width'])/ratio/2 
-          else
-            x = x(attrs['x']) + distance(attrs['width'])/2 - distance(attrs['height'])*ratio/2
-            y = y(attrs['y'])
-          end
-        end
-      when 'none'
-        options[:width] = distance(attrs['width'])
-        options[:height] = distance(attrs['height'])
-        x = x(attrs['x'])
-        y = y(attrs['y'])
-      else
-        @document.warnings << "image tag only support preserveAspectRatio with xMidyMid or none; ignoring"
-        return
-      end
-      options[:at] = [x, y]
-      element.add_call "image", image, options
+      @svg_image ||= Image.new(@document)
+      @svg_image.parse(element)
 
-    else 
+    else
       @document.warnings << "Unknown tag '#{element.name}'; ignoring"
     end
     
@@ -238,7 +202,7 @@ class Prawn::Svg::Parser
       @document.warnings << "no xlink:href specified on use tag"
     end
   end    
-  
+
   ####################################################################################################################
 
   def load_css_styles(element)
