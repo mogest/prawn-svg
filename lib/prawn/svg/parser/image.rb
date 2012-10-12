@@ -42,7 +42,7 @@ class Prawn::Svg::Parser::Image
     raise Error, "width and height must be 0 or higher" if width < 0 || height < 0
 
     par = (attrs['preserveAspectRatio'] || "xMidYMid meet").strip.split(/\s+/)
-    par.unshift if par.first == "defer"
+    par.shift if par.first == "defer"
 
     case par.first
     when 'xMidYMid'
