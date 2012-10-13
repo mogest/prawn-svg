@@ -18,7 +18,7 @@ class Prawn::Svg::Document
   attr_accessor :scale
 
   attr_reader :root,
-    :actual_width, :actual_height, :width, :height, :x_offset, :y_offset,
+    :actual_width, :actual_height, :width, :height, :x_offset, :y_offset, :cache_images,
     :css_parser
     
   def initialize(data, bounds, options)
@@ -27,6 +27,7 @@ class Prawn::Svg::Document
     @root = REXML::Document.new(data).root
     @warnings = []
     @options = options
+    @cache_images = options[:cache_images]
     @actual_width, @actual_height = bounds # set this first so % width/heights can be used
 
     if vb = @root.attributes['viewBox']

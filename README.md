@@ -16,8 +16,12 @@ Prawn::Document.generate("svg.pdf") do
 end
 ```
   
-<tt>:at</tt> must be specified.  <tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
+<tt>:at</tt> must be specified.
+
+<tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
 the resolution specified in the SVG will be used.
+
+<tt>:cache_images</tt>, if set to true, will cache images per document based on their URL.
 
 Supported features
 ------------------
@@ -46,7 +50,7 @@ prawn-svg is in its infancy and does not support the full SVG specifications.  I
    
  - <tt>style</tt> tag, if css_parser gem is installed on the system (see CSS section below)
 
- - <tt>image</tt> tag, only with http/https schemes and preserveAspectRatio of 'xMidYMid' (default) or 'none'
+ - <tt>image</tt> tag, only with http/https schemes; does not support 'slice' preserveAspectRatio
    
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>
  
@@ -74,7 +78,7 @@ so do not expect too much of it.
 Not supported
 -------------
 
-prawn-svg does NOT support external references, measurements in en or em, gradients/patterns or markers.
+prawn-svg does NOT support external references, measurements in en or em, sub-viewports, gradients/patterns or markers.
 
 --
 Copyright Roger Nesbitt <roger@seriousorange.com>.  MIT licence.

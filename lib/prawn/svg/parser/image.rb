@@ -14,6 +14,7 @@ class Prawn::Svg::Parser::Image
 
   def initialize(document)
     @document = document
+    @url_cache = {}
   end
 
   def parse(element)
@@ -27,7 +28,7 @@ class Prawn::Svg::Parser::Image
     end
 
     image = begin
-      open(url).read
+      retrieve_data_from_url(url)
     rescue => e
       raise Error, "Error retrieving URL #{url}: #{e.message}"
     end
@@ -36,36 +37,38 @@ class Prawn::Svg::Parser::Image
     y = y(attrs['y'] || 0)
     width = distance(attrs['width'])
     height = distance(attrs['height'])
-    options = {}
 
     return if width.zero? || height.zero?
     raise Error, "width and height must be 0 or higher" if width < 0 || height < 0
 
     par = (attrs['preserveAspectRatio'] || "xMidYMid meet").strip.split(/\s+/)
     par.shift if par.first == "defer"
+    align, meet_or_slice = par
+    raise Error, "slice preserveAspectRatio not supported by Prawn" if meet_or_slice == "slice"
 
-    case par.first
-    when 'xMidYMid'
+    options = {}
+    case align
+    when /\Ax(Min|Mid|Max)Y(Min|Mid|Max)\z/
+      options[:fit] = [width, height]
       ratio = image_ratio(image)
-      if width < height
-        options[:width] = width
-        y -= height/2 - width/ratio/2
-      elsif width > height
-        options[:height] = height
-        x += width/2 - height*ratio/2
+      if width/height < ratio
+        y -= case $2
+             when "Min" then 0
+             when "Mid" then (height - width/ratio)/2
+             when "Max" then height - width/ratio
+             end
       else
-        options[:fit] = [width, height]
-        if ratio >= 1
-          y -= height/2 - width/ratio/2
-        else
-          x += width/2 - height*ratio/2
-        end
+        x += case $1
+             when "Min" then 0
+             when "Mid" then (width - height*ratio)/2
+             when "Max" then width - height*ratio
+             end
       end
     when 'none'
       options[:width] = width
       options[:height] = height
     else
-      raise Error, "image tag only support preserveAspectRatio with xMidYMid or none; ignoring"
+      raise Error, "unknown preserveAspectRatio align keyword; ignoring image"
     end
 
     options[:at] = [x, y]
@@ -93,6 +96,14 @@ class Prawn::Svg::Parser::Image
   def image_ratio(data)
     w, h = image_dimensions(data)
     w.to_f / h.to_f
+  end
+
+  def retrieve_data_from_url(url)
+    @url_cache[url] || begin
+      data = open(url).read
+      @url_cache[url] = data if @document.cache_images
+      data
+    end
   end
 
   %w(x y distance).each do |method|
