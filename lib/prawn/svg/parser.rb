@@ -141,7 +141,7 @@ class Prawn::Svg::Parser
       # ignore
       do_not_append_calls = true
       
-    when 'font-face'
+    when 'font-face', 'clipPath'
       # not supported
       do_not_append_calls = true
 
@@ -166,6 +166,8 @@ class Prawn::Svg::Parser
       commands = []
       @document.warnings << e.message
     end
+
+    element.add_call 'join_style', :bevel
 
     commands.collect do |command, args|
       if args && args.length > 0
