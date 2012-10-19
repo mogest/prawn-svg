@@ -12,7 +12,7 @@ require 'rexml/document'
 # SVG to another format.
 #
 class Prawn::Svg::Parser
-  CONTAINER_TAGS = %w(g svg symbol defs)
+  CONTAINER_TAGS = %w(g svg symbol defs clipPath)
   
   #
   # Construct a Parser object.  
@@ -69,17 +69,18 @@ class Prawn::Svg::Parser
     if required_attributes = REQUIRED_ATTRIBUTES[element.name]
       return unless check_attrs_present(element, required_attributes)
     end
-        
+
     case element.name
     when *CONTAINER_TAGS
+      do_not_append_calls = %w(symbol defs clipPath).include?(element.name)
+      element.state[:disable_drawing] = true if element.name == "clipPath"
+
       element.each_child_element do |child|
         element.add_call "save"
         parse_element(child)
         element.add_call "restore"
       end
-      
-      do_not_append_calls = %w(symbol defs).include?(element.name)
-          
+
     when 'style'
       load_css_styles(element)
 
@@ -141,7 +142,7 @@ class Prawn::Svg::Parser
       # ignore
       do_not_append_calls = true
       
-    when 'font-face', 'clipPath'
+    when 'font-face'
       # not supported
       do_not_append_calls = true
 
@@ -186,14 +187,13 @@ class Prawn::Svg::Parser
     if href = element.attributes['xlink:href']
       if href[0..0] == '#'
         id = href[1..-1]
-        if id_calls = element.state[:ids][id]
+        if definition_element = @document.elements_by_id[id]
           x = element.attributes['x']
           y = element.attributes['y']
           if x || y
             element.add_call_and_enter "translate", distance(x || 0), -distance(y || 0)
           end
-          
-          element.calls.concat(id_calls)              
+          element.add_calls_from_element definition_element
         else
           @document.warnings << "no tag with ID '#{id}' was found, referenced by use tag"
         end

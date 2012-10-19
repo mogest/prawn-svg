@@ -13,7 +13,7 @@ class Prawn::Svg::Element
     apply_styles
     
     if id = @attributes["id"]
-      state[:ids][id] = @base_calls
+      document.elements_by_id[id] = self
     end
   end
   
@@ -42,6 +42,10 @@ class Prawn::Svg::Element
   
   def append_calls_to_parent
     @parent_calls.concat(@base_calls)
+  end
+
+  def add_calls_from_element(other)
+    @calls.concat other.base_calls
   end
   
   
@@ -94,6 +98,21 @@ class Prawn::Svg::Element
       add_call_and_enter 'transparent', state[:fill_opacity], state[:stroke_opacity]
     end
 
+    # Clip path
+    if clip_path = @attributes['clip-path']
+      if (matches = clip_path.strip.match(/\Aurl\(#(.*)\)\z/)).nil?
+        document.warnings << "Only clip-path attributes with the form 'url(#xxx)' are supported"
+      elsif (clip_path_element = @document.elements_by_id[matches[1]]).nil?
+        document.warnings << "clip-path ID '#{matches[1]}' not defined"
+      elsif clip_path_element.element.name != "clipPath"
+        document.warnings << "clip-path ID '#{matches[1]}' does not point to a clipPath tag"
+      else
+        add_call_and_enter 'save_graphics_state'
+        add_calls_from_element clip_path_element
+        add_call "clip"
+      end
+    end
+
     # Fill and stroke
     draw_types = []  
     [:fill, :stroke].each do |type|
@@ -132,13 +151,13 @@ class Prawn::Svg::Element
       else
         @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font."
       end
-    end    
-    
+    end
+
     # Call fill, stroke, or both
     draw_type = draw_types.join("_and_")
-    if draw_type != "" && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
-      add_call_and_enter draw_type
-    end            
+    if draw_type != "" && !@state[:disable_drawing] && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
+      add_call_and_enter(draw_type)
+    end
   end
 
   def parse_css_method_calls(string)

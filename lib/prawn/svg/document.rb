@@ -19,7 +19,7 @@ class Prawn::Svg::Document
 
   attr_reader :root,
     :actual_width, :actual_height, :width, :height, :x_offset, :y_offset, :cache_images,
-    :css_parser
+    :css_parser, :elements_by_id
     
   def initialize(data, bounds, options)
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
@@ -27,6 +27,7 @@ class Prawn::Svg::Document
     @root = REXML::Document.new(data).root
     @warnings = []
     @options = options
+    @elements_by_id = {}
     @cache_images = options[:cache_images]
     @actual_width, @actual_height = bounds # set this first so % width/heights can be used
 
