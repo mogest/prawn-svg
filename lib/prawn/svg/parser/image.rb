@@ -44,20 +44,30 @@ class Prawn::Svg::Parser::Image
     par = (attrs['preserveAspectRatio'] || "xMidYMid meet").strip.split(/\s+/)
     par.shift if par.first == "defer"
     align, meet_or_slice = par
-    raise Error, "slice preserveAspectRatio not supported by Prawn" if meet_or_slice == "slice"
+    slice = meet_or_slice == "slice"
+
+    if slice
+      element.add_call "save"
+      element.add_call "rectangle", [x, y], width, height
+      element.add_call "clip"
+    end
 
     options = {}
     case align
     when /\Ax(Min|Mid|Max)Y(Min|Mid|Max)\z/
-      options[:fit] = [width, height]
       ratio = image_ratio(image)
-      if width/height < ratio
+
+      options[:fit] = [width, height] unless slice
+
+      if (width/height > ratio) == slice
+        options[:width] = width if slice
         y -= case $2
              when "Min" then 0
              when "Mid" then (height - width/ratio)/2
              when "Max" then height - width/ratio
              end
       else
+        options[:height] = height if slice
         x += case $1
              when "Min" then 0
              when "Mid" then (width - height*ratio)/2
@@ -74,6 +84,7 @@ class Prawn::Svg::Parser::Image
     options[:at] = [x, y]
 
     element.add_call "image", FakeIO.new(image), options
+    element.add_call "restore" if slice
   rescue Error => e
     @document.warnings << e.message
   end

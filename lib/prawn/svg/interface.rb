@@ -97,6 +97,10 @@ module Prawn
           arguments[4] += x - (x * arguments[0] - y * arguments[1])
           arguments[5] += y - (x * arguments[1] + y * arguments[0])
           
+        when 'clip'
+          prawn.add_content "W* n" # clip to path
+          false
+
         when 'save'
           prawn.save_graphics_state
           false
