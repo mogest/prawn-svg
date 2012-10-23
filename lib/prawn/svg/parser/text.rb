@@ -22,10 +22,8 @@ class Prawn::Svg::Parser::Text
     if size = element.state[:font_size]
       opts[:size] = size
     end
-    if style = element.state[:font_style]
-      opts[:style] = style
-    end
-      
+    opts[:style] = Prawn::Svg::Font.font_subfamily(element.state[:font_weight],element.state[:font_style])
+    
     # This is not a prawn option but we can't work out how to render it here -
     # it's handled by Svg#rewrite_call_arguments
     if anchor = attrs['text-anchor']

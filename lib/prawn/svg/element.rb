@@ -138,7 +138,20 @@ class Prawn::Svg::Element
     end
     if weight = @attributes['font-weight']
       font_updated = true
-      @state[:font_style] = weight == 'bold' ? :bold : nil
+      @state[:font_weight] =  case weight
+                              when '100','200'  then :light
+                              when '300'        then :book
+                              when '400','500'  then :normal
+                              when '600'        then :semibold
+                              when '700','bold' then :bold
+                              when '800'        then :extrabold
+                              when '900'        then :black
+                              else nil
+                              end
+    end
+    if style = @attributes['font-style']
+      font_updated = true
+      @state[:font_style] = style == 'italic' ? :italic : nil
     end
     if (family = @attributes['font-family']) && family.strip != ""
       font_updated = true
@@ -146,7 +159,7 @@ class Prawn::Svg::Element
     end
     
     if @state[:font_family] && font_updated
-      if pdf_font = Prawn::Svg::Font.map_font_family_to_pdf_font(@state[:font_family], @state[:font_style])
+      if pdf_font = Prawn::Svg::Font.map_font_family_to_pdf_font(@state[:font_family], @state[:font_weight], @state[:font_style])
         add_call_and_enter 'font', pdf_font
       else
         @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font."
