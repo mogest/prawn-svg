@@ -8,7 +8,7 @@ class Prawn::Svg::Font
     "fantasy"    => "Times-Roman",
     "monospace"  => "Courier"}
     
-  def self.map_font_family_to_pdf_font(font_family, font_style = nil)
+  def self.map_font_family_to_pdf_font(font_family, font_weight = nil, font_style = nil)
     font_family.split(",").detect do |font|
       font = font.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
 
@@ -17,20 +17,19 @@ class Prawn::Svg::Font
 
       generic_font = GENERIC_CSS_FONT_MAPPING[font]
       break generic_font if generic_font
-      
-      break font.downcase if font_installed?(font, font_style)
+
+      break font.downcase if font_installed?(font, font_weight, font_style)
     end
   end
   
-  def self.font_path(font_family, font_style = nil)
-    font_style = :normal if font_style.nil?
-    if installed_styles = installed_fonts[font_family.downcase]
-      installed_styles[font_style]
+  def self.font_path(font_family, font_weight = nil, font_style = nil)
+    if installed_fonts.key? font_family
+      installed_fonts[font_family][font_subfamily(font_family,font_weight, font_style)]
     end
   end
   
-  def self.font_installed?(font_family, font_style = nil)
-    !font_path(font_family, font_style).nil?
+  def self.font_installed?(font_family, font_weight = nil, font_style = nil)
+    !font_path(font_family.downcase, font_weight, font_style).nil?
   end
 
   def self.installed_fonts
@@ -39,19 +38,33 @@ class Prawn::Svg::Font
     fonts = {}
     Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten.each do |filename|
       information = font_information(filename) rescue nil
-      if information && font_name = information[1]
-        font_style = case information[2]
-        when 'Bold' then :bold
-        when 'Italic' then :italic
-        when 'Bold Italic' then :bold_italic
-        else :normal
-        end
-        
-        (fonts[font_name.downcase] ||= {})[font_style] = filename
+      if information && font_name = (information[16] || information[1])
+        subfamily = (information[17] || information[2]).gsub(/\s+/, "_").downcase.to_sym
+        subfamily = :normal if subfamily == :regular
+        (fonts[font_name.downcase] ||= {})[subfamily] = filename
       end
     end
-    
     @installed_fonts = fonts
+  end
+
+  def self.font_subfamily(font_family,font_weight = nil,font_style = nil)
+    subfamily = (if font_weight == :normal and font_style
+                  "#{font_style}"
+                elsif font_weight || font_style
+                  "#{font_weight} #{font_style}"
+                else
+                  "normal"
+                end).strip().gsub(/\s+/, "_").downcase.to_sym
+
+    if installed_styles = installed_fonts[font_family.downcase]
+      if installed_styles.key? subfamily
+        subfamily
+      elsif installed_styles.key? :normal
+        :normal
+      else
+        installed_styles.values.first
+      end
+    end
   end
     
   def self.font_information(filename)
@@ -72,13 +85,13 @@ class Prawn::Svg::Font
       data = f.read(length)
       
       format, name_count, string_offset = data[0..5].unpack("nnn")
-      
+
       names = {}
       name_count.times do |index|
         start = 6 + index * 12
         platform_id, platform_specific_id, language_id, name_id, length, offset = data[start..start+11].unpack("nnnnnn")        
         next unless language_id == 0 # English
-        next unless name_id == 1 || name_id == 2
+        next unless name_id == 1 || name_id == 2 || name_id == 16 || name_id == 17
         
         offset += string_offset
         field = data[offset..offset+length-1]        
