@@ -1,3 +1,4 @@
+require 'cgi'
 class Prawn::Svg::Parser::Text
   def parse(element)
     element.add_call_and_enter "text_group"
@@ -34,7 +35,7 @@ class Prawn::Svg::Parser::Text
 
     element.element.children.each do |child|
       if child.node_type == :text
-        text = child.to_s.strip.gsub(/\s+/, " ")
+        text = CGI::unescape_html child.to_s.strip.gsub(/\s+/, " ")
 
         while text != "" 
           opts[:at] = [x_positions.first, y_positions.first]
