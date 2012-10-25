@@ -23,14 +23,13 @@ class Prawn::Svg::Font
   end
   
   def self.font_path(font_family, font_weight = nil, font_style = nil)
-    subfamily = font_subfamily(font_weight, font_style)
-    if installed_styles = installed_fonts[font_family.downcase]
-      installed_styles[subfamily]
+    if installed_fonts.key? font_family
+      installed_fonts[font_family][font_subfamily(font_family,font_weight, font_style)]
     end
   end
   
   def self.font_installed?(font_family, font_weight = nil, font_style = nil)
-    !font_path(font_family, font_weight, font_style).nil?
+    !font_path(font_family.downcase, font_weight, font_style).nil?
   end
 
   def self.installed_fonts
@@ -48,15 +47,24 @@ class Prawn::Svg::Font
     @installed_fonts = fonts
   end
 
-  def self.font_subfamily(font_weight = nil,font_style = nil)
-    subfamily = if font_weight == :normal and font_style
-      "#{font_style}"
-    elsif font_weight || font_style
-      "#{font_weight} #{font_style}"
-    else
-      "normal"
+  def self.font_subfamily(font_family,font_weight = nil,font_style = nil)
+    subfamily = (if font_weight == :normal and font_style
+                  "#{font_style}"
+                elsif font_weight || font_style
+                  "#{font_weight} #{font_style}"
+                else
+                  "normal"
+                end).strip().gsub(/\s+/, "_").downcase.to_sym
+
+    if installed_styles = installed_fonts[font_family.downcase]
+      if installed_styles.key? subfamily
+        subfamily
+      elsif installed_styles.key? :normal
+        :normal
+      else
+        installed_styles.values.first
+      end
     end
-    subfamily.strip().gsub(/\s+/, "_").downcase.to_sym
   end
     
   def self.font_information(filename)

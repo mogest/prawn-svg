@@ -139,13 +139,12 @@ class Prawn::Svg::Element
     if weight = @attributes['font-weight']
       font_updated = true
       @state[:font_weight] =  case weight
-                              when '100','200'  then :light
-                              when '300'        then :book
-                              when '400','500'  then :normal
-                              when '600'        then :semibold
-                              when '700','bold' then :bold
-                              when '800'        then :extrabold
-                              when '900'        then :black
+                              when '100','200','300' then :light
+                              when '400','500'       then :normal
+                              when '600'             then :semibold
+                              when '700','bold'      then :bold
+                              when '800'             then :extrabold
+                              when '900'             then :black
                               else nil
                               end
     end
@@ -153,14 +152,13 @@ class Prawn::Svg::Element
       font_updated = true
       @state[:font_style] = style == 'italic' ? :italic : nil
     end
-    if (family = @attributes['font-family']) && family.strip != ""
-      font_updated = true
-      @state[:font_family] = family
-    end
-    
-    if @state[:font_family] && font_updated
-      if pdf_font = Prawn::Svg::Font.map_font_family_to_pdf_font(@state[:font_family], @state[:font_weight], @state[:font_style])
-        add_call_and_enter 'font', pdf_font
+
+    font_updated = true if (family = @attributes['font-family']) && family.strip != ""
+      
+    if family && font_updated
+      if pdf_font  = Prawn::Svg::Font.map_font_family_to_pdf_font(family, @state[:font_weight], @state[:font_style])
+        @state[:font_subfamily] = Prawn::Svg::Font.font_subfamily(pdf_font,@state[:font_weight],@state[:font_style])
+        add_call_and_enter 'font', pdf_font, :style => @state[:font_subfamily]
       else
         @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font."
       end
