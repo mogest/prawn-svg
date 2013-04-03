@@ -9,11 +9,11 @@ module Prawn
 
       @font_path = []
       DEFAULT_FONT_PATHS.each {|path| @font_path << path if File.exists?(path)}
-  
+
       class << self; attr_accessor :font_path; end
-  
+
       attr_reader :data, :prawn, :document, :options
-  
+
       #
       # Creates a Prawn::Svg object.
       #
@@ -21,19 +21,19 @@ module Prawn
       #
       # +options+ must contain the key :at, which takes a tuple of x and y co-ordinates.
       #
-      # +options+ can optionally contain the key :width or :height.  If both are 
+      # +options+ can optionally contain the key :width or :height.  If both are
       # specified, only :width will be used.
       #
       def initialize(data, prawn, options)
         @data = data
         @prawn = prawn
         @options = options
-    
+
         @options[:at] or raise "options[:at] must be specified"
 
         prawn.font_families.update(Prawn::Svg::Font.installed_fonts)
 
-        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options)        
+        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options)
       end
 
       #
@@ -47,12 +47,12 @@ module Prawn
         end
       end
 
-  
-      private  
+
+      private
       def proc_creator(prawn, calls)
         Proc.new {issue_prawn_command(prawn, calls)}
       end
-  
+
       def issue_prawn_command(prawn, calls)
         calls.each do |call, arguments, children|
           if rewrite_call_arguments(prawn, call, arguments) == false
@@ -66,21 +66,21 @@ module Prawn
           end
         end
       end
-  
+
       def rewrite_call_arguments(prawn, call, arguments)
         if call == 'relative_draw_text'
           call.replace "draw_text"
           arguments.last[:at][0] = @relative_text_position if @relative_text_position
         end
-        
+
         case call
         when 'text_group'
           @relative_text_position = nil
           false
-          
+
         when 'draw_text'
           text, options = arguments
-          
+
           width = prawn.width_of(text, options.merge(:kerning => true))
 
           if (anchor = options.delete(:text_anchor)) && %w(middle end).include?(anchor)
@@ -90,13 +90,13 @@ module Prawn
 
           space_width = prawn.width_of("n", options)
           @relative_text_position = options[:at][0] + width + space_width
-          
+
         when 'transformation_matrix'
           x = prawn.bounds.absolute_left
           y = prawn.bounds.absolute_top
           arguments[4] += x - (x * arguments[0] - y * arguments[1])
           arguments[5] += y - (x * arguments[1] + y * arguments[0])
-          
+
         when 'clip'
           prawn.add_content "W n" # clip to path
           false
@@ -104,7 +104,7 @@ module Prawn
         when 'save'
           prawn.save_graphics_state
           false
-          
+
         when 'restore'
           prawn.restore_graphics_state
           false

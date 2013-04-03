@@ -13,11 +13,11 @@ require 'rexml/document'
 #
 class Prawn::Svg::Parser
   CONTAINER_TAGS = %w(g svg symbol defs clipPath)
-  
+
   #
-  # Construct a Parser object.  
+  # Construct a Parser object.
   #
-  # The +data+ argument is SVG data.  
+  # The +data+ argument is SVG data.
   #
   # +bounds+ is a tuple [width, height] that specifies the bounds of the drawing space in points.
   #
@@ -40,16 +40,16 @@ class Prawn::Svg::Parser
   #
   def parse
     @document.warnings.clear
-    
+
     calls = [['fill_color', '000000', []]]
     root_element = Prawn::Svg::Element.new(@document, @document.root, calls, :ids => {}, :fill => true)
-    
+
     parse_element(root_element)
     calls
   end
 
 
-  private  
+  private
   REQUIRED_ATTRIBUTES = {
     "polyline"  => %w(points),
     "polygon"   => %w(points),
@@ -57,9 +57,9 @@ class Prawn::Svg::Parser
     "ellipse"   => %w(rx ry),
     "rect"      => %w(width height),
     "path"      => %w(d),
-    "image"     => %w(width height)  
+    "image"     => %w(width height)
   }
-  
+
   USE_NEW_CIRCLE_CALL = Prawn::Document.new.respond_to?(:circle)
   USE_NEW_ELLIPSE_CALL = Prawn::Document.new.respond_to?(:ellipse)
 
@@ -108,20 +108,20 @@ class Prawn::Svg::Parser
         [x(x), y(y)]
       end
       element.add_call "polygon", *points
-  
+
     when 'circle'
       if USE_NEW_CIRCLE_CALL
-        element.add_call "circle", 
+        element.add_call "circle",
           [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['r'])
       else
-        element.add_call "circle_at", 
+        element.add_call "circle_at",
           [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], :radius => distance(attrs['r'])
       end
-      
+
     when 'ellipse'
-      element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at", 
+      element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at",
         [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])
-  
+
     when 'rect'
       radius = distance(attrs['rx'] || attrs['ry'])
       args = [[x(attrs['x'] || '0'), y(attrs['y'] || '0')], distance(attrs['width']), distance(attrs['height'])]
@@ -131,17 +131,17 @@ class Prawn::Svg::Parser
       else
         element.add_call "rectangle", *args
       end
-  
+
     when 'path'
       parse_path(element)
-      
+
     when 'use'
       parse_use(element)
 
     when 'title', 'desc', 'metadata'
       # ignore
       do_not_append_calls = true
-      
+
     when 'font-face'
       # not supported
       do_not_append_calls = true
@@ -153,11 +153,11 @@ class Prawn::Svg::Parser
     else
       @document.warnings << "Unknown tag '#{element.name}'; ignoring"
     end
-    
+
     element.append_calls_to_parent unless do_not_append_calls
   end
 
-  
+
   def parse_path(element)
     @svg_path ||= Path.new
 
@@ -180,9 +180,9 @@ class Prawn::Svg::Parser
       else
         element.add_call command
       end
-    end  
+    end
   end
-  
+
   def parse_use(element)
     if href = element.attributes['xlink:href']
       if href[0..0] == '#'
@@ -203,7 +203,7 @@ class Prawn::Svg::Parser
     else
       @document.warnings << "no xlink:href specified on use tag"
     end
-  end    
+  end
 
   ####################################################################################################################
 
@@ -215,8 +215,8 @@ class Prawn::Svg::Parser
         element.element.text
       end
 
-      @document.css_parser.add_block!(data)       
-    end    
+      @document.css_parser.add_block!(data)
+    end
   end
 
   def check_attrs_present(element, attrs)
@@ -226,7 +226,7 @@ class Prawn::Svg::Parser
     end
     missing_attrs.empty?
   end
-  
+
   %w(x y distance).each do |method|
     define_method(method) {|*a| @document.send(method, *a)}
   end

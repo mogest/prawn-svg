@@ -1,45 +1,45 @@
 class Prawn::Svg::Element
   attr_reader :document, :element, :parent_calls, :base_calls, :state, :attributes
   attr_accessor :calls
-  
+
   def initialize(document, element, parent_calls, state)
     @document = document
     @element = element
     @parent_calls = parent_calls
     @state = state
     @base_calls = @calls = []
-    
+
     combine_attributes_and_style_declarations
     apply_styles
-    
+
     if id = @attributes["id"]
       document.elements_by_id[id] = self
     end
   end
-  
+
   def name
     @name ||= element.name
   end
-  
+
   def each_child_element
     element.elements.each do |e|
       yield self.class.new(@document, e, @calls, @state.dup)
     end
   end
-  
+
   def warnings
     @document.warnings
   end
-  
+
   def add_call(name, *arguments)
     @calls << [name.to_s, arguments, []]
   end
-  
+
   def add_call_and_enter(name, *arguments)
     @calls << [name.to_s, arguments, []]
     @calls = @calls.last.last
-  end  
-  
+  end
+
   def append_calls_to_parent
     @parent_calls.concat(@base_calls)
   end
@@ -47,8 +47,8 @@ class Prawn::Svg::Element
   def add_calls_from_element(other)
     @calls.concat other.base_calls
   end
-  
-  
+
+
   protected
   def apply_styles
     # Transform
@@ -91,7 +91,7 @@ class Prawn::Svg::Element
     fill_opacity = clamp(@attributes['fill-opacity'].to_f, 0, 1) if @attributes['fill-opacity']
     stroke_opacity = clamp(@attributes['stroke-opacity'].to_f, 0, 1) if @attributes['stroke-opacity']
 
-    if fill_opacity || stroke_opacity      
+    if fill_opacity || stroke_opacity
       state[:fill_opacity] = (state[:fill_opacity] || 1) * (fill_opacity || 1)
       state[:stroke_opacity] = (state[:stroke_opacity] || 1) * (stroke_opacity || 1)
 
@@ -114,7 +114,7 @@ class Prawn::Svg::Element
     end
 
     # Fill and stroke
-    draw_types = []  
+    draw_types = []
     [:fill, :stroke].each do |type|
       dec = @attributes[type.to_s]
       if dec == "none"
@@ -128,11 +128,11 @@ class Prawn::Svg::Element
 
       draw_types << type.to_s if state[type]
     end
-    
-    # Stroke width
-    add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']      
 
-    # Fonts        
+    # Stroke width
+    add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']
+
+    # Fonts
     if size = @attributes['font-size']
       @state[:font_size] = size.to_f * @document.scale
     end
@@ -144,7 +144,7 @@ class Prawn::Svg::Element
       font_updated = true
       @state[:font_family] = family
     end
-    
+
     if @state[:font_family] && font_updated
       if pdf_font = Prawn::Svg::Font.map_font_family_to_pdf_font(@state[:font_family], @state[:font_style])
         add_call_and_enter 'font', pdf_font
@@ -169,7 +169,7 @@ class Prawn::Svg::Element
   end
 
   # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords
-  HTML_COLORS = {    
+  HTML_COLORS = {
   	'black' => "000000", 'green' => "008000", 'silver' => "c0c0c0", 'lime' => "00ff00",
   	'gray' => "808080", 'olive' => "808000", 'white' => "ffffff", 'yellow' => "ffff00",
   	'maroon' => "800000", 'navy' => "000080", 'red' => "ff0000", 'blue' => "0000ff",
@@ -192,26 +192,26 @@ class Prawn::Svg::Element
           value = m[n].to_f
           value *= 2.55 if m[n][-1..-1] == '%'
           "%02x" % clamp(value.round, 0, 255)
-        end.join        
-      end    
+        end.join
+      end
     end
   end
 
   def clamp(value, min_value, max_value)
     [[value, min_value].max, max_value].min
-  end  
-      
+  end
+
   def combine_attributes_and_style_declarations
     if @document && @document.css_parser
       tag_style = @document.css_parser.find_by_selector(element.name)
       id_style = @document.css_parser.find_by_selector("##{element.attributes["id"]}") if element.attributes["id"]
-  
+
       if classes = element.attributes["class"]
         class_styles = classes.strip.split(/\s+/).collect do |class_name|
           @document.css_parser.find_by_selector(".#{class_name}")
         end
       end
-  
+
       element_style = element.attributes['style']
 
       style = [tag_style, class_styles, id_style, element_style].flatten.collect do |s|
@@ -223,7 +223,7 @@ class Prawn::Svg::Element
 
     @attributes = parse_css_declarations(style)
     element.attributes.each {|n,v| @attributes[n] = v unless @attributes[n]}
-  end    
+  end
 
   def parse_css_declarations(declarations)
     # copied from css_parser

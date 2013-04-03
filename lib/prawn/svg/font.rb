@@ -7,7 +7,7 @@ class Prawn::Svg::Font
     "cursive"    => "Times-Roman",
     "fantasy"    => "Times-Roman",
     "monospace"  => "Courier"}
-    
+
   def self.map_font_family_to_pdf_font(font_family, font_style = nil)
     font_family.split(",").detect do |font|
       font = font.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
@@ -17,25 +17,25 @@ class Prawn::Svg::Font
 
       generic_font = GENERIC_CSS_FONT_MAPPING[font]
       break generic_font if generic_font
-      
+
       break font.downcase if font_installed?(font, font_style)
     end
   end
-  
+
   def self.font_path(font_family, font_style = nil)
     font_style = :normal if font_style.nil?
     if installed_styles = installed_fonts[font_family.downcase]
       installed_styles[font_style]
     end
   end
-  
+
   def self.font_installed?(font_family, font_style = nil)
     !font_path(font_family, font_style).nil?
   end
 
   def self.installed_fonts
     return @installed_fonts if @installed_fonts
-    
+
     fonts = {}
     Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten.each do |filename|
       information = font_information(filename) rescue nil
@@ -46,14 +46,14 @@ class Prawn::Svg::Font
         when 'Bold Italic' then :bold_italic
         else :normal
         end
-        
+
         (fonts[font_name.downcase] ||= {})[font_style] = filename
       end
     end
-    
+
     @installed_fonts = fonts
   end
-    
+
   def self.font_information(filename)
     File.open(filename, "r") do |f|
       x = f.read(12)
@@ -66,22 +66,22 @@ class Prawn::Svg::Font
           break tables[start+8..start+15].unpack("NN")
         end
       end
-      
+
       return unless length
       f.seek(offset)
       data = f.read(length)
-      
+
       format, name_count, string_offset = data[0..5].unpack("nnn")
-      
+
       names = {}
       name_count.times do |index|
         start = 6 + index * 12
-        platform_id, platform_specific_id, language_id, name_id, length, offset = data[start..start+11].unpack("nnnnnn")        
+        platform_id, platform_specific_id, language_id, name_id, length, offset = data[start..start+11].unpack("nnnnnn")
         next unless language_id == 0 # English
         next unless name_id == 1 || name_id == 2
-        
+
         offset += string_offset
-        field = data[offset..offset+length-1]        
+        field = data[offset..offset+length-1]
         names[name_id] = if platform_id == 0
           begin
             if field.respond_to?(:encode)

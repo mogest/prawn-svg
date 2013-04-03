@@ -6,11 +6,11 @@ class Prawn::Svg::Document
     CSS_PARSER_LOADED = true
   rescue LoadError
     CSS_PARSER_LOADED = false
-  end    
-  
+  end
+
   DEFAULT_WIDTH  = 640
   DEFAULT_HEIGHT = 480
-  
+
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
 
@@ -20,7 +20,7 @@ class Prawn::Svg::Document
   attr_reader :root,
     :actual_width, :actual_height, :width, :height, :x_offset, :y_offset, :cache_images,
     :css_parser, :elements_by_id
-    
+
   def initialize(data, bounds, options)
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
 
@@ -40,9 +40,9 @@ class Prawn::Svg::Document
       @actual_width = points(@root.attributes['width'] || DEFAULT_WIDTH, :x)
       @actual_height = points(@root.attributes['height'] || DEFAULT_HEIGHT, :y)
     end
-    
+
     if @options[:width]
-      @width = @options[:width]      
+      @width = @options[:width]
       @scale = @options[:width] / @actual_width.to_f
     elsif @options[:height]
       @height = @options[:height]
@@ -52,9 +52,9 @@ class Prawn::Svg::Document
     end
 
     @width ||= @actual_width * @scale
-    @height ||= @actual_height * @scale    
+    @height ||= @actual_height * @scale
   end
-  
+
   def x(value)
     (points(value, :x) - @x_offset) * scale
   end
