@@ -1,5 +1,5 @@
 class Prawn::Svg::Font
-  BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"]
+  BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"].collect(&:downcase)
 
   GENERIC_CSS_FONT_MAPPING = {
     "serif"      => "Times-Roman",
@@ -8,28 +8,29 @@ class Prawn::Svg::Font
     "fantasy"    => "Times-Roman",
     "monospace"  => "Courier"}
 
-  def self.map_font_family_to_pdf_font(font_family, font_weight = nil, font_style = nil)
-    font_family.split(",").detect do |font|
-      font = font.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
+  attr_reader :name, :weight, :style
 
-      built_in_font = BUILT_IN_FONTS.detect {|f| f.downcase == font}
-      break built_in_font if built_in_font
+  def self.load(family, weight = nil, style = nil)
+    family.split(",").detect do |name|
+      name = name.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
 
-      generic_font = GENERIC_CSS_FONT_MAPPING[font]
-      break generic_font if generic_font
+      # If it's a standard CSS font name, map it to one of the standard PDF fonts.
+      name = GENERIC_CSS_FONT_MAPPING[name] || name
 
-      break font.downcase if font_installed?(font, font_weight, font_style)
+      font = new(name, weight, style)
+      break font if font.installed?
     end
   end
 
-  def self.font_path(font_family, font_weight = nil, font_style = nil)
-    if installed_fonts.key? font_family
-      installed_fonts[font_family][font_subfamily(font_family,font_weight, font_style)]
+  def self.weight_for_css_font_weight(weight)
+    case weight
+    when '100', '200', '300' then :light
+    when '400', '500'        then :normal
+    when '600'               then :semibold
+    when '700', 'bold'       then :bold
+    when '800'               then :extrabold
+    when '900'               then :black
     end
-  end
-
-  def self.font_installed?(font_family, font_weight = nil, font_style = nil)
-    !font_path(font_family.downcase, font_weight, font_style).nil?
   end
 
   def self.installed_fonts
@@ -47,24 +48,47 @@ class Prawn::Svg::Font
     @installed_fonts = fonts
   end
 
-  def self.font_subfamily(font_family,font_weight = nil,font_style = nil)
-    subfamily = (if font_weight == :normal and font_style
-                  "#{font_style}"
-                elsif font_weight || font_style
-                  "#{font_weight} #{font_style}"
-                else
-                  "normal"
-                end).strip().gsub(/\s+/, "_").downcase.to_sym
+  def initialize(name, weight, style)
+    @name = name.downcase
+    @weight = weight
+    @style = style
+  end
 
-    if installed_styles = installed_fonts[font_family.downcase]
-      if installed_styles.key? subfamily
-        subfamily
-      elsif installed_styles.key? :normal
+  def installed?
+    BUILT_IN_FONTS.include?(name) || !path.nil?
+  end
+
+  def path
+    self.class.installed_fonts[name][subfamily] if self.class.installed_fonts.key?(name)
+  end
+
+  # Construct a subfamily name, ensuring that the subfamily is a valid one for the font.
+  def subfamily
+    if subfamilies = self.class.installed_fonts[name]
+      if subfamilies.key?(subfamily_name)
+        subfamily_name
+      elsif subfamilies.key?(:normal)
         :normal
       else
-        installed_styles.values.first
+        subfamilies.keys.first
       end
     end
+  end
+
+
+  private
+  # Construct a subfamily name from the weight and style information.
+  # Note that this name might not actually exist in the font.
+  def subfamily_name
+    sfn = if weight == :normal && style
+      style
+    elsif weight || style
+      "#{weight} #{style}"
+    else
+      "normal"
+    end
+
+    sfn.strip.gsub(/\s+/, "_").downcase.to_sym
   end
 
   def self.font_information(filename)
@@ -91,7 +115,7 @@ class Prawn::Svg::Font
         start = 6 + index * 12
         platform_id, platform_specific_id, language_id, name_id, length, offset = data[start..start+11].unpack("nnnnnn")
         next unless language_id == 0 # English
-        next unless name_id == 1 || name_id == 2 || name_id == 16 || name_id == 17
+        next unless [1, 2, 16, 17].include?(name_id)
 
         offset += string_offset
         field = data[offset..offset+length-1]

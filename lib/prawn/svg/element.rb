@@ -138,27 +138,21 @@ class Prawn::Svg::Element
     end
     if weight = @attributes['font-weight']
       font_updated = true
-      @state[:font_weight] =  case weight
-                              when '100','200','300' then :light
-                              when '400','500'       then :normal
-                              when '600'             then :semibold
-                              when '700','bold'      then :bold
-                              when '800'             then :extrabold
-                              when '900'             then :black
-                              else nil
-                              end
+      @state[:font_weight] = Prawn::Svg::Font.weight_for_css_font_weight(weight)
     end
     if style = @attributes['font-style']
       font_updated = true
       @state[:font_style] = style == 'italic' ? :italic : nil
     end
+    if (family = @attributes['font-family']) && family.strip != ""
+      font_updated = true
+      @state[:font_family] = family
+    end
 
-    font_updated = true if (family = @attributes['font-family']) && family.strip != ""
-
-    if family && font_updated
-      if pdf_font  = Prawn::Svg::Font.map_font_family_to_pdf_font(family, @state[:font_weight], @state[:font_style])
-        @state[:font_subfamily] = Prawn::Svg::Font.font_subfamily(pdf_font,@state[:font_weight],@state[:font_style])
-        add_call_and_enter 'font', pdf_font, :style => @state[:font_subfamily]
+    if @state[:font_family] && font_updated
+      if font = Prawn::Svg::Font.load(@state[:font_family], @state[:font_weight], @state[:font_style])
+        @state[:font_subfamily] = font.subfamily
+        add_call_and_enter 'font', font.name, :style => @state[:font_subfamily]
       else
         @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font."
       end
