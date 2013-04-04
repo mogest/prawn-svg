@@ -31,7 +31,7 @@ module Prawn
 
         @options[:at] or raise "options[:at] must be specified"
 
-        prawn.font_families.update(Prawn::Svg::Font.installed_fonts)
+        Prawn::Svg::Font.load_external_fonts(prawn.font_families)
 
         @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options)
       end

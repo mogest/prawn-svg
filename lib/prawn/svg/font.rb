@@ -1,6 +1,4 @@
 class Prawn::Svg::Font
-  BUILT_IN_FONTS = ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats"].collect(&:downcase)
-
   GENERIC_CSS_FONT_MAPPING = {
     "serif"      => "Times-Roman",
     "sans-serif" => "Helvetica",
@@ -33,33 +31,42 @@ class Prawn::Svg::Font
     end
   end
 
-  def self.installed_fonts
-    return @installed_fonts if @installed_fonts
-
-    fonts = {}
+  # This method is passed prawn's font_families hash.  It'll be pre-populated with the fonts that prawn natively
+  # supports.  We'll add fonts we find in the font path to this hash.
+  def self.load_external_fonts(fonts)
     Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten.each do |filename|
       information = font_information(filename) rescue nil
       if information && font_name = (information[16] || information[1])
         subfamily = (information[17] || information[2]).gsub(/\s+/, "_").downcase.to_sym
         subfamily = :normal if subfamily == :regular
-        (fonts[font_name.downcase] ||= {})[subfamily] = filename
+        (fonts[font_name] ||= {})[subfamily] = filename
       end
     end
+
+    @font_case_mapping = {}
+    fonts.each {|key, _| @font_case_mapping[key.downcase] = key}
+
     @installed_fonts = fonts
   end
 
+  def self.installed_fonts
+    @installed_fonts
+  end
+
+  def self.correctly_cased_font_name(name)
+    @font_case_mapping[name.downcase]
+  end
+
+
   def initialize(name, weight, style)
-    @name = name.downcase
+    @name = self.class.correctly_cased_font_name(name) || name
     @weight = weight
     @style = style
   end
 
   def installed?
-    BUILT_IN_FONTS.include?(name) || !path.nil?
-  end
-
-  def path
-    self.class.installed_fonts[name][subfamily] if self.class.installed_fonts.key?(name)
+    subfamilies = self.class.installed_fonts[name]
+    !subfamilies.nil? && subfamilies.key?(subfamily)
   end
 
   # Construct a subfamily name, ensuring that the subfamily is a valid one for the font.
