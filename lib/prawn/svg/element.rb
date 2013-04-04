@@ -51,41 +51,54 @@ class Prawn::Svg::Element
 
   protected
   def apply_styles
-    # Transform
-    if transform = @attributes['transform']
-      parse_css_method_calls(transform).each do |name, arguments|
-        case name
-        when 'translate'
-          x, y = arguments
-          add_call_and_enter name, @document.distance(x), -@document.distance(y)
+    parse_transform_attribute_and_call
+    parse_opacity_attributes_and_call
+    parse_clip_path_attribute_and_call
+    draw_types = parse_fill_and_stroke_attributes_and_call
+    parse_stroke_width_attribute_and_call
+    parse_font_attributes_and_call
 
-        when 'rotate'
-          r, x, y = arguments.collect {|a| a.to_f}
-          if arguments.length == 3
-            add_call_and_enter name, -r, :origin => [@document.x(x), @document.y(y)]
-          else
-            add_call_and_enter name, -r, :origin => [0, @document.y('0')]
-          end
+    if draw_types.length > 0 && !@state[:disable_drawing] && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
+      add_call_and_enter(draw_types.join("_and_"))
+    end
+  end
 
-        when 'scale'
-          x_scale = arguments[0].to_f
-          y_scale = (arguments[1] || x_scale).to_f
-          add_call_and_enter "transformation_matrix", x_scale, 0, 0, y_scale, 0, 0
+  def parse_transform_attribute_and_call
+    return unless transform = @attributes['transform']
 
-        when 'matrix'
-          if arguments.length != 6
-            @document.warnings << "transform 'matrix' must have six arguments"
-          else
-            a, b, c, d, e, f = arguments.collect {|argument| argument.to_f}
-            add_call_and_enter "transformation_matrix", a, -b, -c, d, @document.distance(e), -@document.distance(f)
-          end
+    parse_css_method_calls(transform).each do |name, arguments|
+      case name
+      when 'translate'
+        x, y = arguments
+        add_call_and_enter name, @document.distance(x), -@document.distance(y)
+
+      when 'rotate'
+        r, x, y = arguments.collect {|a| a.to_f}
+        if arguments.length == 3
+          add_call_and_enter name, -r, :origin => [@document.x(x), @document.y(y)]
         else
-          @document.warnings << "Unknown transformation '#{name}'; ignoring"
+          add_call_and_enter name, -r, :origin => [0, @document.y('0')]
         end
+
+      when 'scale'
+        x_scale = arguments[0].to_f
+        y_scale = (arguments[1] || x_scale).to_f
+        add_call_and_enter "transformation_matrix", x_scale, 0, 0, y_scale, 0, 0
+
+      when 'matrix'
+        if arguments.length != 6
+          @document.warnings << "transform 'matrix' must have six arguments"
+        else
+          a, b, c, d, e, f = arguments.collect {|argument| argument.to_f}
+          add_call_and_enter "transformation_matrix", a, -b, -c, d, @document.distance(e), -@document.distance(f)
+        end
+      else
+        @document.warnings << "Unknown transformation '#{name}'; ignoring"
       end
     end
+  end
 
-    # Opacity:
+  def parse_opacity_attributes_and_call
     # We can't do nested opacities quite like the SVG requires, but this is close enough.
     fill_opacity = stroke_opacity = clamp(@attributes['opacity'].to_f, 0, 1) if @attributes['opacity']
     fill_opacity = clamp(@attributes['fill-opacity'].to_f, 0, 1) if @attributes['fill-opacity']
@@ -97,23 +110,25 @@ class Prawn::Svg::Element
 
       add_call_and_enter 'transparent', state[:fill_opacity], state[:stroke_opacity]
     end
+  end
 
-    # Clip path
-    if clip_path = @attributes['clip-path']
-      if (matches = clip_path.strip.match(/\Aurl\(#(.*)\)\z/)).nil?
-        document.warnings << "Only clip-path attributes with the form 'url(#xxx)' are supported"
-      elsif (clip_path_element = @document.elements_by_id[matches[1]]).nil?
-        document.warnings << "clip-path ID '#{matches[1]}' not defined"
-      elsif clip_path_element.element.name != "clipPath"
-        document.warnings << "clip-path ID '#{matches[1]}' does not point to a clipPath tag"
-      else
-        add_call_and_enter 'save_graphics_state'
-        add_calls_from_element clip_path_element
-        add_call "clip"
-      end
+  def parse_clip_path_attribute_and_call
+    return unless clip_path = @attributes['clip-path']
+
+    if (matches = clip_path.strip.match(/\Aurl\(#(.*)\)\z/)).nil?
+      document.warnings << "Only clip-path attributes with the form 'url(#xxx)' are supported"
+    elsif (clip_path_element = @document.elements_by_id[matches[1]]).nil?
+      document.warnings << "clip-path ID '#{matches[1]}' not defined"
+    elsif clip_path_element.element.name != "clipPath"
+      document.warnings << "clip-path ID '#{matches[1]}' does not point to a clipPath tag"
+    else
+      add_call_and_enter 'save_graphics_state'
+      add_calls_from_element clip_path_element
+      add_call "clip"
     end
+  end
 
-    # Fill and stroke
+  def parse_fill_and_stroke_attributes_and_call
     draw_types = []
     [:fill, :stroke].each do |type|
       dec = @attributes[type.to_s]
@@ -121,61 +136,60 @@ class Prawn::Svg::Element
         state[type] = false
       elsif dec
         state[type] = true
-        if color = color_to_hex(dec)
+        if color = Prawn::Svg::Color.color_to_hex(dec)
           add_call "#{type}_color", color
         end
       end
 
       draw_types << type.to_s if state[type]
     end
+    draw_types
+  end
 
-    # Stroke width
+  def parse_stroke_width_attribute_and_call
     add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']
+  end
 
-    # Fonts
-    parse_font_attributes_and_call
+  def parse_font_attributes_and_call
+    if size = @attributes['font-size']
+      @state[:font_size] = size.to_f * @document.scale
+    end
+    if weight = @attributes['font-weight']
+      font_updated = true
+      @state[:font_weight] = Prawn::Svg::Font.weight_for_css_font_weight(weight)
+    end
+    if style = @attributes['font-style']
+      font_updated = true
+      @state[:font_style] = style == 'italic' ? :italic : nil
+    end
+    if (family = @attributes['font-family']) && family.strip != ""
+      font_updated = true
+      @state[:font_family] = family
+    end
 
-    # Call fill, stroke, or both
-    draw_type = draw_types.join("_and_")
-    if draw_type != "" && !@state[:disable_drawing] && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
-      add_call_and_enter(draw_type)
+    if @state[:font_family] && font_updated
+      usable_font_families = [@state[:font_family], document.fallback_font_name]
+
+      font_used = usable_font_families.compact.detect do |name|
+        if font = Prawn::Svg::Font.load(name, @state[:font_weight], @state[:font_style])
+          @state[:font_subfamily] = font.subfamily
+          add_call_and_enter 'font', font.name, :style => @state[:font_subfamily]
+          true
+        end
+      end
+
+      if font_used.nil?
+        @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font, and the fallback font could not be found."
+      end
     end
   end
+
 
   def parse_css_method_calls(string)
     string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|
       name, argument_string = call
       arguments = argument_string.strip.split(/\s*[,\s]\s*/)
       [name, arguments]
-    end
-  end
-
-  # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords
-  HTML_COLORS = {
-  	'black' => "000000", 'green' => "008000", 'silver' => "c0c0c0", 'lime' => "00ff00",
-  	'gray' => "808080", 'olive' => "808000", 'white' => "ffffff", 'yellow' => "ffff00",
-  	'maroon' => "800000", 'navy' => "000080", 'red' => "ff0000", 'blue' => "0000ff",
-  	'purple' => "800080", 'teal' => "008080", 'fuchsia' => "ff00ff", 'aqua' => "00ffff"
-  }.freeze
-
-  RGB_VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
-  RGB_REGEXP = /\Argb\(#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP}\)\z/i
-
-  def color_to_hex(color_string)
-    color_string.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
-      if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
-        break "#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}"
-      elsif color.match(/\A#[0-9a-f]{6}\z/i)
-        break color[1..6]
-      elsif hex = HTML_COLORS[color.downcase]
-        break hex
-      elsif m = color.match(RGB_REGEXP)
-        break (1..3).collect do |n|
-          value = m[n].to_f
-          value *= 2.55 if m[n][-1..-1] == '%'
-          "%02x" % clamp(value.round, 0, 255)
-        end.join
-      end
     end
   end
 
@@ -219,39 +233,5 @@ class Prawn::Svg::Element
       end
     end
     output
-  end
-
-  def parse_font_attributes_and_call
-    if size = @attributes['font-size']
-      @state[:font_size] = size.to_f * @document.scale
-    end
-    if weight = @attributes['font-weight']
-      font_updated = true
-      @state[:font_weight] = Prawn::Svg::Font.weight_for_css_font_weight(weight)
-    end
-    if style = @attributes['font-style']
-      font_updated = true
-      @state[:font_style] = style == 'italic' ? :italic : nil
-    end
-    if (family = @attributes['font-family']) && family.strip != ""
-      font_updated = true
-      @state[:font_family] = family
-    end
-
-    if @state[:font_family] && font_updated
-      usable_font_families = [@state[:font_family], document.fallback_font_name]
-
-      font_used = usable_font_families.compact.detect do |name|
-        if font = Prawn::Svg::Font.load(name, @state[:font_weight], @state[:font_style])
-          @state[:font_subfamily] = font.subfamily
-          add_call_and_enter 'font', font.name, :style => @state[:font_subfamily]
-          true
-        end
-      end
-
-      if font_used.nil?
-        @document.warnings << "Font family '#{@state[:font_family]}' style '#{@state[:font_style] || 'normal'}' is not a known font, and the fallback font could not be found."
-      end
-    end
   end
 end
