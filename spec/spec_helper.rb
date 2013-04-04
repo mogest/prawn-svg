@@ -7,3 +7,5 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
 end
+
+Prawn::Svg::Font.load_external_fonts(Prawn::Document.new.font_families)

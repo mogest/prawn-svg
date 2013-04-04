@@ -12,9 +12,7 @@ describe Prawn::Svg::Font do
       Prawn::Svg::Font.load("blah, serif , test").name.should == 'Times-Roman'
     end
 
-    Prawn::Svg::Font.load_external_fonts({})
-
-    if !Prawn::Svg::Font.installed_fonts.empty?
+    if Prawn::Svg::Font.installed_fonts["Verdana"]
       it "matches a font installed on the system" do
         Prawn::Svg::Font.load("verdana, sans-serif").name.should == 'Verdana'
         Prawn::Svg::Font.load("VERDANA, sans-serif").name.should == 'Verdana'
@@ -22,7 +20,7 @@ describe Prawn::Svg::Font do
         Prawn::Svg::Font.load("something, Times New Roman, serif").name.should == "Times New Roman"
       end
     else
-      it "not running font test because we couldn't find a font directory"
+      it "not running font test because we couldn't find Verdana installed on the system"
     end
 
     it "returns nil if it can't find any such font" do

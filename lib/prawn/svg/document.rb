@@ -10,6 +10,7 @@ class Prawn::Svg::Document
 
   DEFAULT_WIDTH  = 640
   DEFAULT_HEIGHT = 480
+  DEFAULT_FALLBACK_FONT_NAME = "Times-Roman"
 
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
@@ -18,7 +19,8 @@ class Prawn::Svg::Document
   attr_accessor :scale
 
   attr_reader :root,
-    :actual_width, :actual_height, :width, :height, :x_offset, :y_offset, :cache_images,
+    :actual_width, :actual_height, :width, :height, :x_offset, :y_offset,
+    :cache_images, :fallback_font_name,
     :css_parser, :elements_by_id
 
   def initialize(data, bounds, options)
@@ -29,6 +31,7 @@ class Prawn::Svg::Document
     @options = options
     @elements_by_id = {}
     @cache_images = options[:cache_images]
+    @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @actual_width, @actual_height = bounds # set this first so % width/heights can be used
 
     if vb = @root.attributes['viewBox']
