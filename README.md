@@ -21,6 +21,9 @@ the resolution specified in the SVG will be used.
 
 <tt>:cache_images</tt>, if set to true, will cache images per document based on their URL.
 
+<tt>:fallback_font_name</tt> takes a font name which will override the default fallback font of Times-Roman.
+If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
+
 ## Supported features
 
 prawn-svg does not support the full SVG specification.  It currently supports:
@@ -77,14 +80,6 @@ Mac OS X and Debian Linux users.  You can add to the font path:
 
 ```ruby
   Prawn::Svg::Interface.font_path << "/my/font/directory"
-```
-
-If a font is specified in the SVG and that font is not installed on the system, prawn-svg will use the fallback
-font.  By default it's configured to be Times-Roman, a font guaranteed to be available to all PDFs.  You can change it
-(or set it to nil):
-
-```ruby
-  svg svg_data, :at => [x, y], :fallback_font_name => "Arial"
 ```
 
 
