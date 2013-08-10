@@ -95,7 +95,7 @@ module Prawn
           x = prawn.bounds.absolute_left
           y = prawn.bounds.absolute_top
           arguments[4] += x - (x * arguments[0] - y * arguments[1])
-          arguments[5] += y - (x * arguments[1] + y * arguments[0])
+          arguments[5] += y - (x * arguments[2] + y * arguments[3])
 
         when 'clip'
           prawn.add_content "W n" # clip to path

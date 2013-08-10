@@ -4,3 +4,4 @@ prawn-svg-*.gem
 Gemfile.lock
 .rvmrc
 .*.swp
+.ruby-version
