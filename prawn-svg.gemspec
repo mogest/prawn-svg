@@ -10,13 +10,14 @@ spec = Gem::Specification.new do |gem|
   gem.author = "Roger Nesbitt"
   gem.email = "roger@seriousorange.com"
   gem.homepage = "http://github.com/mogest/prawn-svg"
-  
+  gem.license = 'MIT'
+
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n")
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   gem.name          = "prawn-svg"
   gem.require_paths = ["lib"]
-  
+
   gem.add_dependency "prawn", ">= 0.8.4"
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "rake"
