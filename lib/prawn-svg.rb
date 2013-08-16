@@ -1,4 +1,6 @@
 require 'prawn'
+require 'prawn/svg/version'
+
 require 'prawn/svg/color'
 require 'prawn/svg/extension'
 require 'prawn/svg/interface'
