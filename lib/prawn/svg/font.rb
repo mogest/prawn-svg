@@ -37,7 +37,7 @@ class Prawn::Svg::Font
     Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten.each do |filename|
       information = font_information(filename) rescue nil
       if information && font_name = (information[16] || information[1])
-        subfamily = (information[17] || information[2]).gsub(/\s+/, "_").downcase.to_sym
+        subfamily = (information[17] || information[2] || "normal").gsub(/\s+/, "_").downcase.to_sym
         subfamily = :normal if subfamily == :regular
         (fonts[font_name] ||= {})[subfamily] = filename
       end
