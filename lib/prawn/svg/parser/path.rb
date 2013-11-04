@@ -15,13 +15,13 @@ module Prawn
         @calls = []
 
         data.each_char do |c|
-          if c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z'
+          if c >= 'A' && c <= 'Z' || (c >= 'a' && c <= 'z' && c != 'e')
             values << value.to_f if value != ""
             run_path_command(cmd, values) if cmd
             cmd = c
             values = []
             value = ""
-          elsif c >= '0' && c <= '9' || c == '.' || (c == "-" && value == "")
+          elsif c >= '0' && c <= '9' || c == '.' || c == "-" || c == "e" # handle scientific notation, e.g. 10e-4
             unless cmd
               raise InvalidError, "Numerical value specified before character command in SVG path data"
             end

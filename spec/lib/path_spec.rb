@@ -9,11 +9,12 @@ describe Prawn::Svg::Parser::Path do
     it "correctly parses a valid path" do
       calls = []
       @path.stub!(:run_path_command) {|*args| calls << args}
-      @path.parse("A12.34 -56.78 89B4 5   C  6,7 T QX 0 Z")
+      @path.parse("A12.34 -56.78 89B4 5   c31,-2e-5C  6,7 T QX 0 Z")
 
       calls.should == [
         ["A", [12.34, -56.78, 89]],
         ["B", [4, 5]],
+        ["c", [31, -2e-5]],
         ["C", [6, 7]],
         ["T", []],
         ["Q", []],
