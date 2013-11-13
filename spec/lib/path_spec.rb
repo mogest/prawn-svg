@@ -23,6 +23,17 @@ describe Prawn::Svg::Parser::Path do
       ]
     end
 
+    it "correctly parses a path where a coordinate is separated from another by a leading '-'" do
+      calls = []
+      @path.stub!(:run_path_command) {|*args| calls << args}
+      @path.parse("B4 5c31-2e-5")
+
+      calls.should == [
+        ["B", [4, 5]],
+        ["c", [31, -2e-5]],
+      ]
+    end
+
     it "correctly parses an empty path" do
       @path.should_not_receive(:run_path_command)
       @path.parse("").should == []
