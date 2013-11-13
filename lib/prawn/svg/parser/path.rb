@@ -1,3 +1,4 @@
+
 module Prawn
   module Svg
     class Parser::Path
@@ -21,7 +22,7 @@ module Prawn
             cmd = c
             values = []
             value = ""
-          elsif c >= '0' && c <= '9' || c == '.' || c == "-" || c == "e" # handle scientific notation, e.g. 10e-4
+          elsif c >= '0' && c <= '9' || c == '.' || (c == "-" && value[-1] == ?e) || c == "e" # handle scientific notation, e.g. 10e-4
             unless cmd
               raise InvalidError, "Numerical value specified before character command in SVG path data"
             end
@@ -32,7 +33,7 @@ module Prawn
               value = ""
             end
           elsif c == '-'
-            values << value.to_f
+            values << value.to_f if value != ""
             value = c
           else
             raise InvalidError, "Invalid character '#{c}' in SVG path data"
