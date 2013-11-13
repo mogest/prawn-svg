@@ -4,43 +4,33 @@ module Prawn
       # Raised if the SVG path cannot be parsed.
       InvalidError = Class.new(StandardError)
 
+      INSIDE_SPACE_REGEXP = /[ \t\r\n,]*/
+      OUTSIDE_SPACE_REGEXP = /[ \t\r\n]*/
+      INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])e[+-]?[0-9]+)?)/
+      VALUES_REGEXP = /^#{INSIDE_REGEXP}/
+      COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
+
+
       #
       # Parses an SVG path and returns a Prawn-compatible call tree.
       #
       def parse(data)
-        cmd = values = nil
-        value = ""
         @subpath_initial_point = @last_point = nil
         @previous_control_point = @previous_quadratic_control_point = nil
         @calls = []
 
-        data.each_char do |c|
-          if c >= 'A' && c <= 'Z' || (c >= 'a' && c <= 'z' && c != 'e')
-            values << value.to_f if value != ""
-            run_path_command(cmd, values) if cmd
-            cmd = c
-            values = []
-            value = ""
-          elsif c >= '0' && c <= '9' || c == '.' || c == "-" || c == "e" # handle scientific notation, e.g. 10e-4
-            unless cmd
-              raise InvalidError, "Numerical value specified before character command in SVG path data"
-            end
-            value << c
-          elsif c == ' ' || c == "\t" || c == "\r" || c == "\n" || c == ","
-            if value != ""
-              values << value.to_f
-              value = ""
-            end
-          elsif c == '-'
-            values << value.to_f
-            value = c
-          else
-            raise InvalidError, "Invalid character '#{c}' in SVG path data"
-          end
-        end
+        data = data.gsub(/#{OUTSIDE_SPACE_REGEXP}$/, '')
 
-        values << value.to_f if value != ""
-        run_path_command(cmd, values) if cmd
+        matched_commands = match_all(data, COMMAND_REGEXP)
+        raise InvalidError, "Invalid/unsupported syntax for SVG path data" if matched_commands.nil?
+
+        matched_commands.each do |matched_command|
+          command = matched_command[1]
+          matched_values = match_all(matched_command[2], VALUES_REGEXP)
+          raise "should be impossible to have invalid inside data, but we ended up here" if matched_values.nil?
+          values = matched_values.collect {|value| value[1].to_f}
+          run_path_command(command, values)
+        end
 
         @calls
       end
@@ -182,6 +172,17 @@ module Prawn
 
         @previous_control_point = nil unless %w(C S).include?(upcase_command)
         @previous_quadratic_control_point = nil unless %w(Q T).include?(upcase_command)
+      end
+
+      def match_all(string, regexp) # regexp must start with ^
+        result = []
+        while string != ""
+          matches = string.match(regexp)
+          result << matches
+          return if matches.nil?
+          string = matches.post_match
+        end
+        result
       end
     end
   end
