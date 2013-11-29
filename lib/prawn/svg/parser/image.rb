@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'base64'
 
 class Prawn::Svg::Parser::Image
   Error = Class.new(StandardError)
@@ -23,7 +24,8 @@ class Prawn::Svg::Parser::Image
     if url.nil?
       raise Error, "image tag must have an xlink:href"
     end
-    if url.match(%r{\Ahttps?://}).nil?
+
+    if url.match(%r{\Ahttps?://|data:}).nil?
       raise Error, "image tag xlink:href attribute must use http or https scheme"
     end
 
@@ -97,7 +99,7 @@ class Prawn::Svg::Parser::Image
     elsif data[0, 8].unpack("C*") == [137, 80, 78, 71, 13, 10, 26, 10]
       Prawn::Images::PNG
     else
-      raise Error, "Unsupported image type supplied to image tag; Prawn only supports JPG and PNG"
+      raise Error, "Unsupported image type supplied to image tag; Prawn only supports JPG and PNG #{data[0,8]}"
     end
 
     image = handler.new(data)
@@ -111,7 +113,11 @@ class Prawn::Svg::Parser::Image
 
   def retrieve_data_from_url(url)
     @url_cache[url] || begin
-      data = open(url).read
+      if m = url.match(/(data:image\/(png|jpg);base64(;[a-z0-9]+)*,)/)
+        data = Base64.decode64(url[m[0].length .. -1])
+      else
+        data = open(url).read
+      end
       @url_cache[url] = data if @document.cache_images
       data
     end
