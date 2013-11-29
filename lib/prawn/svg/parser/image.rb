@@ -99,7 +99,7 @@ class Prawn::Svg::Parser::Image
     elsif data[0, 8].unpack("C*") == [137, 80, 78, 71, 13, 10, 26, 10]
       Prawn::Images::PNG
     else
-      raise Error, "Unsupported image type supplied to image tag; Prawn only supports JPG and PNG #{data[0,8]}"
+      raise Error, "Unsupported image type supplied to image tag; Prawn only supports JPG and PNG"
     end
 
     image = handler.new(data)
