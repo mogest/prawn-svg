@@ -54,7 +54,7 @@ module Prawn
           @last_point = @subpath_initial_point = [x, y]
           @calls << ["move_to", @last_point]
 
-          return run_path_command('L', values) if values.any?
+          return run_path_command(relative ? 'l' : 'L', values) if values.any?
 
         when 'Z' # closepath
           if @subpath_initial_point
