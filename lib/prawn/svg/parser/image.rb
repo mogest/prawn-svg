@@ -4,6 +4,9 @@ require 'base64'
 class Prawn::Svg::Parser::Image
   Error = Class.new(StandardError)
 
+  DATAURL_REGEXP = /(data:image\/(png|jpg);base64(;[a-z0-9]+)*,)/
+  URL_REGEXP = /^https?:\/\/|#{DATAURL_REGEXP}/
+
   class FakeIO
     def initialize(data)
       @data = data
@@ -25,8 +28,8 @@ class Prawn::Svg::Parser::Image
       raise Error, "image tag must have an xlink:href"
     end
 
-    if url.match(%r{\Ahttps?://|data:}).nil?
-      raise Error, "image tag xlink:href attribute must use http or https scheme"
+    if !url.match(URL_REGEXP)
+      raise Error, "image tag xlink:href attribute must use http, https or data scheme"
     end
 
     image = begin
@@ -113,7 +116,7 @@ class Prawn::Svg::Parser::Image
 
   def retrieve_data_from_url(url)
     @url_cache[url] || begin
-      if m = url.match(/(data:image\/(png|jpg);base64(;[a-z0-9]+)*,)/)
+      if m = url.match(DATAURL_REGEXP)
         data = Base64.decode64(url[m[0].length .. -1])
       else
         data = open(url).read
