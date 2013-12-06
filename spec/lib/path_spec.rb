@@ -23,6 +23,20 @@ describe Prawn::Svg::Parser::Path do
       ]
     end
 
+    it "treats subsequent points to m/M command as relative/absolute depending on command" do
+
+      [
+        ["M", [1,2,3,4]],
+        ["L", [3,4]],
+        ["m", [5,6,7,8]],
+        ["l", [7,8]]
+      ].each do |args|
+        @path.should_receive(:run_path_command).with(*args).and_call_original
+      end
+
+      @path.parse("M 1,2 3,4 m 5,6 7,8")
+    end
+
     it "correctly parses an empty path" do
       @path.should_not_receive(:run_path_command)
       @path.parse("").should == []
