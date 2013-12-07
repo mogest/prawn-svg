@@ -117,7 +117,7 @@ module Prawn
           prawn.move_to x, y
           prawn.line_to x + width, y
           prawn.line_to x + width, y + height
-          prawn.line_to 0, @document.height
+          prawn.line_to x, y + height
           prawn.close_path
           prawn.add_content "W n" # clip to path
       end
