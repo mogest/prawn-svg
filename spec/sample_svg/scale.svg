@@ -9,7 +9,7 @@
 
   <text x="400" y="90">scale(3,1)</text>
   <g transform="translate(400,100)">
-    <rect width="50" height="50" transform="scale(3,1)" fill="cyan" />
+    <rect width="50" height="50" transform="scale(3,1)" fill="#0ff" />
   </g>
 
   <text x="200" y="390">scale(2)</text>
