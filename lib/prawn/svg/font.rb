@@ -34,7 +34,7 @@ class Prawn::Svg::Font
   # This method is passed prawn's font_families hash.  It'll be pre-populated with the fonts that prawn natively
   # supports.  We'll add fonts we find in the font path to this hash.
   def self.load_external_fonts(fonts)
-    Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/*"]}.flatten.each do |filename|
+    Prawn::Svg::Interface.font_path.uniq.collect {|path| Dir["#{path}/**/*"]}.flatten.each do |filename|
       information = font_information(filename) rescue nil
       if information && font_name = (information[16] || information[1])
         subfamily = (information[17] || information[2] || "normal").gsub(/\s+/, "_").downcase.to_sym

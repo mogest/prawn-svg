@@ -75,7 +75,7 @@ prawn-svg does NOT support external references, measurements in en or em, sub-vi
 
 ### Fonts
 
-By default, prawn-svg has a fonts path of <tt>["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype/**"]</tt> to catch
+By default, prawn-svg has a fonts path of <tt>["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]</tt> to catch
 Mac OS X and Debian Linux users.  You can add to the font path:
 
 ```ruby
