@@ -41,6 +41,8 @@ module Prawn
       #
       def draw
         prawn.bounding_box(@options[:at], :width => @document.width, :height => @document.height) do
+          clip_rectangle 0, 0, @document.width, @document.height
+
           prawn.save_graphics_state do
             proc_creator(prawn, Parser.new(@document).parse).call
           end
@@ -109,6 +111,15 @@ module Prawn
           prawn.restore_graphics_state
           false
         end
+      end
+
+      def clip_rectangle(x, y, width, height)
+          prawn.move_to x, y
+          prawn.line_to x + width, y
+          prawn.line_to x + width, y + height
+          prawn.line_to 0, @document.height
+          prawn.close_path
+          prawn.add_content "W n" # clip to path
       end
     end
   end

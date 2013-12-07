@@ -1,5 +1,5 @@
-<svg width="160" height="230" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="160" height="230" fill="#eee" stroke="green"/>
+<svg width="180" height="230" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="180" height="230" fill="#eee" stroke="green"/>
 
   <g transform="translate(0, 0)">
     <rect transform="matrix(1.1, 0.1, 0.3, 1.4, 0, 0)" width="20" height="20" fill="green"/>
