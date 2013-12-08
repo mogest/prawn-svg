@@ -8,7 +8,7 @@ module Prawn
       DEFAULT_FONT_PATHS = ["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]
 
       @font_path = []
-      DEFAULT_FONT_PATHS.each {|path| @font_path << path if Dir.exists?(path)}
+      DEFAULT_FONT_PATHS.each {|path| @font_path << path if File.exists?(path)}
 
       class << self; attr_accessor :font_path; end
 
