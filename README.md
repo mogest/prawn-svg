@@ -69,7 +69,7 @@ so do not expect too much of it.
 
 ## Not supported
 
-prawn-svg does not support external references, measurements in <tt>en<tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
+prawn-svg does not support external references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
 
 ## Configuration
 
