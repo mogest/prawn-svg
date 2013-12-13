@@ -30,14 +30,14 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - <tt>line</tt>, <tt>polyline</tt>, <tt>polygon</tt>, and <tt>circle</tt> tags
 
- - <tt>ellipse</tt> tag (although this seems to be buggy)
+ - <tt>ellipse</tt> tag
 
  - <tt>rect</tt> tag
    supports rounded rects, but only one radius is applied to all corners
 
  - <tt>path</tt> tag
    supports moveto, closepath, lineto, horiz lineto, vert lineto, curveto, smooth curveto, quad curveto, smooth quad curveto
-   does not support elliptical arc
+   0.12.0.12 and up supports a rough implementation of elliptical arc
 
  - <tt>text</tt> and <tt>tspan</tt> tags
    attributes: size, text-anchor, font-family, font-weight, dx, dy
@@ -48,7 +48,7 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - <tt>style</tt> tag, if css_parser gem is installed on the system (see CSS section below)
 
- - <tt>image</tt> tag, only with http/https schemes
+ - <tt>image</tt> tag with <tt>http:</tt>, <tt>https:</tt> and <tt>data:image/*;base64</tt> schemes
 
  - <tt>clipPath</tt> tag
 
@@ -69,7 +69,7 @@ so do not expect too much of it.
 
 ## Not supported
 
-prawn-svg does NOT support external references, measurements in en or em, sub-viewports, gradients/patterns or markers.
+prawn-svg does not support external references, measurements in <tt>en<tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
 
 ## Configuration
 
