@@ -41,9 +41,8 @@ module Prawn
       #
       def draw
         prawn.bounding_box(@options[:at], :width => @document.width, :height => @document.height) do
-          clip_rectangle 0, 0, @document.width, @document.height
-
           prawn.save_graphics_state do
+            clip_rectangle 0, 0, @document.width, @document.height
             proc_creator(prawn, Parser.new(@document).parse).call
           end
         end
