@@ -2,8 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Prawn::Svg::Element do
   before :each do
-    e = mock
-    e.stub!(:attributes).and_return({})
+    e = double(:attributes => {})
 
     @document = Struct.new(:fallback_font_name, :css_parser, :warnings).new("Courier", nil, [])
     @element = Prawn::Svg::Element.new(@document, e, [], {})

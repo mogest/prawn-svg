@@ -14,6 +14,8 @@ class Prawn::Svg::Parser::Image
     def read
       @data
     end
+    def rewind
+    end
   end
 
   def initialize(document)

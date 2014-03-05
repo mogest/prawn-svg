@@ -28,9 +28,7 @@ If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unk
 
 prawn-svg does not support the full SVG specification.  It currently supports:
 
- - <tt>&lt;line&gt;</tt>, <tt>&lt;polyline&gt;</tt>, <tt>&lt;polygon&gt;</tt>, and <tt>&lt;circle&gt;</tt>
-
- - <tt>&lt;ellipse&gt;</tt>
+ - <tt>&lt;line&gt;</tt>, <tt>&lt;polyline&gt;</tt>, <tt>&lt;polygon&gt;</tt>, <tt>&lt;circle&gt;</tt> and <tt>&lt;ellipse&gt;</tt>
 
  - <tt>&lt;rect&gt;</tt>.  Rounded rects are supported, but only one radius is applied to all corners.
 

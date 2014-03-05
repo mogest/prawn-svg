@@ -32,10 +32,7 @@ describe Prawn::Svg::Parser do
     end
 
     def mock_element(name, attributes = {})
-      e = mock
-      e.stub!(:name).and_return(name)
-      e.stub!(:attributes).and_return(attributes)
-
+      e = double(:name => name, :attributes => attributes)
       Prawn::Svg::Element.new(@document, e, [], {})
     end
 
