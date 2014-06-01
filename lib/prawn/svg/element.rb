@@ -57,10 +57,21 @@ class Prawn::Svg::Element
     draw_types = parse_fill_and_stroke_attributes_and_call
     parse_stroke_width_attribute_and_call
     parse_font_attributes_and_call
+    apply_drawing_call(draw_types)
+  end
 
-    if draw_types.length > 0 && !@state[:disable_drawing] && !Prawn::Svg::Parser::CONTAINER_TAGS.include?(element.name)
-      add_call_and_enter(draw_types.join("_and_"))
+  def apply_drawing_call(draw_types)
+    if !@state[:disable_drawing] && !container?
+      if draw_types.empty?
+        add_call_and_enter("end_path")
+      else
+        add_call_and_enter(draw_types.join("_and_"))
+      end
     end
+  end
+
+  def container?
+    Prawn::Svg::Parser::CONTAINER_TAGS.include?(name)
   end
 
   def parse_transform_attribute_and_call
@@ -129,21 +140,19 @@ class Prawn::Svg::Element
   end
 
   def parse_fill_and_stroke_attributes_and_call
-    draw_types = []
-    [:fill, :stroke].each do |type|
-      dec = @attributes[type.to_s]
+    ["fill", "stroke"].select do |type|
+      dec = @attributes[type]
       if dec == "none"
-        state[type] = false
+        state[type.to_sym] = false
       elsif dec
-        state[type] = true
+        state[type.to_sym] = true
         if color = Prawn::Svg::Color.color_to_hex(dec)
           add_call "#{type}_color", color
         end
       end
 
-      draw_types << type.to_s if state[type]
+      state[type.to_sym]
     end
-    draw_types
   end
 
   def parse_stroke_width_attribute_and_call

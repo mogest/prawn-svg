@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Prawn::Svg::Element do
   before :each do
-    e = double(:attributes => {})
+    e = double(:attributes => {}, :name => "path")
 
     @document = Struct.new(:fallback_font_name, :css_parser, :warnings).new("Courier", nil, [])
     @element = Prawn::Svg::Element.new(@document, e, [], {})

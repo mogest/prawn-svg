@@ -56,14 +56,18 @@ module Prawn
 
       def issue_prawn_command(prawn, calls)
         calls.each do |call, arguments, children|
-          if rewrite_call_arguments(prawn, call, arguments) == false
+          if call == "end_path"
             issue_prawn_command(prawn, children) if children.any?
+            prawn.add_content "n" # end path
+
+          elsif rewrite_call_arguments(prawn, call, arguments) == false
+            issue_prawn_command(prawn, children) if children.any?
+
+          elsif children.empty?
+            prawn.send(call, *arguments)
+
           else
-            if children.empty?
-              prawn.send(call, *arguments)
-            else
-              prawn.send(call, *arguments, &proc_creator(prawn, children))
-            end
+            prawn.send(call, *arguments, &proc_creator(prawn, children))
           end
         end
       end
