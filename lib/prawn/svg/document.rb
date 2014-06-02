@@ -35,9 +35,8 @@ class Prawn::Svg::Document
     @actual_width, @actual_height = bounds # set this first so % width/heights can be used
 
     if vb = @root.attributes['viewBox']
-      x1, y1, x2, y2 = vb.strip.split(/\s+/)
-      @x_offset, @y_offset = [x1.to_f, y1.to_f]
-      @actual_width, @actual_height = [x2.to_f - x1.to_f, y2.to_f - y1.to_f]
+      values = vb.strip.split(/\s+/)
+      @x_offset, @y_offset, @actual_width, @actual_height = values.map {|value| value.to_f}
     else
       @x_offset, @y_offset = [0, 0]
       @actual_width = points(@root.attributes['width'] || DEFAULT_WIDTH, :x)
