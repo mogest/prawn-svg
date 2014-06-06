@@ -17,6 +17,7 @@ class Prawn::Svg::Document
 
   # The scaling factor, as determined by the :width or :height options.
   attr_accessor :scale
+  attr_writer :url_cache
 
   attr_reader :root,
     :actual_width, :actual_height, :width, :height, :x_offset, :y_offset,
@@ -81,5 +82,9 @@ class Prawn::Svg::Document
     else
       value.to_f
     end
+  end
+
+  def url_loader
+    @url_loader ||= Prawn::Svg::UrlLoader.new(:enable_cache => cache_images)
   end
 end

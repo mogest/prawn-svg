@@ -1,11 +1,5 @@
-require 'open-uri'
-require 'base64'
-
 class Prawn::Svg::Parser::Image
   Error = Class.new(StandardError)
-
-  DATAURL_REGEXP = /(data:image\/(png|jpg);base64(;[a-z0-9]+)*,)/
-  URL_REGEXP = /^https?:\/\/|#{DATAURL_REGEXP}/
 
   class FakeIO
     def initialize(data)
@@ -30,12 +24,12 @@ class Prawn::Svg::Parser::Image
       raise Error, "image tag must have an xlink:href"
     end
 
-    if !url.match(URL_REGEXP)
+    if !@document.url_loader.valid?(url)
       raise Error, "image tag xlink:href attribute must use http, https or data scheme"
     end
 
     image = begin
-      retrieve_data_from_url(url)
+      @document.url_loader.load(url)
     rescue => e
       raise Error, "Error retrieving URL #{url}: #{e.message}"
     end
@@ -114,18 +108,6 @@ class Prawn::Svg::Parser::Image
   def image_ratio(data)
     w, h = image_dimensions(data)
     w.to_f / h.to_f
-  end
-
-  def retrieve_data_from_url(url)
-    @url_cache[url] || begin
-      if m = url.match(DATAURL_REGEXP)
-        data = Base64.decode64(url[m[0].length .. -1])
-      else
-        data = open(url).read
-      end
-      @url_cache[url] = data if @document.cache_images
-      data
-    end
   end
 
   %w(x y distance).each do |method|
