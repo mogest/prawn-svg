@@ -161,7 +161,7 @@ class Prawn::Svg::Element
 
   def parse_font_attributes_and_call
     if size = @attributes['font-size']
-      @state[:font_size] = size.to_f * @document.scale
+      @state[:font_size] = size.to_f
     end
     if weight = @attributes['font-weight']
       font_updated = true

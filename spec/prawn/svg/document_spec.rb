@@ -19,9 +19,10 @@ describe Prawn::Svg::Document do
       @document.send(:points, "32cm").should be_within(0.0001).of(32 * 72 * 0.393700787)
       @document.send(:points, "32m").should be_within(0.0001).of(32 * 72 * 39.3700787)
       
-      @document.send :instance_variable_set, "@actual_width", 600
-      @document.send :instance_variable_set, "@actual_height", 400
+      @document.sizing.send :instance_variable_set, "@viewport_width", 600
+      @document.sizing.send :instance_variable_set, "@viewport_height", 400
       @document.send(:points, "50%").should == 300
+      @document.send(:points, "50%", :x).should == 300
       @document.send(:points, "50%", :y).should == 200
     end
   end

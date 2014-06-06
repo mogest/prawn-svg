@@ -40,9 +40,9 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
-        prawn.bounding_box(@options[:at], :width => @document.width, :height => @document.height) do
+        prawn.bounding_box(@options[:at], :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
           prawn.save_graphics_state do
-            clip_rectangle 0, 0, @document.width, @document.height
+            clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
             proc_creator(prawn, Parser.new(@document).parse).call
           end
         end

@@ -2,6 +2,8 @@ require 'prawn'
 require 'prawn/svg/version'
 
 require 'prawn/svg/calculators/aspect_ratio'
+require 'prawn/svg/calculators/document_sizing'
+require 'prawn/svg/calculators/pixels'
 require 'prawn/svg/url_loader'
 require 'prawn/svg/color'
 require 'prawn/svg/extension'
