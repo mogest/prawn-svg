@@ -56,6 +56,7 @@ class Prawn::Svg::Document
 
     @width ||= @actual_width * @scale
     @height ||= @actual_height * @scale
+    yield self if block_given?
   end
 
   def x(value)

@@ -24,7 +24,7 @@ module Prawn
       # +options+ can optionally contain the key :width or :height.  If both are
       # specified, only :width will be used.
       #
-      def initialize(data, prawn, options)
+      def initialize(data, prawn, options, &block)
         @data = data
         @prawn = prawn
         @options = options
@@ -33,7 +33,7 @@ module Prawn
 
         Prawn::Svg::Font.load_external_fonts(prawn.font_families)
 
-        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options)
+        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options, &block)
       end
 
       #

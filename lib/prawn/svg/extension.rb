@@ -14,8 +14,8 @@ module Prawn
       #
       #   svg IO.read("example.svg"), :at => [100, 300], :width => 600
       #
-      def svg(data, options={})
-        svg = Prawn::Svg::Interface.new(data, self, options)
+      def svg(data, options = {}, &block)
+        svg = Prawn::Svg::Interface.new(data, self, options, &block)
         svg.draw
         {:warnings => svg.document.warnings, :width => svg.document.width, :height => svg.document.height}
       end

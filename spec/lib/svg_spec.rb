@@ -14,7 +14,12 @@ describe Prawn::Svg::Interface do
       it "renders the #{File.basename file} sample file without warnings or crashing" do
         warnings = nil
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do |prawn|
-          r = prawn.svg IO.read(file), :at => [0, prawn.bounds.top], :width => prawn.bounds.width, :cache_images => true
+          r = prawn.svg IO.read(file), :at => [0, prawn.bounds.top], :width => prawn.bounds.width do |doc|
+            doc.url_loader.enable_web = false
+            doc.url_loader.url_cache["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg"] = IO.read("#{root}/spec/sample_images/mushroom-wide.jpg")
+            doc.url_loader.url_cache["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg"] = IO.read("#{root}/spec/sample_images/mushroom-long.jpg")
+          end
+
           warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ }
         end
         warnings.should == []
