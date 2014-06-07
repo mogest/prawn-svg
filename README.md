@@ -6,6 +6,8 @@ This will take an SVG file as input and render it into your PDF.  Find out more 
 
   http://wiki.github.com/sandal/prawn/
 
+prawn-svg is compatible with all versions of Prawn from 0.8.4 onwards, including the version 1.0 series.
+
 ## Using prawn-svg
 
 ```ruby
@@ -16,8 +18,9 @@ end
 
 <tt>:at</tt> must be specified.
 
-<tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
-the resolution specified in the SVG will be used.
+Either <tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
+the dimensions specified in the SVG will be used, or if the dimensions aren't specified, it'll
+fit to the space available on the page.
 
 <tt>:cache_images</tt>, if set to true, will cache images per document based on their URL.
 
@@ -50,11 +53,15 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>
 
+ - the <tt>viewBox</tt> attribute on the <tt>&lt;svg&gt;</tt> tag
+
+ - the <tt>preserveAspectRatio</tt> attribute on the <tt>&lt;svg&gt;</tt> and <tt>&lt;image&gt;</tt> tags
+
  - transform methods: <tt>translate</tt>, <tt>rotate</tt>, <tt>scale</tt>, <tt>matrix</tt>
 
  - colors: HTML standard names, <tt>#xxx</tt>, <tt>#xxxxxx</tt>, <tt>rgb(1, 2, 3)</tt>, <tt>rgb(1%, 2%, 3%)</tt>
 
- - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>%</tt>
+ - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>pc</tt>, <tt>%</tt>
 
  - fonts: generic CSS fonts, built in PDF fonts, and any TTF fonts in your fonts path
 
