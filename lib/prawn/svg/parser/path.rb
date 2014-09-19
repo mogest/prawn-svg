@@ -173,6 +173,8 @@ module Prawn
             rx, ry, phi, fa, fs, x2, y2 = (1..7).collect {values.shift}
             x1, y1 = @last_point
 
+            return if rx.zero? && ry.zero?
+
             if relative
               x2 += x1
               y2 += y1
