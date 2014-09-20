@@ -123,26 +123,35 @@ class Prawn::Svg::Parser
       element.add_call "polygon", *points
 
     when 'circle'
+      xy, r = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['r'])
+
+      return if zero_argument?(r)
+
       if USE_NEW_CIRCLE_CALL
-        element.add_call "circle",
-          [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['r'])
+        element.add_call "circle", xy, r
       else
-        element.add_call "circle_at",
-          [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], :radius => distance(attrs['r'])
+        element.add_call "circle_at", xy, :radius => r
       end
 
     when 'ellipse'
-      element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at",
-        [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])
+      xy, rx, ry = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])
+
+      return if zero_argument?(rx, ry)
+
+      element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at", xy, rx, ry
 
     when 'rect'
-      radius = distance(attrs['rx'] || attrs['ry'])
-      args = [[x(attrs['x'] || '0'), y(attrs['y'] || '0')], distance(attrs['width']), distance(attrs['height'])]
+      xy            = [x(attrs['x'] || '0'), y(attrs['y'] || '0')]
+      width, height = distance(attrs['width']), distance(attrs['height'])
+      radius        = distance(attrs['rx'] || attrs['ry'])
+
+      return if zero_argument?(width, height)
+
       if radius
         # n.b. does not support both rx and ry being specified with different values
-        element.add_call "rounded_rectangle", *(args + [radius])
+        element.add_call "rounded_rectangle", xy, width, height, radius
       else
-        element.add_call "rectangle", *args
+        element.add_call "rectangle", xy, width, height
       end
 
     when 'path'
@@ -238,6 +247,10 @@ class Prawn::Svg::Parser
       @document.warnings << "Must have attributes #{missing_attrs.join(", ")} on tag #{element.name}; skipping tag"
     end
     missing_attrs.empty?
+  end
+
+  def zero_argument?(*args)
+    args.any? {|arg| arg.nil? || arg <= 0}
   end
 
   %w(x y distance).each do |method|
