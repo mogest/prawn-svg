@@ -57,12 +57,13 @@ class Prawn::Svg::Element
     draw_types = parse_fill_and_stroke_attributes_and_call
     parse_stroke_width_attribute_and_call
     parse_font_attributes_and_call
+    parse_display_attribute
     apply_drawing_call(draw_types)
   end
 
   def apply_drawing_call(draw_types)
     if !@state[:disable_drawing] && !container?
-      if draw_types.empty?
+      if draw_types.empty? || @state[:display] == "none"
         add_call_and_enter("end_path")
       else
         add_call_and_enter(draw_types.join("_and_"))
@@ -193,6 +194,9 @@ class Prawn::Svg::Element
     end
   end
 
+  def parse_display_attribute
+    @state[:display] = @attributes['display'].strip if @attributes['display']
+  end
 
   def parse_css_method_calls(string)
     string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|

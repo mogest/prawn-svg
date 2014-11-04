@@ -6,6 +6,8 @@ class Prawn::Svg::Parser::Text
 
   protected
   def internal_parse(element, x_positions, y_positions, relative)
+    return if element.state[:display] == "none"
+
     attrs = element.attributes
 
     if attrs['x'] || attrs['y']

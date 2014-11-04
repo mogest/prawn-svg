@@ -18,6 +18,8 @@ class Prawn::Svg::Parser::Image
   end
 
   def parse(element)
+    return if element.state[:display] == "none"
+
     attrs = element.attributes
     url = attrs['xlink:href'] || attrs['href']
     if url.nil?
