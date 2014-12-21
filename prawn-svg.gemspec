@@ -5,7 +5,7 @@ spec = Gem::Specification.new do |gem|
   gem.name = 'prawn-svg'
   gem.version = Prawn::Svg::VERSION
   gem.summary = "SVG renderer for Prawn PDF library"
-  gem.description = "SVG renderer for Prawn PDF library"
+  gem.description = "This gem allows you to render SVG directly into a PDF using the 'prawn' gem.  Since PDF is vector-based, you'll get nice scaled graphics if you use SVG instead of an image."
   gem.has_rdoc = false
   gem.author = "Roger Nesbitt"
   gem.email = "roger@seriousorange.com"
@@ -18,7 +18,7 @@ spec = Gem::Specification.new do |gem|
   gem.name          = "prawn-svg"
   gem.require_paths = ["lib"]
 
-  gem.add_dependency "prawn", ">= 0.8.4"
-  gem.add_development_dependency "rspec", "~> 2.14.1"
-  gem.add_development_dependency "rake"
+  gem.add_runtime_dependency "prawn", ">= 0.8.4", "< 2"
+  gem.add_development_dependency "rspec", "~> 2.14"
+  gem.add_development_dependency "rake", "~> 10.1"
 end
