@@ -10,6 +10,7 @@ module Prawn
       VALUES_REGEXP = /^#{INSIDE_REGEXP}/
       COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
 
+      FLOAT_ERROR_DELTA = 1e-10
 
       #
       # Parses an SVG path and returns a Prawn-compatible call tree.
@@ -180,9 +181,20 @@ module Prawn
               y2 += y1
             end
 
+            # Normalise values as per F.6.2
             rx = rx.abs
             ry = ry.abs
             phi = (phi % 360) * 2 * Math::PI / 360.0
+
+            # F.6.2: If the endpoints (x1, y1) and (x2, y2) are identical, then this is equivalent to omitting the elliptical arc segment entirely.
+            return if within_float_delta?(x1, x2) && within_float_delta?(y1, y2)
+
+            # F.6.2: If rx = 0 or ry = 0 then this arc is treated as a straight line segment (a "lineto") joining the endpoints.
+            if within_float_delta?(rx, 0) || within_float_delta?(ry, 0)
+              @last_point = [x2, y2]
+              @calls << ["line_to", @last_point]
+              return
+            end
 
             # We need to get the center co-ordinates, as well as the angles from the X axis to the start and end
             # points.  To do this, we use the algorithm documented in the SVG specification section F.6.5.
@@ -204,7 +216,7 @@ module Prawn
             r2x = rx * rx
             r2y = ry * ry
             square = (r2x * r2y - r2x * yp1 * yp1 - r2y * xp1 * xp1) / (r2x * yp1 * yp1 + r2y * xp1 * xp1)
-            square = 0 if square < 0 && square > -1e-10 # catch rounding errors
+            square = 0 if square < 0 && square > -FLOAT_ERROR_DELTA # catch rounding errors
             base = Math.sqrt(square)
             base *= -1 if fa == fs
             cpx = base * rx * yp1 / ry
@@ -252,6 +264,10 @@ module Prawn
 
         @previous_control_point = nil unless %w(C S).include?(upcase_command)
         @previous_quadratic_control_point = nil unless %w(Q T).include?(upcase_command)
+      end
+
+      def within_float_delta?(a, b)
+        (a - b).abs < FLOAT_ERROR_DELTA
       end
 
       def match_all(string, regexp) # regexp must start with ^
