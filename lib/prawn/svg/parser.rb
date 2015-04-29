@@ -105,19 +105,17 @@ class Prawn::Svg::Parser
       element.add_call 'line', x(attrs['x1'] || '0'), y(attrs['y1'] || '0'), x(attrs['x2'] || '0'), y(attrs['y2'] || '0')
 
     when 'polyline'
-      points = attrs['points'].split(/\s+/)
-      return unless base_point = points.shift
-      x, y = base_point.split(",")
+      points = parse_points(attrs['points'])
+      return unless points.length > 0
+      x, y = points.shift
       element.add_call 'move_to', x(x), y(y)
       element.add_call_and_enter 'stroke'
-      points.each do |point|
-        x, y = point.split(",")
+      points.each do |x, y|
         element.add_call "line_to", x(x), y(y)
       end
 
     when 'polygon'
-      points = attrs['points'].split(/\s+/).collect do |point|
-        x, y = point.split(",")
+      points = parse_points(attrs['points']).collect do |x, y|
         [x(x), y(y)]
       end
       element.add_call "polygon", *points
@@ -255,5 +253,15 @@ class Prawn::Svg::Parser
 
   %w(x y distance).each do |method|
     define_method(method) {|*a| @document.send(method, *a)}
+  end
+
+  def parse_points(points_string)
+    points_string.
+      to_s.
+      strip.
+      gsub(/(\d)-(\d)/, '\1 -\2').
+      split(/(?:\s+,?\s*|,\s*)/).
+      each_slice(2).
+      to_a
   end
 end
