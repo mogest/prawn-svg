@@ -13,6 +13,7 @@ require 'rexml/document'
 #
 class Prawn::Svg::Parser
   CONTAINER_TAGS = %w(g svg symbol defs clipPath)
+  COMMA_WSP_REGEXP = /(?:\s+,?\s*|,\s*)/
 
   #
   # Construct a Parser object.
@@ -260,7 +261,7 @@ class Prawn::Svg::Parser
       to_s.
       strip.
       gsub(/(\d)-(\d)/, '\1 -\2').
-      split(/(?:\s+,?\s*|,\s*)/).
+      split(COMMA_WSP_REGEXP).
       each_slice(2).
       to_a
   end

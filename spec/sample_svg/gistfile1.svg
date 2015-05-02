@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="205pt" style="width:362px;height:205px;" version="1.1" viewBox="0 0 362 205" width="362pt">
   <g>
-    <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 5.0,5.0;" x1="146" x2="146" y1="35.4883" y2="204.041"/>
+    <line style="stroke: blue; stroke-width: 1.0; stroke-dasharray: 20,40;" x1="146" x2="146" y1="35.4883" y2="204.041"/>
     <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 5.0,5.0;" x1="204" x2="204" y1="35.4883" y2="204.041"/>
     <rect fill="#FEFECE" height="30.4883" style="stroke: #A80036; stroke-width: 1.5;" width="47" x="121" y="0"/>
     <text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="33" x="128" y="20.5352">Alice</text>

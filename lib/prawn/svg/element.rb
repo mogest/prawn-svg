@@ -166,6 +166,28 @@ class Prawn::Svg::Element
     if (linecap = attribute_value_as_keyword('stroke-linecap')) && linecap != 'inherit'
       add_call('cap_style', CAP_STYLE_TRANSLATIONS.fetch(linecap, :butt))
     end
+
+    if dasharray = attribute_value_as_keyword('stroke-dasharray')
+      case dasharray
+      when 'inherit'
+        # don't do anything
+      when 'none'
+        add_call('undash')
+      else
+        array = dasharray.split(Prawn::Svg::Parser::COMMA_WSP_REGEXP)
+        array *= 2 if array.length % 2 == 1
+        number_array = array.map {|value| @document.distance(value)}
+
+        if number_array.any? {|number| number < 0}
+          @document.warnings << "stroke-dasharray cannot have negative numbers; treating as 'none'"
+          add_call('undash')
+        elsif number_array.inject(0) {|a, b| a + b} == 0
+          add_call('undash')
+        else
+          add_call('dash', number_array)
+        end
+      end
+    end
   end
 
   def parse_font_attributes_and_call
