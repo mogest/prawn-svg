@@ -55,7 +55,7 @@ class Prawn::Svg::Element
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call
     draw_types = parse_fill_and_stroke_attributes_and_call
-    parse_stroke_width_attribute_and_call
+    parse_stroke_attributes_and_call
     parse_font_attributes_and_call
     parse_display_attribute
     apply_drawing_call(draw_types)
@@ -156,8 +156,16 @@ class Prawn::Svg::Element
     end
   end
 
-  def parse_stroke_width_attribute_and_call
-    add_call('line_width', @document.distance(@attributes['stroke-width'])) if @attributes['stroke-width']
+  CAP_STYLE_TRANSLATIONS = {"butt" => :butt, "round" => :round, "square" => :projecting_square}
+
+  def parse_stroke_attributes_and_call
+    if width = @attributes['stroke-width']
+      add_call('line_width', @document.distance(width))
+    end
+
+    if (linecap = attribute_value_as_keyword('stroke-linecap')) && linecap != 'inherit'
+      add_call('cap_style', CAP_STYLE_TRANSLATIONS.fetch(linecap, :butt))
+    end
   end
 
   def parse_font_attributes_and_call

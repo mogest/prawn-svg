@@ -53,6 +53,8 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>
 
+ - attribute <tt>stroke-linecap</tt>, but only when <tt>fill="none"</tt> due to a PDF limitation
+
  - the <tt>viewBox</tt> attribute on the <tt>&lt;svg&gt;</tt> tag
 
  - the <tt>preserveAspectRatio</tt> attribute on the <tt>&lt;svg&gt;</tt> and <tt>&lt;image&gt;</tt> tags
@@ -67,8 +69,7 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
 ## CSS
 
-If the css_parser gem is installed, it will handle CSS style definitions, but only simple tag, class or id definitions.  It's very basic
-so do not expect too much of it.
+prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  It only handles simple tag, class or id selectors; attribute and other advanced selectors are not supported.
 
 ## Not supported
 
