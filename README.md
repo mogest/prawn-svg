@@ -29,7 +29,7 @@ If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unk
 
 ## Supported features
 
-prawn-svg does not support the full SVG specification.  It currently supports:
+prawn-svg supports most but not all of the full SVG 1.1 specification.  It currently supports:
 
  - <tt>&lt;line&gt;</tt>, <tt>&lt;polyline&gt;</tt>, <tt>&lt;polygon&gt;</tt>, <tt>&lt;circle&gt;</tt> and <tt>&lt;ellipse&gt;</tt>
 
@@ -39,19 +39,19 @@ prawn-svg does not support the full SVG specification.  It currently supports:
    implementation of elliptical arc is a bit rough at the moment.
 
  - <tt>&lt;text&gt;</tt> and <tt>&lt;tspan&gt;</tt> with attributes
-   <tt>size</tt>, <tt>text-anchor</tt>, <tt>font-family</tt>, <tt>font-weight</tt>, <tt>dx</tt>, <tt>dy</tt>
+   <tt>text-anchor</tt>, <tt>font-size</tt>, <tt>font-family</tt>, <tt>font-weight</tt>, <tt>font-style</tt>, <tt>dx</tt>, <tt>dy</tt>
 
  - <tt>&lt;svg&gt;</tt>, <tt>&lt;g&gt;</tt> and <tt>&lt;symbol&gt;</tt>
 
  - <tt>&lt;use&gt;</tt>
 
- - <tt>&lt;style&gt;</tt>, if css_parser gem is installed on the system (see CSS section below)
+ - <tt>&lt;style&gt;</tt> plus <tt>id</tt>, <tt>class</tt> and <tt>style</tt> attributes (see CSS section below)
 
  - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt> and <tt>data:image/*;base64</tt> schemes
 
  - <tt>&lt;clipPath&gt;</tt>
 
- - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>
+ - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>
 
  - the <tt>viewBox</tt> attribute on the <tt>&lt;svg&gt;</tt> tag
 
@@ -63,7 +63,7 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>pc</tt>, <tt>%</tt>
 
- - fonts: generic CSS fonts, built in PDF fonts, and any TTF fonts in your fonts path
+ - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path
 
 ## CSS
 
@@ -71,7 +71,7 @@ prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  I
 
 ## Not supported
 
-prawn-svg does not support external references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
+prawn-svg does not support external <tt>url()</tt> references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
 
 ## Configuration
 
