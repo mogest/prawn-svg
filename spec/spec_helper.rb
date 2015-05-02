@@ -6,6 +6,13 @@ Bundler.require(:default, :development)
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
+  config.mock_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
 end
 
 Prawn::Svg::Font.load_external_fonts(Prawn::Document.new.font_families)
