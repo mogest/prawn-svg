@@ -51,9 +51,7 @@ prawn-svg does not support the full SVG specification.  It currently supports:
 
  - <tt>&lt;clipPath&gt;</tt>
 
- - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>
-
- - attribute <tt>stroke-linecap</tt>, but only when <tt>fill="none"</tt> due to a PDF limitation
+ - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>
 
  - the <tt>viewBox</tt> attribute on the <tt>&lt;svg&gt;</tt> tag
 
