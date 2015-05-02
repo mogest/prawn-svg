@@ -118,6 +118,13 @@ module Prawn
         when "end_path"
           yield
           prawn.add_content "n" # end path
+
+        when 'fill_and_stroke'
+          yield
+          # prawn (as at 2.0.1 anyway) uses 'b' for its fill_and_stroke.  'b' is 'h' (closepath) + 'B', and we
+          # never want closepath to be automatically run as it stuffs up many drawing operations, such as dashes
+          # and line caps, and makes paths close that we didn't ask to be closed when fill is specified.
+          prawn.add_content 'B'
         end
       end
 
