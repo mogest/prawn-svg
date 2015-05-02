@@ -231,7 +231,11 @@ class Prawn::Svg::Element
     end
 
     @attributes = parse_css_declarations(style)
-    element.attributes.each {|n,v| @attributes[n] = v unless @attributes[n]}
+
+    element.attributes.each do |name, value|
+      name = name.downcase
+      @attributes[name] = value unless @attributes[name]
+    end
   end
 
   def parse_css_declarations(declarations)
@@ -241,10 +245,16 @@ class Prawn::Svg::Element
     output = {}
     declarations.split(/[\;$]+/m).each do |decs|
       if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
-        property, value, end_of_declaration = matches.captures
-        output[property] = value
+        property, value, _ = matches.captures
+        output[property.downcase] = value
       end
     end
     output
+  end
+
+  def attribute_value_as_keyword(name)
+    if value = @attributes[name]
+      value.strip.downcase
+    end
   end
 end
