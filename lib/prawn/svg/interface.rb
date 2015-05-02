@@ -56,16 +56,17 @@ module Prawn
 
       def issue_prawn_command(prawn, calls)
         calls.each do |call, arguments, children|
-          if call == "end_path"
-            issue_prawn_command(prawn, children) if children.any?
-            prawn.add_content "n" # end path
+          skip = false
 
-          elsif rewrite_call_arguments(prawn, call, arguments) == false
+          rewrite_call_arguments(prawn, call, arguments) do
             issue_prawn_command(prawn, children) if children.any?
+            skip = true
+          end
 
+          if skip
+            # the call has been overridden
           elsif children.empty?
             prawn.send(call, *arguments)
-
           else
             prawn.send(call, *arguments, &proc_creator(prawn, children))
           end
@@ -81,7 +82,7 @@ module Prawn
         case call
         when 'text_group'
           @relative_text_position = nil
-          false
+          yield
 
         when 'draw_text'
           text, options = arguments
@@ -104,15 +105,19 @@ module Prawn
 
         when 'clip'
           prawn.add_content "W n" # clip to path
-          false
+          yield
 
         when 'save'
           prawn.save_graphics_state
-          false
+          yield
 
         when 'restore'
           prawn.restore_graphics_state
-          false
+          yield
+
+        when "end_path"
+          yield
+          prawn.add_content "n" # end path
         end
       end
 
