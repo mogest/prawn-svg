@@ -132,7 +132,7 @@ class Prawn::Svg::Parser
       end
 
     when 'ellipse'
-      xy, rx, ry = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx']), distance(attrs['ry'])
+      xy, rx, ry = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx'], :x), distance(attrs['ry'], :y)
 
       return if zero_argument?(rx, ry)
 
@@ -140,7 +140,7 @@ class Prawn::Svg::Parser
 
     when 'rect'
       xy            = [x(attrs['x'] || '0'), y(attrs['y'] || '0')]
-      width, height = distance(attrs['width']), distance(attrs['height'])
+      width, height = distance(attrs['width'], :x), distance(attrs['height'], :y)
       radius        = distance(attrs['rx'] || attrs['ry'])
 
       return if zero_argument?(width, height)
@@ -211,7 +211,7 @@ class Prawn::Svg::Parser
           x = element.attributes['x']
           y = element.attributes['y']
           if x || y
-            element.add_call_and_enter "translate", distance(x || 0), -distance(y || 0)
+            element.add_call_and_enter "translate", distance(x || 0, :x), -distance(y || 0, :y)
           end
           element.add_calls_from_element definition_element
         else

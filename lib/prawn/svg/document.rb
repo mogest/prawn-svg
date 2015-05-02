@@ -32,6 +32,8 @@ class Prawn::Svg::Document
     sizing.requested_height = options[:height]
     sizing.calculate
 
+    @axis_to_size = {:x => sizing.viewport_width, :y => sizing.viewport_height}
+
     yield self if block_given?
   end
 
@@ -48,7 +50,7 @@ class Prawn::Svg::Document
   end
 
   def points(value, axis = nil)
-    Prawn::Svg::Calculators::Pixels.to_pixels(value, axis == :y ? sizing.viewport_height : sizing.viewport_width)
+    Prawn::Svg::Calculators::Pixels.to_pixels(value, @axis_to_size.fetch(axis, sizing.viewport_diagonal))
   end
 
   def url_loader

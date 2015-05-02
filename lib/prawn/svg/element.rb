@@ -82,7 +82,7 @@ class Prawn::Svg::Element
       case name
       when 'translate'
         x, y = arguments
-        add_call_and_enter name, @document.distance(x), -@document.distance(y)
+        add_call_and_enter name, @document.distance(x, :x), -@document.distance(y, :y)
 
       when 'rotate'
         r, x, y = arguments.collect {|a| a.to_f}
@@ -102,7 +102,7 @@ class Prawn::Svg::Element
           @document.warnings << "transform 'matrix' must have six arguments"
         else
           a, b, c, d, e, f = arguments.collect {|argument| argument.to_f}
-          add_call_and_enter "transformation_matrix", a, -b, -c, d, @document.distance(e), -@document.distance(f)
+          add_call_and_enter "transformation_matrix", a, -b, -c, d, @document.distance(e, :x), -@document.distance(f, :y)
         end
       else
         @document.warnings << "Unknown transformation '#{name}'; ignoring"

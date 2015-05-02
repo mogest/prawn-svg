@@ -5,7 +5,7 @@ module Prawn::Svg::Calculators
     attr_writer :requested_width, :requested_height
 
     attr_reader :x_offset, :y_offset, :x_scale, :y_scale
-    attr_reader :viewport_width, :viewport_height, :output_width, :output_height
+    attr_reader :viewport_width, :viewport_height, :viewport_diagonal, :output_width, :output_height
 
     def initialize(bounds, attributes = nil)
       @bounds = bounds
@@ -46,6 +46,9 @@ module Prawn::Svg::Calculators
 
       @viewport_width ||= width
       @viewport_height ||= height
+
+      # SVG 1.1 section 7.10
+      @viewport_diagonal = Math.sqrt(@viewport_width**2 + @viewport_height**2) / Math.sqrt(2)
 
       if @requested_width
         scale = @requested_width / width
