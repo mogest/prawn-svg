@@ -5,6 +5,8 @@
 module Prawn
   module Svg
     class Interface
+      VALID_OPTIONS = [:at, :position, :width, :height, :cache_images, :fallback_font_name]
+
       DEFAULT_FONT_PATHS = ["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]
 
       @font_path = []
@@ -19,17 +21,23 @@ module Prawn
       #
       # +data+ is the SVG data to convert.  +prawn+ is your Prawn::Document object.
       #
-      # +options+ must contain the key :at, which takes a tuple of x and y co-ordinates.
+      # Options:
+      # <tt>:at</tt>:: an array [x,y] specifying the location of the top-left corner of the SVG.
+      # <tt>:position</tt>::  one of (nil, :left, :center, :right) or an x-offset
+      # <tt>:width</tt>:: the width that the SVG is to be rendered
+      # <tt>:height</tt>:: the height that the SVG is to be rendered
       #
-      # +options+ can optionally contain the key :width or :height.  If both are
-      # specified, only :width will be used.
+      # If <tt>:at</tt> is provided, the SVG will be placed in the current page but
+      # the text position will not be changed.
+      #
+      # If both <tt>:width</tt> and <tt>:height</tt> are specified, only the width will be used.
       #
       def initialize(data, prawn, options, &block)
+        Prawn.verify_options VALID_OPTIONS, options
+
         @data = data
         @prawn = prawn
         @options = options
-
-        @options[:at] or raise "options[:at] must be specified"
 
         Prawn::Svg::Font.load_external_fonts(prawn.font_families)
 
@@ -40,7 +48,7 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
-        prawn.bounding_box(@options[:at], :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
+        prawn.bounding_box(position, :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
           prawn.save_graphics_state do
             clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
             proc_creator(prawn, Parser.new(@document).parse).call
@@ -48,8 +56,29 @@ module Prawn
         end
       end
 
+      def position
+        @options[:at] || position_based_on_requested_alignment
+      end
 
       private
+
+      def position_based_on_requested_alignment
+        x = case options[:position]
+        when :left, nil
+          0
+        when :center, :centre
+          (@document.sizing.bounds[0] - @document.sizing.output_width) / 2.0
+        when :right
+          @document.sizing.bounds[0] - @document.sizing.output_width
+        when Numeric
+          options[:position]
+        else
+          raise ArgumentError, "options[:position] must be one of nil, :left, :right, :center or a number"
+        end
+
+        [x, prawn.cursor]
+      end
+
       def proc_creator(prawn, calls)
         Proc.new {issue_prawn_command(prawn, calls)}
       end

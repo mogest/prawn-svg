@@ -1,51 +1,58 @@
 require 'spec_helper'
 
 describe Prawn::Svg::Interface do
-  root = "#{File.dirname(__FILE__)}/../../.."
+  let(:bounds) { double(width: 800, height: 600) }
+  let(:prawn)  { instance_double(Prawn::Document, font_families: {}, bounds: bounds, cursor: 600) }
+  let(:svg)    { '<svg width="250" height="100"></svg>' }
 
-  describe "sample file rendering" do
-    files = Dir["#{root}/spec/sample_svg/*.svg"]
+  describe "#initialize" do
+    describe "invalid option detection" do
+      it "rejects invalid options when debug is on" do
+        allow(Prawn).to receive(:debug).and_return(true)
 
-    it "has at least 10 SVG sample files to test" do
-      files.length.should >= 10
-    end
+        expect {
+          Prawn::Svg::Interface.new(svg, prawn, :invalid => "option")
+        }.to raise_error(Prawn::Errors::UnknownOption)
+      end
 
-    files.each do |file|
-      it "renders the #{File.basename file} sample file without warnings or crashing" do
-        warnings = nil
-        Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do |prawn|
-          r = prawn.svg IO.read(file), :at => [0, prawn.bounds.top], :width => prawn.bounds.width do |doc|
-            doc.url_loader.enable_web = false
-            doc.url_loader.url_cache["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg"] = IO.read("#{root}/spec/sample_images/mushroom-wide.jpg")
-            doc.url_loader.url_cache["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg"] = IO.read("#{root}/spec/sample_images/mushroom-long.jpg")
-          end
-
-          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ }
-        end
-        warnings.should == []
+      it "does nothing if an invalid option is given and debug is off" do
+        Prawn::Svg::Interface.new(svg, prawn, :invalid => "option")
       end
     end
   end
 
-  describe "multiple file rendering" do
-    it "renders multiple files on to the same PDF" do
-      Prawn::Document.generate("#{root}/spec/sample_output/multiple.pdf") do |prawn|
-        width = prawn.bounds.width
+  describe "#position" do
+    context "when options[:at] supplied" do
+      it "returns options[:at]" do
+        interface = Prawn::Svg::Interface.new(svg, prawn, at: [1, 2], position: :left)
 
-        y = prawn.bounds.top - 12
-        prawn.draw_text "This is multiple SVGs being output to the same PDF", :at => [0, y]
+        expect(interface.position).to eq [1, 2]
+      end
+    end
 
-        y -= 12
-        prawn.svg IO.read("#{root}/spec/sample_svg/arcs01.svg"),   :at => [0, y],         :width => width / 2
-        prawn.svg IO.read("#{root}/spec/sample_svg/circle01.svg"), :at => [width / 2, y], :width => width / 2
+    context "when only a position is supplied" do
+      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, position: position) }
 
-        y -= 120
-        prawn.draw_text "Here are some more PDFs below", :at => [0, y]
+      subject { interface.position }
 
-        y -= 12
-        prawn.svg IO.read("#{root}/spec/sample_svg/quad01.svg"), :at => [0, y],             :width => width / 3
-        prawn.svg IO.read("#{root}/spec/sample_svg/rect01.svg"), :at => [width / 3, y],     :width => width / 3
-        prawn.svg IO.read("#{root}/spec/sample_svg/rect02.svg"), :at => [width / 3 * 2, y], :width => width / 3
+      context "(:left)" do
+        let(:position) { :left }
+        it { is_expected.to eq [0, 600] }
+      end
+
+      context "(:center)" do
+        let(:position) { :center }
+        it { is_expected.to eq [275, 600] }
+      end
+
+      context "(:right)" do
+        let(:position) { :right }
+        it { is_expected.to eq [550, 600] }
+      end
+
+      context "a number" do
+        let(:position) { 25.5 }
+        it { is_expected.to eq [25.5, 600] }
       end
     end
   end

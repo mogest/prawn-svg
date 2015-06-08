@@ -4,6 +4,7 @@ module Prawn::Svg::Calculators
     attr_writer :view_box, :preserve_aspect_ratio
     attr_writer :requested_width, :requested_height
 
+    attr_reader :bounds
     attr_reader :x_offset, :y_offset, :x_scale, :y_scale
     attr_reader :viewport_width, :viewport_height, :viewport_diagonal, :output_width, :output_height
 
