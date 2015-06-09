@@ -70,4 +70,29 @@ describe Prawn::Svg::Calculators::DocumentSizing do
       expect(sizing.output_height).to eq 400
     end
   end
+
+  describe "#calculate when SVG does not specify width and height" do
+    let(:attributes) do
+      {"viewBox" => "0 0 100 200"}
+    end
+
+    it "calculates document sizing using width and height from viewBox" do
+      sizing.calculate
+      expect(sizing.viewport_width).to eq 100
+      expect(sizing.viewport_height).to eq 200
+      expect(sizing.output_width).to eq 100
+      expect(sizing.output_height).to eq 200
+    end
+
+    it "scales height based on value from viewBox" do
+      sizing.requested_width = 50
+      sizing.calculate
+      expect(sizing.x_scale).to eq 0.5
+      expect(sizing.y_scale).to eq 0.5
+      expect(sizing.viewport_width).to eq 100
+      expect(sizing.viewport_height).to eq 200
+      expect(sizing.output_width).to eq 50
+      expect(sizing.output_height).to eq 100
+    end
+  end
 end
