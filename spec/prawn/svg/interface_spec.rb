@@ -22,18 +22,18 @@ describe Prawn::Svg::Interface do
   end
 
   describe "#position" do
-    context "when options[:at] supplied" do
-      it "returns options[:at]" do
-        interface = Prawn::Svg::Interface.new(svg, prawn, at: [1, 2], position: :left)
+    subject { interface.position }
 
-        expect(interface.position).to eq [1, 2]
+    context "when options[:at] supplied" do
+      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, at: [1, 2], position: :left) }
+
+      it "returns options[:at]" do
+        expect(subject).to eq [1, 2]
       end
     end
 
     context "when only a position is supplied" do
       let(:interface) { Prawn::Svg::Interface.new(svg, prawn, position: position) }
-
-      subject { interface.position }
 
       context "(:left)" do
         let(:position) { :left }
@@ -53,6 +53,30 @@ describe Prawn::Svg::Interface do
       context "a number" do
         let(:position) { 25.5 }
         it { is_expected.to eq [25.5, 600] }
+      end
+    end
+
+    context "when a vposition is supplied" do
+      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, vposition: vposition) }
+
+      context "(:top)" do
+        let(:vposition) { :top }
+        it { is_expected.to eq [0, 600] }
+      end
+
+      context "(:center)" do
+        let(:vposition) { :center }
+        it { is_expected.to eq [0, 350] }
+      end
+
+      context "(:bottom)" do
+        let(:vposition) { :bottom }
+        it { is_expected.to eq [0, 100] }
+      end
+
+      context "a number" do
+        let(:vposition) { 25.5 }
+        it { is_expected.to eq [0, 600 - 25.5] }
       end
     end
   end
