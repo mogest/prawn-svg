@@ -1,11 +1,11 @@
 class Prawn::Svg::Parser::Text
   def parse(element)
     element.add_call_and_enter "text_group"
-    internal_parse(element, [element.document.x(0)], [element.document.y(0)], false)
+    internal_parse(element, [element.document.x(0)], [element.document.y(0)])
   end
 
   protected
-  def internal_parse(element, x_positions, y_positions, relative)
+  def internal_parse(element, x_positions, y_positions, relative = false, preserve_space = false)
     return if element.state[:display] == "none"
 
     attrs = element.attributes
@@ -18,6 +18,13 @@ class Prawn::Svg::Parser::Text
 
     if attrs['dx'] || attrs['dy']
       element.add_call_and_enter "translate", element.document.distance(attrs['dx'] || 0), -element.document.distance(attrs['dy'] || 0)
+    end
+
+    case attrs['xml:space']
+    when 'preserve'
+      preserve_space = true
+    when 'default'
+      preserve_space = false
     end
 
     opts = {}
@@ -34,7 +41,7 @@ class Prawn::Svg::Parser::Text
 
     element.element.children.each do |child|
       if child.node_type == :text
-        text = child.value.strip.gsub(/\s+/, " ")
+        text = child.value.strip.gsub(preserve_space ? /[\n\t]/ : /\s+/, " ")
 
         while text != ""
           opts[:at] = [x_positions.first, y_positions.first]
@@ -56,7 +63,7 @@ class Prawn::Svg::Parser::Text
         element.add_call 'save'
         child.attributes['text-anchor'] ||= opts[:text_anchor] if opts[:text_anchor]
         child_element = Prawn::Svg::Element.new(element.document, child, element.calls, element.state.dup)
-        internal_parse(child_element, x_positions, y_positions, relative)
+        internal_parse(child_element, x_positions, y_positions, relative, preserve_space)
         child_element.append_calls_to_parent
         element.add_call 'restore'
 
