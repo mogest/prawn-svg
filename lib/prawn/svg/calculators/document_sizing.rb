@@ -29,13 +29,14 @@ module Prawn::Svg::Calculators
 
       default_aspect_ratio = "x#{width ? "Mid" : "Min"}Y#{height ? "Mid" : "Min"} meet"
 
-      width ||= @bounds[0]
-      height ||= @bounds[1]
 
       if @view_box
         values = @view_box.strip.split(/\s+/)
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
         @x_offset = -@x_offset
+
+        width ||= (@viewport_width || @bounds[0])
+        height ||= (@viewport_height || @bounds[1])
 
         @preserve_aspect_ratio ||= default_aspect_ratio
         aspect = Prawn::Svg::Calculators::AspectRatio.new(@preserve_aspect_ratio, [width, height], [@viewport_width, @viewport_height])
@@ -43,6 +44,9 @@ module Prawn::Svg::Calculators
         @y_scale = aspect.height / @viewport_height
         @x_offset -= aspect.x
         @y_offset -= aspect.y
+      else
+        width ||= @bounds[0]
+        height ||= @bounds[1]
       end
 
       @viewport_width ||= width
