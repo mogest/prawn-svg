@@ -5,7 +5,7 @@
 module Prawn
   module Svg
     class Interface
-      VALID_OPTIONS = [:at, :position, :width, :height, :cache_images, :fallback_font_name]
+      VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :fallback_font_name]
 
       DEFAULT_FONT_PATHS = ["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]
 
@@ -24,6 +24,7 @@ module Prawn
       # Options:
       # <tt>:at</tt>:: an array [x,y] specifying the location of the top-left corner of the SVG.
       # <tt>:position</tt>::  one of (nil, :left, :center, :right) or an x-offset
+      # <tt>:vposition</tt>::  one of (nil, :top, :center, :bottom) or a y-offset
       # <tt>:width</tt>:: the width that the SVG is to be rendered
       # <tt>:height</tt>:: the height that the SVG is to be rendered
       #
@@ -57,13 +58,13 @@ module Prawn
       end
 
       def position
-        @options[:at] || position_based_on_requested_alignment
+        @options[:at] || [x_based_on_requested_alignment, y_based_on_requested_alignment]
       end
 
       private
 
-      def position_based_on_requested_alignment
-        x = case options[:position]
+      def x_based_on_requested_alignment
+        case options[:position]
         when :left, nil
           0
         when :center, :centre
@@ -75,8 +76,23 @@ module Prawn
         else
           raise ArgumentError, "options[:position] must be one of nil, :left, :right, :center or a number"
         end
+      end
 
-        [x, prawn.cursor]
+      def y_based_on_requested_alignment
+        case options[:vposition]
+        when nil
+          prawn.cursor
+        when :top
+          @document.sizing.bounds[1]
+        when :center, :centre
+          @document.sizing.bounds[1] - (@document.sizing.bounds[1] - @document.sizing.output_height) / 2.0
+        when :bottom
+          @document.sizing.output_height
+        when Numeric
+          @document.sizing.bounds[1] - options[:vposition]
+        else
+          raise ArgumentError, "options[:vposition] must be one of nil, :top, :right, :bottom or a number"
+        end
       end
 
       def proc_creator(prawn, calls)

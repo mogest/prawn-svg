@@ -16,9 +16,9 @@ Prawn::Document.generate("svg.pdf") do
 end
 ```
 
-Specify <tt>:at</tt> if you want to render it at a specified location on the page,
-or use <tt>:position</tt> with a value of <tt>:left</tt>, <tt>:center</tt>, <tt>:right</tt> or a number
-to render it at the current cursor position.
+Supply <tt>:at</tt> if you want to render it at a specific location on the page.
+Use <tt>:position</tt> with a value of <tt>:left</tt>, <tt>:center</tt>, <tt>:right</tt> or a number to render it at the current cursor position, or use <tt>:vposition</tt> with a value
+of <tt>:top</tt>, <tt>:center</tt>, <tt>:bottom</tt> or a number to specify its Y position too.
 
 Either <tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
 the dimensions specified in the SVG will be used, or if the dimensions aren't specified, it'll

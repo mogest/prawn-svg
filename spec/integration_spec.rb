@@ -19,6 +19,21 @@ describe Prawn::Svg::Interface do
     end
   end
 
+  context "with option :vposition" do
+    let(:svg) { IO.read("#{root}/spec/sample_svg/cubic01a.svg") }
+
+    it "aligns the image as requested" do
+      Prawn::Document.generate("#{root}/spec/sample_output/_with_vposition.pdf") do |prawn|
+        width = prawn.bounds.width / 3
+
+        prawn.svg svg, :width => width, :position => :left, :vposition => :bottom
+        prawn.svg svg, :width => width, :position => :center, :vposition => :center
+        prawn.svg svg, :width => width, :position => :right, :vposition => :top
+        prawn.svg svg, :width => width, :position => 50, :vposition => 50
+      end
+    end
+  end
+
   describe "sample file rendering" do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
