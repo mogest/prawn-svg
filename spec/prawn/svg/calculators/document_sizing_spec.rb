@@ -31,7 +31,7 @@ describe Prawn::Svg::Calculators::DocumentSizing do
   describe "#calculate" do
     it "calculates the document sizing measurements for a given set of inputs" do
       sizing.calculate
-      expect(sizing.x_offset).to eq -75
+      expect(sizing.x_offset).to eq -75 / 0.25
       expect(sizing.y_offset).to eq -30
       expect(sizing.x_scale).to eq 0.25
       expect(sizing.y_scale).to eq 0.25
@@ -76,23 +76,25 @@ describe Prawn::Svg::Calculators::DocumentSizing do
       {"viewBox" => "0 0 100 200"}
     end
 
-    it "calculates document sizing using width and height from viewBox" do
+    it "defaults to 100% of the bounds" do
       sizing.calculate
       expect(sizing.viewport_width).to eq 100
       expect(sizing.viewport_height).to eq 200
-      expect(sizing.output_width).to eq 100
-      expect(sizing.output_height).to eq 200
+      expect(sizing.output_width).to eq 1200
+      expect(sizing.output_height).to eq 800
     end
 
-    it "scales height based on value from viewBox" do
-      sizing.requested_width = 50
-      sizing.calculate
-      expect(sizing.x_scale).to eq 0.5
-      expect(sizing.y_scale).to eq 0.5
-      expect(sizing.viewport_width).to eq 100
-      expect(sizing.viewport_height).to eq 200
-      expect(sizing.output_width).to eq 50
-      expect(sizing.output_height).to eq 100
+    context "when a requested width and height are supplied" do
+      it "defaults to 100% of the requested width and height" do
+        sizing.requested_width = 550
+        sizing.requested_height = 400
+        sizing.calculate
+
+        expect(sizing.viewport_width).to eq 100
+        expect(sizing.viewport_height).to eq 200
+        expect(sizing.output_width).to eq 550
+        expect(sizing.output_height).to eq 400
+      end
     end
   end
 end
