@@ -69,31 +69,59 @@ describe Prawn::Svg::Calculators::DocumentSizing do
       expect(sizing.output_width).to eq 600
       expect(sizing.output_height).to eq 400
     end
-  end
 
-  describe "#calculate when SVG does not specify width and height" do
-    let(:attributes) do
-      {"viewBox" => "0 0 100 200"}
-    end
+    context "when SVG does not specify width and height" do
+      context "when a viewBox is specified" do
+        let(:attributes) { {"viewBox" => "0 0 100 200"} }
 
-    it "defaults to 100% of the bounds" do
-      sizing.calculate
-      expect(sizing.viewport_width).to eq 100
-      expect(sizing.viewport_height).to eq 200
-      expect(sizing.output_width).to eq 1200
-      expect(sizing.output_height).to eq 800
-    end
+        it "defaults to 100% width and the width times aspect ratio in height" do
+          sizing.calculate
+          expect(sizing.viewport_width).to eq 100
+          expect(sizing.viewport_height).to eq 200
+          expect(sizing.output_width).to eq 1200
+          expect(sizing.output_height).to eq 2400
+        end
+      end
 
-    context "when a requested width and height are supplied" do
-      it "defaults to 100% of the requested width and height" do
-        sizing.requested_width = 550
-        sizing.requested_height = 400
-        sizing.calculate
+      context "when a requested width and height are supplied" do
+        let(:attributes) { {} }
 
-        expect(sizing.viewport_width).to eq 100
-        expect(sizing.viewport_height).to eq 200
-        expect(sizing.output_width).to eq 550
-        expect(sizing.output_height).to eq 400
+        it "uses the requested width and height" do
+          sizing.requested_width = 550
+          sizing.requested_height = 400
+          sizing.calculate
+
+          expect(sizing.viewport_width).to eq 550
+          expect(sizing.viewport_height).to eq 400
+          expect(sizing.output_width).to eq 550
+          expect(sizing.output_height).to eq 400
+        end
+      end
+
+      context "when a viewBox and a requested width/height are supplied" do
+        let(:attributes) { {"viewBox" => "0 0 100 200"} }
+
+        it "uses the requested width and height" do
+          sizing.requested_width = 550
+          sizing.requested_height = 400
+          sizing.calculate
+
+          expect(sizing.viewport_width).to eq 100
+          expect(sizing.viewport_height).to eq 200
+          expect(sizing.output_width).to eq 550
+          expect(sizing.output_height).to eq 400
+        end
+      end
+
+      context "when neither viewBox nor requested width/height specified" do
+        let(:attributes) { {} }
+
+        it "defaults to 300x150, because that's what HTML does" do
+          sizing.calculate
+
+          expect(sizing.output_width).to eq 300
+          expect(sizing.output_height).to eq 150
+        end
       end
     end
   end

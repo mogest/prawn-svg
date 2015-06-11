@@ -15,7 +15,7 @@ describe Prawn::Svg::Parser::Text do
         parser.parse(element)
 
         expect(element.calls).to eq [
-          ["draw_text", ["some    text", {:style=>nil, :at=>[0.0, 600.0]}], []]
+          ["draw_text", ["some    text", {:style=>nil, :at=>[0.0, 150.0]}], []]
         ]
       end
     end
@@ -27,7 +27,7 @@ describe Prawn::Svg::Parser::Text do
         parser.parse(element)
 
         expect(element.calls).to eq [
-          ["draw_text", ["some text", {:style=>nil, :at=>[0.0, 600.0]}], []]
+          ["draw_text", ["some text", {:style=>nil, :at=>[0.0, 150.0]}], []]
         ]
       end
     end
@@ -43,7 +43,7 @@ describe Prawn::Svg::Parser::Text do
         ["end_path", [], [
           ["text_group", [], [
             ["character_spacing", [5.0], [
-              ["draw_text", ["spaced", {:style=>nil, :at=>[0.0, 600.0]}], []]
+              ["draw_text", ["spaced", {:style=>nil, :at=>[0.0, 150.0]}], []]
             ]]
           ]]
         ]]
