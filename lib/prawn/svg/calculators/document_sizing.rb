@@ -30,52 +30,62 @@ module Prawn::Svg::Calculators
       container_width = @requested_width || @bounds[0]
       container_height = @requested_height || @bounds[1]
 
-      width = Pixels.to_pixels(@document_width || @requested_width, container_width)
-      height = Pixels.to_pixels(@document_height || @requested_height, container_height)
+      @output_width = Pixels.to_pixels(@document_width || @requested_width, container_width)
+      @output_height = Pixels.to_pixels(@document_height || @requested_height, container_height)
 
       if @view_box
         values = @view_box.strip.split(Prawn::Svg::Parser::COMMA_WSP_REGEXP)
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
         @x_offset = -@x_offset
 
-        width ||= container_width
-        height ||= width * @viewport_height / @viewport_width
+        if @viewport_width > 0 && @viewport_height > 0
+          @output_width ||= container_width
+          @output_height ||= @output_width * @viewport_height / @viewport_width
 
-        aspect = AspectRatio.new(@preserve_aspect_ratio, [width, height], [@viewport_width, @viewport_height])
-        @x_scale = aspect.width / @viewport_width
-        @y_scale = aspect.height / @viewport_height
-        @x_offset -= aspect.x / @x_scale
-        @y_offset -= aspect.y / @y_scale
+          aspect = AspectRatio.new(@preserve_aspect_ratio, [@output_width, @output_height], [@viewport_width, @viewport_height])
+          @x_scale = aspect.width / @viewport_width
+          @y_scale = aspect.height / @viewport_height
+          @x_offset -= aspect.x / @x_scale
+          @y_offset -= aspect.y / @y_scale
+        end
       else
-        width ||= Pixels.to_pixels(DEFAULT_WIDTH, container_width)
-        height ||= Pixels.to_pixels(DEFAULT_HEIGHT, container_height)
+        @output_width ||= Pixels.to_pixels(DEFAULT_WIDTH, container_width)
+        @output_height ||= Pixels.to_pixels(DEFAULT_HEIGHT, container_height)
 
-        @viewport_width = width
-        @viewport_height = height
+        @viewport_width = @output_width
+        @viewport_height = @output_height
       end
+
+      return if invalid?
 
       # SVG 1.1 section 7.10
       @viewport_diagonal = Math.sqrt(@viewport_width**2 + @viewport_height**2) / Math.sqrt(2)
 
       if @requested_width
-        scale = @requested_width / width
-        width = @requested_width
-        height *= scale
+        scale = @requested_width / @output_width
+        @output_width = @requested_width
+        @output_height *= scale
         @x_scale *= scale
         @y_scale *= scale
 
       elsif @requested_height
-        scale = @requested_height / height
-        height = @requested_height
-        width *= scale
+        scale = @requested_height / @output_height
+        @output_height = @requested_height
+        @output_width *= scale
         @x_scale *= scale
         @y_scale *= scale
       end
 
-      @output_width = width
-      @output_height = height
-
       self
+    end
+
+    def invalid?
+      @viewport_width <= 0 ||
+        @viewport_height <= 0 ||
+        @output_width <= 0 ||
+        @output_height <= 0 ||
+        (@requested_width && @requested_width <= 0) ||
+        (@requested_height && @requested_height <= 0)
     end
 
     def requested_width=(value)

@@ -21,6 +21,17 @@ describe Prawn::Svg::Interface do
     end
   end
 
+  describe "#draw" do
+    context "when the sizing object indicates the sizes are invalid" do
+      let(:interface) { Prawn::Svg::Interface.new('<svg width="0"></svg>', prawn, {}) }
+
+      it "doesn't draw anything and adds a warning" do
+        interface.draw
+        expect(interface.document.warnings).to eq ["Zero or negative sizing data means this SVG cannot be rendered"]
+      end
+    end
+  end
+
   describe "#position" do
     subject { interface.position }
 

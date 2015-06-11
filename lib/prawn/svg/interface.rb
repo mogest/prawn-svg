@@ -49,6 +49,11 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
+        if @document.sizing.invalid?
+          @document.warnings << "Zero or negative sizing data means this SVG cannot be rendered"
+          return
+        end
+
         prawn.bounding_box(position, :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
           prawn.save_graphics_state do
             clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
