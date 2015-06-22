@@ -142,13 +142,21 @@ class Prawn::Svg::Element
 
   def parse_fill_and_stroke_attributes_and_call
     ["fill", "stroke"].select do |type|
-      dec = @attributes[type]
-      if dec == "none"
+      case keyword = attribute_value_as_keyword(type)
+      when nil
+      when 'inherit'
+      when 'none'
         state[type.to_sym] = false
-      elsif dec
-        state[type.to_sym] = true
-        if color = Prawn::Svg::Color.color_to_hex(dec)
-          add_call "#{type}_color", color
+      else
+        color_attribute = keyword == 'currentcolor' ? 'color' : type
+        color = @attributes[color_attribute]
+
+        begin
+          hex = Prawn::Svg::Color.color_to_hex(color)
+          state[type.to_sym] = true
+          add_call "#{type}_color", hex || '000000'
+        rescue Prawn::Svg::Color::UnresolvableURLWithNoFallbackError
+          state[type.to_sym] = false
         end
       end
 

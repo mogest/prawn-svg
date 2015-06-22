@@ -1,5 +1,6 @@
 class Prawn::Svg::Color
-  # TODO : use http://www.w3.org/TR/SVG11/types.html#ColorKeywords
+  UnresolvableURLWithNoFallbackError = Class.new(StandardError)
+
   HTML_COLORS = {
     'aliceblue' => 'f0f8ff',
     'antiquewhite' => 'faebd7',
@@ -152,9 +153,12 @@ class Prawn::Svg::Color
 
   RGB_VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
   RGB_REGEXP = /\Argb\(#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP}\)\z/i
+  URL_REGEXP = /\Aurl\([^)]*\)\z/i
 
   def self.color_to_hex(color_string)
-    color_string.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
+    url_specified = false
+
+    result = color_string.strip.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
       if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
         break "#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}"
       elsif color.match(/\A#[0-9a-f]{6}\z/i)
@@ -167,8 +171,16 @@ class Prawn::Svg::Color
           value *= 2.55 if m[n][-1..-1] == '%'
           "%02x" % clamp(value.round, 0, 255)
         end.join
+      elsif color.match(URL_REGEXP)
+        url_specified = true
+        nil # we can't handle these so we find the next thing that matches
       end
     end
+
+    # http://www.w3.org/TR/SVG/painting.html section 11.2
+    raise UnresolvableURLWithNoFallbackError if result.nil? && url_specified
+
+    result
   end
 
   protected

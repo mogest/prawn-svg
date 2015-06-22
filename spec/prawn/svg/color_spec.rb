@@ -22,5 +22,19 @@ describe Prawn::Svg::Color do
     it "scans the string and finds the first colour it can parse" do
       Prawn::Svg::Color.color_to_hex("function(#someurl, 0) nonexistent rgb( 3 ,4,5 ) white").should == "030405"
     end
+
+    it "ignores url()s" do
+      expect(Prawn::Svg::Color.color_to_hex("url(#someplace) red")).to eq 'ff0000'
+    end
+
+    it "returns nil if the color doesn't exist" do
+      expect(Prawn::Svg::Color.color_to_hex("blurble")).to be nil
+    end
+
+    it "raises UnresolvableURLWithNoFallbackError if there's no fallback after a url()" do
+      expect {
+        Prawn::Svg::Color.color_to_hex("url(#someplace)")
+      }.to raise_error(Prawn::Svg::Color::UnresolvableURLWithNoFallbackError)
+    end
   end
 end
