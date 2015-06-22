@@ -35,7 +35,8 @@ class Prawn::Svg::Parser::Text
 
     # This is not a prawn option but we can't work out how to render it here -
     # it's handled by Svg#rewrite_call_arguments
-    if anchor = attrs['text-anchor']
+    if (anchor = attrs['text-anchor'] || element.state[:text_anchor]) &&
+        ['start', 'middle', 'end'].include?(anchor)
       opts[:text_anchor] = anchor
     end
 

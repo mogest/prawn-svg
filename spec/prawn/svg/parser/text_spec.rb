@@ -33,6 +33,15 @@ describe Prawn::Svg::Parser::Text do
     end
   end
 
+  describe "when text-anchor is specified" do
+    let(:svg) { '<g text-anchor="middle" font-family="sans-serif" font-size="12"><text x="50" y="14">Text</text></g>' }
+
+    it "should inherit text-anchor from parent element" do
+      parser.parse(element)
+      expect(element.state[:text_anchor]).to eq 'middle'
+    end
+  end
+
   describe "letter-spacing" do
     let(:svg) { '<text letter-spacing="5">spaced</text>' }
 

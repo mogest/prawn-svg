@@ -206,6 +206,9 @@ class Prawn::Svg::Element
       font_updated = true
       @state[:font_family] = family
     end
+    if (anchor = @attributes['text-anchor'])
+      @state[:text_anchor] = anchor
+    end
 
     if @state[:font_family] && font_updated
       usable_font_families = [@state[:font_family], document.fallback_font_name]
