@@ -82,14 +82,17 @@ class Prawn::Svg::Element
       case name
       when 'translate'
         x, y = arguments
-        add_call_and_enter name, @document.distance(x, :x), -@document.distance(y, :y)
+        add_call_and_enter name, @document.distance(x.to_f, :x), -@document.distance(y.to_f, :y)
 
       when 'rotate'
         r, x, y = arguments.collect {|a| a.to_f}
-        if arguments.length == 3
+        case arguments.length
+        when 1
+          add_call_and_enter name, -r, :origin => [0, @document.y('0')]
+        when 3
           add_call_and_enter name, -r, :origin => [@document.x(x), @document.y(y)]
         else
-          add_call_and_enter name, -r, :origin => [0, @document.y('0')]
+          @document.warnings << "transform 'rotate' must have either one or three arguments"
         end
 
       when 'scale'
