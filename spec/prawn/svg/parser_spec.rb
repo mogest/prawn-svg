@@ -25,7 +25,7 @@ describe Prawn::Svg::Parser do
     end
   end
 
-  describe :parse_element do
+  describe "#parse_element" do
     before(:each) do
       @document = Prawn::Svg::Document.new("<svg></svg>", [100, 100], {})
       @parser = Prawn::Svg::Parser.new(@document)
@@ -50,6 +50,30 @@ describe Prawn::Svg::Parser do
       calls.should == []
       @document.warnings.length.should == 1
       @document.warnings.first.should include("Must have attributes ry on tag ellipse")
+    end
+  end
+
+  describe "#load_css_styles" do
+    let(:document)   { Prawn::Svg::Document.new(svg, [100, 100], {}) }
+    let(:parser)     { Prawn::Svg::Parser.new(document) }
+
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <style>a
+            before&gt;
+            x <![CDATA[ y
+            inside <>&gt;
+            k ]]> j
+            after
+          z</style>
+        </svg>
+      SVG
+    end
+
+    it "correctly collects the style information in a <style> tag" do
+      expect(document.css_parser).to receive(:add_block!).with("a\n            before>\n            x  y\n            inside <>&gt;\n            k  j\n            after\n          z")
+      parser.parse
     end
   end
 end
