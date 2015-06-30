@@ -231,7 +231,9 @@ class Prawn::Svg::Parser
   def load_css_styles(element)
     if @document.css_parser
       data = if element.element.cdatas.any?
-        element.element.cdatas.collect {|d| d.to_s}.join
+        # Some people start "<style>/* <![CDATA[ */" and that confuses the CSS parser.
+        # Remove any "*/" at the start of the cdata section.
+        element.element.cdatas.collect {|d| d.to_s}.join.gsub(%r(\A\s*\*/), '')
       else
         element.element.text
       end
