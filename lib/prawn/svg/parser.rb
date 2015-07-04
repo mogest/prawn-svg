@@ -116,12 +116,14 @@ class Prawn::Svg::Parser
       end
 
     when 'polygon'
+      return if url_fill?(attrs)
       points = parse_points(attrs['points']).collect do |x, y|
         [x(x), y(y)]
       end
       element.add_call "polygon", *points
 
     when 'circle'
+      return if url_fill?(attrs)
       xy, r = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['r'])
 
       return if zero_argument?(r)
@@ -133,6 +135,7 @@ class Prawn::Svg::Parser
       end
 
     when 'ellipse'
+      return if url_fill?(attrs)
       xy, rx, ry = [x(attrs['cx'] || "0"), y(attrs['cy'] || "0")], distance(attrs['rx'], :x), distance(attrs['ry'], :y)
 
       return if zero_argument?(rx, ry)
@@ -140,6 +143,7 @@ class Prawn::Svg::Parser
       element.add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at", xy, rx, ry
 
     when 'rect'
+      return if url_fill?(attrs)
       xy            = [x(attrs['x'] || '0'), y(attrs['y'] || '0')]
       width, height = distance(attrs['width'], :x), distance(attrs['height'], :y)
       radius        = distance(attrs['rx'] || attrs['ry'])
@@ -241,6 +245,10 @@ class Prawn::Svg::Parser
       @document.warnings << "Must have attributes #{missing_attrs.join(", ")} on tag #{element.name}; skipping tag"
     end
     missing_attrs.empty?
+  end
+
+  def url_fill?(attrs)
+    (fill = attrs['fill']) && fill.start_with?('url(')
   end
 
   def zero_argument?(*args)
