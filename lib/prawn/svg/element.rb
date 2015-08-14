@@ -1,10 +1,10 @@
 class Prawn::Svg::Element
-  attr_reader :document, :element, :parent_calls, :base_calls, :state, :attributes
+  attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes
   attr_accessor :calls
 
-  def initialize(document, element, parent_calls, state)
+  def initialize(document, source, parent_calls, state)
     @document = document
-    @element = element
+    @source = source
     @parent_calls = parent_calls
     @state = state
     @base_calls = @calls = []
@@ -18,11 +18,11 @@ class Prawn::Svg::Element
   end
 
   def name
-    @name ||= element.name
+    @name ||= source.name
   end
 
   def each_child_element
-    element.elements.each do |e|
+    source.elements.each do |e|
       yield self.class.new(@document, e, @calls, @state.dup)
     end
   end
@@ -134,7 +134,7 @@ class Prawn::Svg::Element
       document.warnings << "Only clip-path attributes with the form 'url(#xxx)' are supported"
     elsif (clip_path_element = @document.elements_by_id[matches[1]]).nil?
       document.warnings << "clip-path ID '#{matches[1]}' not defined"
-    elsif clip_path_element.element.name != "clipPath"
+    elsif clip_path_element.source.name != "clipPath"
       document.warnings << "clip-path ID '#{matches[1]}' does not point to a clipPath tag"
     else
       add_call_and_enter 'save_graphics_state'
@@ -256,27 +256,27 @@ class Prawn::Svg::Element
 
   def combine_attributes_and_style_declarations
     if @document && @document.css_parser
-      tag_style = @document.css_parser.find_by_selector(element.name)
-      id_style = @document.css_parser.find_by_selector("##{element.attributes["id"]}") if element.attributes["id"]
+      tag_style = @document.css_parser.find_by_selector(source.name)
+      id_style = @document.css_parser.find_by_selector("##{source.attributes["id"]}") if source.attributes["id"]
 
-      if classes = element.attributes["class"]
+      if classes = source.attributes["class"]
         class_styles = classes.strip.split(/\s+/).collect do |class_name|
           @document.css_parser.find_by_selector(".#{class_name}")
         end
       end
 
-      element_style = element.attributes['style']
+      element_style = source.attributes['style']
 
       style = [tag_style, class_styles, id_style, element_style].flatten.collect do |s|
         s.nil? || s.strip == "" ? "" : "#{s}#{";" unless s.match(/;\s*\z/)}"
       end.join
     else
-      style = element.attributes['style'] || ""
+      style = source.attributes['style'] || ""
     end
 
     @attributes = parse_css_declarations(style)
 
-    element.attributes.each do |name, value|
+    source.attributes.each do |name, value|
       name = name.downcase
       @attributes[name] = value unless @attributes[name]
     end

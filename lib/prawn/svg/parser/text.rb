@@ -44,7 +44,7 @@ class Prawn::Svg::Parser::Text
       element.add_call_and_enter 'character_spacing', element.document.points(spacing)
     end
 
-    element.element.children.each do |child|
+    element.source.children.each do |child|
       if child.node_type == :text
         text = child.value.strip.gsub(preserve_space ? /[\n\t]/ : /\s+/, " ")
 

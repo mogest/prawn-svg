@@ -230,7 +230,7 @@ class Prawn::Svg::Parser
 
   def load_css_styles(element)
     if @document.css_parser
-      data = element.element.texts.collect {|d| d.value}.join
+      data = element.source.texts.collect {|d| d.value}.join
       @document.css_parser.add_block!(data)
     end
   end
