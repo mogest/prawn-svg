@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Prawn::Svg::Parser::Path do
-  let(:path) { Prawn::Svg::Parser::Path.new }
+describe Prawn::SVG::Parser::Path do
+  let(:path) { Prawn::SVG::Parser::Path.new }
 
   describe "command parsing" do
     it "correctly parses a valid path" do
@@ -41,11 +41,11 @@ describe Prawn::Svg::Parser::Path do
     end
 
     it "raises on invalid characters in the path" do
-      lambda {path.parse("M 10 % 20")}.should raise_error(Prawn::Svg::Parser::Path::InvalidError)
+      lambda {path.parse("M 10 % 20")}.should raise_error(Prawn::SVG::Parser::Path::InvalidError)
     end
 
     it "raises on numerical data before a command letter" do
-      lambda {path.parse("10 P")}.should raise_error(Prawn::Svg::Parser::Path::InvalidError)
+      lambda {path.parse("10 P")}.should raise_error(Prawn::SVG::Parser::Path::InvalidError)
     end
   end
 

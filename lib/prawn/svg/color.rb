@@ -1,4 +1,4 @@
-class Prawn::Svg::Color
+class Prawn::SVG::Color
   UnresolvableURLWithNoFallbackError = Class.new(StandardError)
 
   HTML_COLORS = {

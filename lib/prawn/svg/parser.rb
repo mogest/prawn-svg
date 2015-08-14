@@ -1,17 +1,17 @@
 require 'rexml/document'
 
 #
-# Prawn::Svg::Parser is responsible for parsing an SVG file and converting it into a tree of
+# Prawn::SVG::Parser is responsible for parsing an SVG file and converting it into a tree of
 # prawn-compatible method calls.
 #
-# You probably do not want to use this class directly.  Instead, use Prawn::Svg to draw
+# You probably do not want to use this class directly.  Instead, use Prawn::SVG to draw
 # SVG data to your Prawn::Document object.
 #
 # This class is not passed the prawn object, so knows nothing about
 # prawn specifically - this might be useful if you want to take this code and use it to convert
 # SVG to another format.
 #
-class Prawn::Svg::Parser
+class Prawn::SVG::Parser
   CONTAINER_TAGS = %w(g svg symbol defs clipPath)
   COMMA_WSP_REGEXP = /(?:\s+,?\s*|,\s*)/
 
@@ -56,7 +56,7 @@ class Prawn::Svg::Parser
       []
     ]
 
-    root_element = Prawn::Svg::Element.new(@document, @document.root, calls, :ids => {}, :fill => true)
+    root_element = Prawn::SVG::Element.new(@document, @document.root, calls, :ids => {}, :fill => true)
 
     parse_element(root_element)
     calls
@@ -184,7 +184,7 @@ class Prawn::Svg::Parser
 
     begin
       commands = @svg_path.parse(element.attributes['d'])
-    rescue Prawn::Svg::Parser::Path::InvalidError => e
+    rescue Prawn::SVG::Parser::Path::InvalidError => e
       commands = []
       @document.warnings << e.message
     end

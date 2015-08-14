@@ -1,4 +1,4 @@
-class Prawn::Svg::Document
+class Prawn::SVG::Document
   begin
     require 'css_parser'
     CSS_PARSER_LOADED = true
@@ -27,7 +27,7 @@ class Prawn::Svg::Document
     @cache_images = options[:cache_images]
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
 
-    @sizing = Prawn::Svg::Calculators::DocumentSizing.new(bounds, @root.attributes)
+    @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, @root.attributes)
     sizing.requested_width = options[:width]
     sizing.requested_height = options[:height]
     sizing.calculate
@@ -50,10 +50,10 @@ class Prawn::Svg::Document
   end
 
   def points(value, axis = nil)
-    Prawn::Svg::Calculators::Pixels.to_pixels(value, @axis_to_size.fetch(axis, sizing.viewport_diagonal))
+    Prawn::SVG::Calculators::Pixels.to_pixels(value, @axis_to_size.fetch(axis, sizing.viewport_diagonal))
   end
 
   def url_loader
-    @url_loader ||= Prawn::Svg::UrlLoader.new(:enable_cache => cache_images)
+    @url_loader ||= Prawn::SVG::UrlLoader.new(:enable_cache => cache_images)
   end
 end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Prawn::Svg::Interface do
+describe Prawn::SVG::Interface do
   root = "#{File.dirname(__FILE__)}/.."
 
   context "with option :position" do

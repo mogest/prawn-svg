@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Prawn::Svg::UrlLoader do
-  let(:loader) { Prawn::Svg::UrlLoader.new(:enable_cache => true, :enable_web => true) }
+describe Prawn::SVG::UrlLoader do
+  let(:loader) { Prawn::SVG::UrlLoader.new(:enable_cache => true, :enable_web => true) }
 
   describe "#initialize" do
     it "sets options" do

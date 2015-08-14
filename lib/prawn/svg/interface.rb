@@ -1,9 +1,9 @@
 #
-# Prawn::Svg::Interface makes a Prawn::Svg::Document instance, uses that object to parse the supplied
+# Prawn::SVG::Interface makes a Prawn::SVG::Document instance, uses that object to parse the supplied
 # SVG into Prawn-compatible method calls, and then calls the Prawn methods.
 #
 module Prawn
-  module Svg
+  module SVG
     class Interface
       VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :fallback_font_name]
 
@@ -17,7 +17,7 @@ module Prawn
       attr_reader :data, :prawn, :document, :options
 
       #
-      # Creates a Prawn::Svg object.
+      # Creates a Prawn::SVG object.
       #
       # +data+ is the SVG data to convert.  +prawn+ is your Prawn::Document object.
       #
@@ -40,7 +40,7 @@ module Prawn
         @prawn = prawn
         @options = options
 
-        Prawn::Svg::Font.load_external_fonts(prawn.font_families)
+        Prawn::SVG::Font.load_external_fonts(prawn.font_families)
 
         @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options, &block)
       end

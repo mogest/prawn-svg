@@ -15,4 +15,4 @@ RSpec.configure do |config|
   end
 end
 
-Prawn::Svg::Font.load_external_fonts(Prawn::Document.new.font_families)
+Prawn::SVG::Font.load_external_fonts(Prawn::Document.new.font_families)

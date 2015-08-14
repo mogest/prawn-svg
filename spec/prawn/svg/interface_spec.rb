@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Prawn::Svg::Interface do
+describe Prawn::SVG::Interface do
   let(:bounds) { double(width: 800, height: 600) }
   let(:prawn)  { instance_double(Prawn::Document, font_families: {}, bounds: bounds, cursor: 600) }
   let(:svg)    { '<svg width="250" height="100"></svg>' }
@@ -11,19 +11,19 @@ describe Prawn::Svg::Interface do
         allow(Prawn).to receive(:debug).and_return(true)
 
         expect {
-          Prawn::Svg::Interface.new(svg, prawn, :invalid => "option")
+          Prawn::SVG::Interface.new(svg, prawn, :invalid => "option")
         }.to raise_error(Prawn::Errors::UnknownOption)
       end
 
       it "does nothing if an invalid option is given and debug is off" do
-        Prawn::Svg::Interface.new(svg, prawn, :invalid => "option")
+        Prawn::SVG::Interface.new(svg, prawn, :invalid => "option")
       end
     end
   end
 
   describe "#draw" do
     context "when the sizing object indicates the sizes are invalid" do
-      let(:interface) { Prawn::Svg::Interface.new('<svg width="0"></svg>', prawn, {}) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, {}) }
 
       it "doesn't draw anything and adds a warning" do
         interface.draw
@@ -36,7 +36,7 @@ describe Prawn::Svg::Interface do
     subject { interface.position }
 
     context "when options[:at] supplied" do
-      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, at: [1, 2], position: :left) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, at: [1, 2], position: :left) }
 
       it "returns options[:at]" do
         expect(subject).to eq [1, 2]
@@ -44,7 +44,7 @@ describe Prawn::Svg::Interface do
     end
 
     context "when only a position is supplied" do
-      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, position: position) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, position: position) }
 
       context "(:left)" do
         let(:position) { :left }
@@ -68,7 +68,7 @@ describe Prawn::Svg::Interface do
     end
 
     context "when a vposition is supplied" do
-      let(:interface) { Prawn::Svg::Interface.new(svg, prawn, vposition: vposition) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, vposition: vposition) }
 
       context "(:top)" do
         let(:vposition) { :top }

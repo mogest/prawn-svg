@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe Prawn::Svg::Document do  
+describe Prawn::SVG::Document do  
   before do
-    sizing = instance_double(Prawn::Svg::Calculators::DocumentSizing, viewport_width: 600, viewport_height: 400, viewport_diagonal: 500, :requested_width= => nil, :requested_height= => nil)
+    sizing = instance_double(Prawn::SVG::Calculators::DocumentSizing, viewport_width: 600, viewport_height: 400, viewport_diagonal: 500, :requested_width= => nil, :requested_height= => nil)
     expect(sizing).to receive(:calculate)
-    expect(Prawn::Svg::Calculators::DocumentSizing).to receive(:new).and_return(sizing)
+    expect(Prawn::SVG::Calculators::DocumentSizing).to receive(:new).and_return(sizing)
   end
 
-  let(:document) { Prawn::Svg::Document.new("<svg></svg>", [100, 100], {}) }
+  let(:document) { Prawn::SVG::Document.new("<svg></svg>", [100, 100], {}) }
 
   describe :points do    
     it "converts a variety of measurement units to points" do

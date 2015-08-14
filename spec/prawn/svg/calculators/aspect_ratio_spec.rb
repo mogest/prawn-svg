@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe Prawn::Svg::Calculators::AspectRatio do
+describe Prawn::SVG::Calculators::AspectRatio do
   def test(*args)
-    aspect = Prawn::Svg::Calculators::AspectRatio.new(*args)
+    aspect = Prawn::SVG::Calculators::AspectRatio.new(*args)
     [[aspect.width, aspect.height], [aspect.x, aspect.y]]
   end
 

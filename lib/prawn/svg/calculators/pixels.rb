@@ -1,4 +1,4 @@
-module Prawn::Svg::Calculators
+module Prawn::SVG::Calculators
   class Pixels
     extend Prawn::Measurements
 

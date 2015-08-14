@@ -1,4 +1,4 @@
-module Prawn::Svg::Calculators
+module Prawn::SVG::Calculators
   class DocumentSizing
     DEFAULT_WIDTH = 300
     DEFAULT_HEIGHT = 150
@@ -34,7 +34,7 @@ module Prawn::Svg::Calculators
       @output_height = Pixels.to_pixels(@document_height || @requested_height, container_height)
 
       if @view_box
-        values = @view_box.strip.split(Prawn::Svg::Parser::COMMA_WSP_REGEXP)
+        values = @view_box.strip.split(Prawn::SVG::Parser::COMMA_WSP_REGEXP)
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
         @x_offset = -@x_offset
 

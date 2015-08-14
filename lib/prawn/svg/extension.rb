@@ -1,5 +1,5 @@
 module Prawn
-  module Svg
+  module SVG
     module Extension
       #
       # Draws an SVG document into the PDF.
@@ -15,7 +15,7 @@ module Prawn
       #   svg IO.read("example.svg"), :at => [100, 300], :width => 600
       #
       def svg(data, options = {}, &block)
-        svg = Prawn::Svg::Interface.new(data, self, options, &block)
+        svg = Prawn::SVG::Interface.new(data, self, options, &block)
         svg.draw
         {:warnings => svg.document.warnings, :width => svg.document.sizing.output_width, :height => svg.document.sizing.output_height}
       end

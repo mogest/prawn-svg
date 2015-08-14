@@ -3,7 +3,7 @@ require File.expand_path('../lib/prawn/svg/version', __FILE__)
 
 spec = Gem::Specification.new do |gem|
   gem.name = 'prawn-svg'
-  gem.version = Prawn::Svg::VERSION
+  gem.version = Prawn::SVG::VERSION
   gem.summary = "SVG renderer for Prawn PDF library"
   gem.description = "This gem allows you to render SVG directly into a PDF using the 'prawn' gem.  Since PDF is vector-based, you'll get nice scaled graphics if you use SVG instead of an image."
   gem.has_rdoc = false

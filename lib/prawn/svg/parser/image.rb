@@ -1,4 +1,4 @@
-class Prawn::Svg::Parser::Image
+class Prawn::SVG::Parser::Image
   Error = Class.new(StandardError)
 
   class FakeIO
@@ -44,7 +44,7 @@ class Prawn::Svg::Parser::Image
     return if width.zero? || height.zero?
     raise Error, "width and height must be 0 or higher" if width < 0 || height < 0
 
-    aspect = Prawn::Svg::Calculators::AspectRatio.new(attrs['preserveAspectRatio'], [width, height], image_dimensions(image))
+    aspect = Prawn::SVG::Calculators::AspectRatio.new(attrs['preserveAspectRatio'], [width, height], image_dimensions(image))
 
     if aspect.slice?
       element.add_call "save"

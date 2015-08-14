@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe Prawn::Svg::Parser::Text do
-  let(:document) { Prawn::Svg::Document.new(svg, [800, 600], {}) }
-  let(:element)  { Prawn::Svg::Element.new(document, document.root, [], {}) }
-  let(:parser)   { Prawn::Svg::Parser::Text.new }
+describe Prawn::SVG::Parser::Text do
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
+  let(:element)  { Prawn::SVG::Element.new(document, document.root, [], {}) }
+  let(:parser)   { Prawn::SVG::Parser::Text.new }
 
   describe "xml:space preserve" do
     let(:svg) { %(<text#{attributes}>some\n\t  text</text>) }

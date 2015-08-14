@@ -1,4 +1,4 @@
-module Prawn::Svg::Calculators
+module Prawn::SVG::Calculators
   class AspectRatio
     attr_reader :align, :defer
     attr_reader :width, :height, :x, :y

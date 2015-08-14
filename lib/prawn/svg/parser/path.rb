@@ -1,5 +1,5 @@
 module Prawn
-  module Svg
+  module SVG
     class Parser::Path
       # Raised if the SVG path cannot be parsed.
       InvalidError = Class.new(StandardError)

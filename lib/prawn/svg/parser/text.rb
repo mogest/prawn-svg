@@ -1,4 +1,4 @@
-class Prawn::Svg::Parser::Text
+class Prawn::SVG::Parser::Text
   def parse(element)
     element.add_call_and_enter "text_group"
     internal_parse(element, [element.document.x(0)], [element.document.y(0)])
@@ -34,7 +34,7 @@ class Prawn::Svg::Parser::Text
     opts[:style] = element.state[:font_subfamily]
 
     # This is not a prawn option but we can't work out how to render it here -
-    # it's handled by Svg#rewrite_call_arguments
+    # it's handled by SVG#rewrite_call_arguments
     if (anchor = attrs['text-anchor'] || element.state[:text_anchor]) &&
         ['start', 'middle', 'end'].include?(anchor)
       opts[:text_anchor] = anchor
@@ -67,7 +67,7 @@ class Prawn::Svg::Parser::Text
       elsif child.name == "tspan"
         element.add_call 'save'
         child.attributes['text-anchor'] ||= opts[:text_anchor] if opts[:text_anchor]
-        child_element = Prawn::Svg::Element.new(element.document, child, element.calls, element.state.dup)
+        child_element = Prawn::SVG::Element.new(element.document, child, element.calls, element.state.dup)
         internal_parse(child_element, x_positions, y_positions, relative, preserve_space)
         child_element.append_calls_to_parent
         element.add_call 'restore'

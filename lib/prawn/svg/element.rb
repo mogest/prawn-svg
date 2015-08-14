@@ -1,4 +1,4 @@
-class Prawn::Svg::Element
+class Prawn::SVG::Element
   attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes
   attr_accessor :calls
 
@@ -72,7 +72,7 @@ class Prawn::Svg::Element
   end
 
   def container?
-    Prawn::Svg::Parser::CONTAINER_TAGS.include?(name)
+    Prawn::SVG::Parser::CONTAINER_TAGS.include?(name)
   end
 
   def parse_transform_attribute_and_call
@@ -155,10 +155,10 @@ class Prawn::Svg::Element
         color = @attributes[color_attribute]
 
         begin
-          hex = Prawn::Svg::Color.color_to_hex(color)
+          hex = Prawn::SVG::Color.color_to_hex(color)
           state[type.to_sym] = true
           add_call "#{type}_color", hex || '000000'
-        rescue Prawn::Svg::Color::UnresolvableURLWithNoFallbackError
+        rescue Prawn::SVG::Color::UnresolvableURLWithNoFallbackError
           state[type.to_sym] = false
         end
       end
@@ -185,7 +185,7 @@ class Prawn::Svg::Element
       when 'none'
         add_call('undash')
       else
-        array = dasharray.split(Prawn::Svg::Parser::COMMA_WSP_REGEXP)
+        array = dasharray.split(Prawn::SVG::Parser::COMMA_WSP_REGEXP)
         array *= 2 if array.length % 2 == 1
         number_array = array.map {|value| @document.distance(value)}
 
@@ -207,7 +207,7 @@ class Prawn::Svg::Element
     end
     if weight = @attributes['font-weight']
       font_updated = true
-      @state[:font_weight] = Prawn::Svg::Font.weight_for_css_font_weight(weight)
+      @state[:font_weight] = Prawn::SVG::Font.weight_for_css_font_weight(weight)
     end
     if style = @attributes['font-style']
       font_updated = true
@@ -225,7 +225,7 @@ class Prawn::Svg::Element
       usable_font_families = [@state[:font_family], document.fallback_font_name]
 
       font_used = usable_font_families.compact.detect do |name|
-        if font = Prawn::Svg::Font.load(name, @state[:font_weight], @state[:font_style])
+        if font = Prawn::SVG::Font.load(name, @state[:font_weight], @state[:font_style])
           @state[:font_subfamily] = font.subfamily
           add_call_and_enter 'font', font.name, :style => @state[:font_subfamily]
           true

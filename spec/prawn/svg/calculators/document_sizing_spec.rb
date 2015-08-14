@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe Prawn::Svg::Calculators::DocumentSizing do
+describe Prawn::SVG::Calculators::DocumentSizing do
   let(:attributes) do
     {"width" => "150", "height" => "200", "viewBox" => "0 -30 300 800", "preserveAspectRatio" => "xMaxYMid meet"}
   end
 
   let(:bounds) { [1200, 800] }
 
-  let(:sizing) { Prawn::Svg::Calculators::DocumentSizing.new(bounds, attributes) }
+  let(:sizing) { Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes) }
 
   describe "#initialize" do
     it "takes bounds and a set of attributes and calls set_from_attributes" do
@@ -17,7 +17,7 @@ describe Prawn::Svg::Calculators::DocumentSizing do
   end
 
   describe "#set_from_attributes" do
-    let(:sizing) { Prawn::Svg::Calculators::DocumentSizing.new(bounds) }
+    let(:sizing) { Prawn::SVG::Calculators::DocumentSizing.new(bounds) }
 
     it "sets ivars from the passed-in attributes hash" do
       sizing.set_from_attributes(attributes)

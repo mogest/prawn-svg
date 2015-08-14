@@ -83,7 +83,7 @@ By default, prawn-svg has a fonts path of <tt>["/Library/Fonts", "/System/Librar
 Mac OS X and Debian Linux users.  You can add to the font path:
 
 ```ruby
-  Prawn::Svg::Interface.font_path << "/my/font/directory"
+  Prawn::SVG::Interface.font_path << "/my/font/directory"
 ```
 
 

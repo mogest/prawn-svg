@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Prawn::Svg::Parser do
+describe Prawn::SVG::Parser do
   describe "document width and height" do
     it "handles the width and height being set as a %" do
       svg = <<-SVG
@@ -9,8 +9,8 @@ describe Prawn::Svg::Parser do
         </svg>
       SVG
 
-      document = Prawn::Svg::Document.new(svg, [2000, 2000], {})
-      Prawn::Svg::Parser.new(document).parse[-2][-1].should == [["line", [100.0, 900.0, 900.0, 100.0], []]]
+      document = Prawn::SVG::Document.new(svg, [2000, 2000], {})
+      Prawn::SVG::Parser.new(document).parse[-2][-1].should == [["line", [100.0, 900.0, 900.0, 100.0], []]]
     end
 
     it "handles the width and height being set in inches" do
@@ -20,20 +20,20 @@ describe Prawn::Svg::Parser do
         </svg>
       SVG
 
-      document = Prawn::Svg::Document.new(svg, [2000, 2000], {})
-      Prawn::Svg::Parser.new(document).parse[-2][-1].should == [["line", [72.0, 720.0 - 72.0, 720.0 - 72.0, 72.0], []]]
+      document = Prawn::SVG::Document.new(svg, [2000, 2000], {})
+      Prawn::SVG::Parser.new(document).parse[-2][-1].should == [["line", [72.0, 720.0 - 72.0, 720.0 - 72.0, 72.0], []]]
     end
   end
 
   describe "#parse_element" do
     before(:each) do
-      @document = Prawn::Svg::Document.new("<svg></svg>", [100, 100], {})
-      @parser = Prawn::Svg::Parser.new(@document)
+      @document = Prawn::SVG::Document.new("<svg></svg>", [100, 100], {})
+      @parser = Prawn::SVG::Parser.new(@document)
     end
 
     def mock_element(name, attributes = {})
       e = double(:name => name, :attributes => attributes)
-      Prawn::Svg::Element.new(@document, e, [], {})
+      Prawn::SVG::Element.new(@document, e, [], {})
     end
 
     it "ignores tags it doesn't know about" do
@@ -54,8 +54,8 @@ describe Prawn::Svg::Parser do
   end
 
   describe "#load_css_styles" do
-    let(:document)   { Prawn::Svg::Document.new(svg, [100, 100], {}) }
-    let(:parser)     { Prawn::Svg::Parser.new(document) }
+    let(:document)   { Prawn::SVG::Document.new(svg, [100, 100], {}) }
+    let(:parser)     { Prawn::SVG::Parser.new(document) }
 
     let(:svg) do
       <<-SVG

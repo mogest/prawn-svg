@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe Prawn::Svg::Element do
+describe Prawn::SVG::Element do
   let(:document) { double(css_parser: nil) }
   let(:e) { double(:attributes => {}, :name => "path") }
-  let(:element) { Prawn::Svg::Element.new(document, e, [], {}) }
+  let(:element) { Prawn::SVG::Element.new(document, e, [], {}) }
 
   describe "#parse_font_attributes_and_call" do
     before do
       @document = Struct.new(:fallback_font_name, :css_parser, :warnings).new("Courier", nil, [])
-      @element = Prawn::Svg::Element.new(@document, e, [], {})
+      @element = Prawn::SVG::Element.new(@document, e, [], {})
     end
 
     it "uses a font if it can find it" do

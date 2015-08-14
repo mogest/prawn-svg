@@ -1,7 +1,7 @@
 require 'open-uri'
 require 'base64'
 
-class Prawn::Svg::UrlLoader
+class Prawn::SVG::UrlLoader
   attr_accessor :enable_cache, :enable_web
   attr_reader :url_cache
 
