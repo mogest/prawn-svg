@@ -54,10 +54,18 @@ module Prawn
           return
         end
 
+        @document.warnings.clear
+
         prawn.bounding_box(position, :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
           prawn.save_graphics_state do
             clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
-            proc_creator(prawn, Parser.new(@document).parse).call
+
+            calls = []
+            # TODO : pretty sure the state can just be {}, neither of these are used
+            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls, ids: {}, fill: true)
+            root_element.process
+
+            proc_creator(prawn, calls).call
           end
         end
       end

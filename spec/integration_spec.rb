@@ -1,7 +1,64 @@
 require 'spec_helper'
 
-describe Prawn::SVG::Interface do
+describe "Integration test" do
   root = "#{File.dirname(__FILE__)}/.."
+
+  describe "a basic SVG file" do
+    let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
+    let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, [], {}) }
+
+    let(:svg) do
+      <<-SVG
+<svg width="100" height="200">
+  <style><![CDATA[
+    #puppy  { fill: red; }
+    .animal { fill: green; }
+    rect    { fill: blue; }
+  ]]></style>
+
+  <rect x="0" y="0" width="10" height="10"/>
+  <rect x="10" y="0" width="10" height="10" class="animal"/>
+  <rect x="20" y="0" width="10" height="10" class="animal" id="puppy"/>
+  <rect x="30" y="0" width="10" height="10" class="animal" id="puppy" style="fill: yellow;"/>
+</svg>
+      SVG
+    end
+
+    it "is correctly converted to a call stack" do
+      element.process
+
+      expect(element.calls).to eq [
+        ["fill_color", ["000000"], []],
+        ["transformation_matrix", [1, 0, 0, 1, 0, 0], []],
+        ["transformation_matrix", [1, 0, 0, 1, 0, 0], []],
+        ["save", [], []], ["restore", [], []],
+        ["save", [], []],
+        ["fill_color", ["0000ff"], []],
+        ["fill", [], [
+          ["rectangle", [[0.0, 200.0], 10.0, 10.0], []]
+        ]],
+        ["restore", [], []],
+        ["save", [], []],
+        ["fill_color", ["008000"], []],
+        ["fill", [], [
+          ["rectangle", [[10.0, 200.0], 10.0, 10.0], []]
+        ]],
+        ["restore", [], []],
+        ["save", [], []],
+        ["fill_color", ["ff0000"], []],
+        ["fill", [], [
+          ["rectangle", [[20.0, 200.0], 10.0, 10.0], []]
+        ]],
+        ["restore", [], []],
+        ["save", [], []],
+        ["fill_color", ["ffff00"], []],
+        ["fill", [], [
+          ["rectangle", [[30.0, 200.0], 10.0, 10.0], []]
+        ]],
+        ["restore", [], []]
+      ]
+    end
+  end
 
   context "with option :position" do
     let(:svg) { IO.read("#{root}/spec/sample_svg/cubic01a.svg") }
