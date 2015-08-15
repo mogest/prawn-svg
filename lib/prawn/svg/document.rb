@@ -15,7 +15,7 @@ class Prawn::SVG::Document
   attr_reader :root,
     :sizing,
     :cache_images, :fallback_font_name,
-    :css_parser, :elements_by_id
+    :css_parser, :elements_by_id, :gradients
 
   def initialize(data, bounds, options)
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
@@ -24,6 +24,7 @@ class Prawn::SVG::Document
     @warnings = []
     @options = options
     @elements_by_id = {}
+    @gradients = {}
     @cache_images = options[:cache_images]
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
 

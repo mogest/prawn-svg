@@ -124,15 +124,26 @@ class Prawn::SVG::Elements::Base
       when 'none'
         state[type.to_sym] = false
       else
+        state[type.to_sym] = false
         color_attribute = keyword == 'currentcolor' ? 'color' : type
         color = @attributes[color_attribute]
 
-        begin
-          hex = Prawn::SVG::Color.color_to_hex(color)
-          state[type.to_sym] = true
-          add_call "#{type}_color", hex || '000000'
-        rescue Prawn::SVG::Color::UnresolvableURLWithNoFallbackError
-          state[type.to_sym] = false
+        results = Prawn::SVG::Color.parse(color, document.gradients)
+
+        results.each do |result|
+          case result
+          when Prawn::SVG::Color::Hex
+            state[type.to_sym] = true
+            add_call "#{type}_color", result.value
+            break
+          when Prawn::SVG::Elements::Gradient
+            arguments = result.gradient_arguments(self)
+            if arguments
+              state[type.to_sym] = true
+              add_call "#{type}_gradient", **arguments
+              break
+            end
+          end
         end
       end
 

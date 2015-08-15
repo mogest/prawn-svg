@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Prawn::SVG::Color do
-  describe :color_to_hex do
+  describe "::color_to_hex" do
     it "converts #xxx to a hex value" do
       Prawn::SVG::Color.color_to_hex("#9ab").should == "99aabb"
     end
@@ -27,14 +27,35 @@ describe Prawn::SVG::Color do
       expect(Prawn::SVG::Color.color_to_hex("url(#someplace) red")).to eq 'ff0000'
     end
 
-    it "returns nil if the color doesn't exist" do
-      expect(Prawn::SVG::Color.color_to_hex("blurble")).to be nil
+    it "returns black if the color doesn't exist" do
+      expect(Prawn::SVG::Color.color_to_hex("blurble")).to eq '000000'
     end
 
-    it "raises UnresolvableURLWithNoFallbackError if there's no fallback after a url()" do
-      expect {
-        Prawn::SVG::Color.color_to_hex("url(#someplace)")
-      }.to raise_error(Prawn::SVG::Color::UnresolvableURLWithNoFallbackError)
+    it "returns nil if there's no fallback after a url()" do
+      expect(Prawn::SVG::Color.color_to_hex("url(#someplace)")).to be nil
+    end
+  end
+
+  describe "::parse" do
+    let(:gradients) { {"flan" => flan_gradient, "drob" => drob_gradient} }
+    let(:flan_gradient) { double }
+    let(:drob_gradient) { double }
+
+    it "returns a list of all colors parsed, ignoring impossible or non-existent colors" do
+      results = Prawn::SVG::Color.parse("url(#nope) url(#flan) blurble green #123", gradients)
+      expect(results).to eq [
+        flan_gradient,
+        Prawn::SVG::Color::Hex.new("008000"),
+        Prawn::SVG::Color::Hex.new("112233")
+      ]
+    end
+
+    it "appends black to the list if there aren't any url() references" do
+      results = Prawn::SVG::Color.parse("blurble green", gradients)
+      expect(results).to eq [
+        Prawn::SVG::Color::Hex.new("008000"),
+        Prawn::SVG::Color::Hex.new("000000")
+      ]
     end
   end
 end

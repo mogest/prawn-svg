@@ -1,5 +1,17 @@
 class Prawn::SVG::Color
-  UnresolvableURLWithNoFallbackError = Class.new(StandardError)
+  class Hex
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def ==(other)
+      value == other.value
+    end
+  end
+
+  DEFAULT_COLOR = Hex.new("000000")
 
   HTML_COLORS = {
     'aliceblue' => 'f0f8ff',
@@ -153,34 +165,52 @@ class Prawn::SVG::Color
 
   RGB_VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
   RGB_REGEXP = /\Argb\(#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP}\)\z/i
-  URL_REGEXP = /\Aurl\([^)]*\)\z/i
+  URL_REGEXP = /\Aurl\(([^)]*)\)\z/i
 
-  def self.color_to_hex(color_string)
+  def self.parse(color_string, gradients = nil)
     url_specified = false
 
-    result = color_string.strip.scan(/([^(\s]+(\([^)]*\))?)/).detect do |color, *_|
+    components = color_string.to_s.strip.scan(/([^(\s]+(\([^)]*\))?)/)
+
+    result = components.map do |color, *_|
       if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
-        break "#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}"
+        Hex.new("#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}")
+
       elsif color.match(/\A#[0-9a-f]{6}\z/i)
-        break color[1..6]
+        Hex.new(color[1..6])
+
       elsif hex = HTML_COLORS[color.downcase]
-        break hex
+        Hex.new(hex)
+
       elsif m = color.match(RGB_REGEXP)
-        break (1..3).collect do |n|
+        hex = (1..3).collect do |n|
           value = m[n].to_f
           value *= 2.55 if m[n][-1..-1] == '%'
           "%02x" % clamp(value.round, 0, 255)
         end.join
-      elsif color.match(URL_REGEXP)
+
+        Hex.new(hex)
+
+      elsif matches = color.match(URL_REGEXP)
         url_specified = true
-        nil # we can't handle these so we find the next thing that matches
+        url = matches[1]
+        if url[0] == "#" && gradients && gradient = gradients[url[1..-1]]
+          gradient
+        end
       end
     end
 
-    # http://www.w3.org/TR/SVG/painting.html section 11.2
-    raise UnresolvableURLWithNoFallbackError if result.nil? && url_specified
+    # Generally, we default to black if the colour was unparseable.
+    # http://www.w3.org/TR/SVG/painting.html section 11.2 says if a URL was
+    # supplied without a fallback, that's an error.
+    result << DEFAULT_COLOR unless url_specified
 
-    result
+    result.compact
+  end
+
+  def self.color_to_hex(color)
+    result = parse(color).detect {|result| result.is_a?(Hex)}
+    result.value if result
   end
 
   protected

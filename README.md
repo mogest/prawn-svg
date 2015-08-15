@@ -49,9 +49,12 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;style&gt;</tt> plus <tt>id</tt>, <tt>class</tt> and <tt>style</tt> attributes (see CSS section below)
 
- - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt> and <tt>data:image/*;base64</tt> schemes
+ - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt> and <tt>data:image/\*;base64</tt> schemes
 
  - <tt>&lt;clipPath&gt;</tt>
+
+ - <tt>&lt;linearGradient&gt;</tt> but only with Prawn 2.0.3+. gradientTransform, spreadMethod and stop-opacity are
+   unimplemented.
 
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>
 
@@ -73,7 +76,7 @@ prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  I
 
 ## Not supported
 
-prawn-svg does not support external <tt>url()</tt> references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, gradients/patterns or markers.
+prawn-svg does not support external <tt>url()</tt> references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, radial gradients, patterns or markers.
 
 ## Configuration
 
