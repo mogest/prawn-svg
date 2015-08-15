@@ -61,7 +61,7 @@ module Prawn
             clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
 
             calls = []
-            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls, {})
+            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls, fill: true)
             root_element.process
 
             proc_creator(prawn, calls).call
