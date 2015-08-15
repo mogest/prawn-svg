@@ -28,6 +28,6 @@ class Prawn::SVG::Elements::Rect < Prawn::SVG::Elements::Base
   end
 
   def bounding_box
-    [@x, @y, @x + width, @y + height]
+    [@x, @y, @x + @width, @y - @height]
   end
 end

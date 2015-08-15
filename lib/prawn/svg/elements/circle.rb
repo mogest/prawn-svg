@@ -20,6 +20,6 @@ class Prawn::SVG::Elements::Circle < Prawn::SVG::Elements::Base
   end
 
   def bounding_box
-    [@x - @r, @y - @r, @x + @r, @y + @r]
+    [@x - @r, @y + @r, @x + @r, @y - @r]
   end
 end

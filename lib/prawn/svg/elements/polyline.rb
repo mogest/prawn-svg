@@ -15,8 +15,8 @@ class Prawn::SVG::Elements::Polyline < Prawn::SVG::Elements::Base
   end
 
   def bounding_box
-    x1, x2 = @points.minmax(&:first)
-    y1, y2 = @points.minmax(&:last)
+    x1, x2 = @points.map(&:first).minmax
+    y2, y1 = @points.map(&:last).minmax
     [x1, y1, x2, y2]
   end
 end

@@ -44,6 +44,13 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     end
   end
 
+  def bounding_box
+    x1, x2 = @commands.map {|_, args| x(args[0]) if args}.compact.minmax
+    y2, y1 = @commands.map {|_, args| y(args[1]) if args}.compact.minmax
+
+    [x1, y1, x2, y2]
+  end
+
   protected
 
   def run_path_command(command, values)

@@ -17,7 +17,7 @@ class Prawn::SVG::Elements::Ellipse < Prawn::SVG::Elements::Base
   end
 
   def bounding_box
-    [@x - @rx, @y - @ry, @x + @rx, @y + @ry]
+    [@x - @rx, @y + @ry, @x + @rx, @y - @ry]
   end
 end
 

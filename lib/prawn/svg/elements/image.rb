@@ -24,34 +24,48 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       raise SkipElementError, "image tag xlink:href attribute must use http, https or data scheme"
     end
 
-    @x = x(attributes['x'] || 0)
-    @y = y(attributes['y'] || 0)
-    @width = distance(attributes['width'])
-    @height = distance(attributes['height'])
+    x = x(attributes['x'] || 0)
+    y = y(attributes['y'] || 0)
+    width = distance(attributes['width'])
+    height = distance(attributes['height'])
 
-    raise SkipElementQuietly if @width.zero? || @height.zero?
-    require_positive_value @width, @height
-  end
+    raise SkipElementQuietly if width.zero? || height.zero?
+    require_positive_value width, height
 
-  def apply
-    image = begin
+    @image = begin
       @document.url_loader.load(@url)
     rescue => e
       raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
     end
 
-    aspect = Prawn::SVG::Calculators::AspectRatio.new(attributes['preserveAspectRatio'], [@width, @height], image_dimensions(image))
+    @aspect = Prawn::SVG::Calculators::AspectRatio.new(attributes['preserveAspectRatio'], [width, height], image_dimensions(@image))
 
-    if aspect.slice?
+    @clip_x = x
+    @clip_y = y
+    @clip_width = width
+    @clip_height = height
+
+    @width = @aspect.width
+    @height = @aspect.height
+    @x = x + @aspect.x
+    @y = y - @aspect.y
+  end
+
+  def apply
+    if @aspect.slice?
       add_call "save"
-      add_call "rectangle", [@x, @y], @width, @height
+      add_call "rectangle", [@clip_x, @clip_y], @clip_width, @clip_height
       add_call "clip"
     end
 
-    options = {:width => aspect.width, :height => aspect.height, :at => [@x + aspect.x, @y - aspect.y]}
+    options = {:width => @width, :height => @height, :at => [@x, @y]}
 
-    add_call "image", FakeIO.new(image), options
-    add_call "restore" if aspect.slice?
+    add_call "image", FakeIO.new(@image), options
+    add_call "restore" if @aspect.slice?
+  end
+
+  def bounding_box
+    [@x, @y, @x + @width, @y - @height]
   end
 
   protected
@@ -67,9 +81,5 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
     image = handler.new(data)
     [image.width.to_f, image.height.to_f]
-  end
-
-  %w(x y distance).each do |method|
-    define_method(method) {|*a| @document.send(method, *a)}
   end
 end
