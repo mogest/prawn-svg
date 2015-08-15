@@ -61,8 +61,7 @@ module Prawn
             clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
 
             calls = []
-            # TODO : pretty sure the state can just be {}, neither of these are used
-            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls, ids: {}, fill: true)
+            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls, {})
             root_element.process
 
             proc_creator(prawn, calls).call
