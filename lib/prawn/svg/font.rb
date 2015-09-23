@@ -39,7 +39,7 @@ class Prawn::SVG::Font
       if information && font_name = (information[16] || information[1])
         subfamily = (information[17] || information[2] || "normal").gsub(/\s+/, "_").downcase.to_sym
         subfamily = :normal if subfamily == :regular
-        (fonts[font_name] ||= {})[subfamily] = filename
+        (fonts[font_name] ||= {})[subfamily] ||= filename
       end
     end
 
