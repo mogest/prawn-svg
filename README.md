@@ -9,7 +9,8 @@ This will take an SVG file as input and render it into your PDF.  Find out more 
 
   http://wiki.github.com/sandal/prawn/
 
-prawn-svg is compatible with all versions of Prawn from 0.8.4 onwards, including the 1.x and 2.x series.
+prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
+The minimum Ruby version required is 2.0.0.
 
 ## Using prawn-svg
 
@@ -56,7 +57,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;clipPath&gt;</tt>
 
- - <tt>&lt;linearGradient&gt;</tt> but only with Prawn 2.0.3+. gradientTransform, spreadMethod and stop-opacity are
+ - <tt>&lt;linearGradient&gt;</tt> but only with Prawn 2.0.4+. gradientTransform, spreadMethod and stop-opacity are
    unimplemented.
 
  - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>

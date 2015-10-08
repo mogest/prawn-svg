@@ -20,7 +20,7 @@ spec = Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>= 2.0.0'
 
-  gem.add_runtime_dependency "prawn", ">= 0.8.4", "< 3"
+  gem.add_runtime_dependency "prawn", ">= 0.11.1", "< 3"
   gem.add_runtime_dependency "css_parser", "~> 1.3"
   gem.add_development_dependency "rspec", "~> 3.0"
   gem.add_development_dependency "rake", "~> 10.1"
