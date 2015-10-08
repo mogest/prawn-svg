@@ -1,5 +1,8 @@
 # prawn-svg
 
+[![Gem Version](https://badge.fury.io/rb/prawn-svg.svg)](https://badge.fury.io/rb/prawn-svg)
+[![Build Status](https://travis-ci.org/mogest/prawn-svg.svg?branch=master)](https://travis-ci.org/mogest/prawn-svg)
+
 An SVG renderer for the Prawn PDF library.
 
 This will take an SVG file as input and render it into your PDF.  Find out more about the Prawn PDF library at:
