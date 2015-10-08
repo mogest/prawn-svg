@@ -108,7 +108,7 @@ describe "Integration test" do
             doc.url_loader.url_cache["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg"] = IO.read("#{root}/spec/sample_images/mushroom-long.jpg")
           end
 
-          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ }
+          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ || w =~ /render gradients$/}
         end
         warnings.should == []
       end

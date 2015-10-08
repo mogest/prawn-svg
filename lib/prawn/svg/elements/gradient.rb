@@ -42,8 +42,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def assert_compatible_prawn_version
-    if (Prawn::VERSION.split(".").map(&:to_i) <=> [2, 0, 3]) == -1
-      raise SkipElementError, "Prawn 2.0.3+ must be used if you'd like prawn-svg to render gradients"
+    if (Prawn::VERSION.split(".").map(&:to_i) <=> [2, 0, 4]) == -1
+      raise SkipElementError, "Prawn 2.0.4+ must be used if you'd like prawn-svg to render gradients"
     end
   end
 
