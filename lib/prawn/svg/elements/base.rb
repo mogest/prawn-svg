@@ -7,6 +7,7 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::Stroke
   include Prawn::SVG::Attributes::Font
   include Prawn::SVG::Attributes::Display
+  include Prawn::SVG::Attributes::Color
 
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
 
@@ -33,6 +34,7 @@ class Prawn::SVG::Elements::Base
 
   def process
     combine_attributes_and_style_declarations
+    parse_standard_attributes
     parse
 
     apply_calls_from_standard_attributes
@@ -116,6 +118,10 @@ class Prawn::SVG::Elements::Base
     end
   end
 
+  def parse_standard_attributes
+    parse_color_attribute
+  end
+
   def parse_fill_and_stroke_attributes_and_call
     ["fill", "stroke"].select do |type|
       case keyword = attribute_value_as_keyword(type)
@@ -125,8 +131,12 @@ class Prawn::SVG::Elements::Base
         state[type.to_sym] = false
       else
         state[type.to_sym] = false
-        color_attribute = keyword == 'currentcolor' ? 'color' : type
-        color = @attributes[color_attribute]
+
+        if keyword == 'currentcolor'
+          color = state[:color]
+        else
+          color = @attributes[type]
+        end
 
         results = Prawn::SVG::Color.parse(color, document.gradients)
 

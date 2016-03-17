@@ -112,8 +112,22 @@ describe Prawn::SVG::Elements::Base do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
       element.attributes['fill'] = 'currentColor'
       element.attributes['color'] = 'red'
+      element.send :parse_color_attribute
       subject
       expect(element.state[:fill]).to be true
+    end
+
+    context "with a color attribute defined on a parent element" do
+      let(:svg) { '<svg style="color: green;"><g style="color: red;"><rect width="10" height="10" style="fill: currentColor;"></rect></g></svg>' }
+      let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, parent_calls, {}) }
+      let(:flattened_calls) { flatten_calls(element.base_calls) }
+
+      it "uses the parent's color element if 'currentColor' fill attribute provided" do
+        element.process
+
+        expect(flattened_calls).to include ['fill_color', ['ff0000']]
+        expect(flattened_calls).not_to include ['fill_color', ['00ff00']]
+      end
     end
 
     it "turns off filling if UnresolvableURLWithNoFallbackError is raised" do
