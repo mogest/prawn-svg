@@ -4,10 +4,10 @@ describe Prawn::SVG::Attributes::Font do
   class FontTestElement
     include Prawn::SVG::Attributes::Font
 
-    attr_accessor :attributes, :warnings
+    attr_accessor :attributes, :warnings, :state
 
     def initialize
-      @state = {}
+      @state = Prawn::SVG::State.new
       @warnings = []
     end
   end

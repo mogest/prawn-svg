@@ -14,6 +14,7 @@ require 'prawn/svg/extension'
 require 'prawn/svg/interface'
 require 'prawn/svg/font'
 require 'prawn/svg/document'
+require 'prawn/svg/state'
 
 module Prawn
   Svg = SVG # backwards compatibility

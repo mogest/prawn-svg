@@ -2,12 +2,12 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
   def parse
     case attributes['xml:space']
     when 'preserve'
-      state[:preserve_space] = true
+      state.preserve_space = true
     when 'default'
-      state[:preserve_space] = false
+      state.preserve_space = false
     end
 
-    @relative = state[:text_relative] || false
+    @relative = state.text_relative || false
 
     if attributes['x'] || attributes['y']
       @relative = false
@@ -15,12 +15,12 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
       @y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| document.y(n)} if attributes['y']
     end
 
-    @x_positions ||= state[:text_x_positions] || [document.x(0)]
-    @y_positions ||= state[:text_y_positions] || [document.y(0)]
+    @x_positions ||= state.text_x_positions || [document.x(0)]
+    @y_positions ||= state.text_y_positions || [document.y(0)]
   end
 
   def apply
-    raise SkipElementQuietly if state[:display] == "none"
+    raise SkipElementQuietly if state.display == "none"
 
     add_call_and_enter "text_group" if name == 'text'
 
@@ -29,14 +29,14 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
     end
 
     opts = {}
-    if size = state[:font_size]
+    if size = state.font_size
       opts[:size] = size
     end
-    opts[:style] = state[:font_subfamily]
+    opts[:style] = state.font_subfamily
 
     # This is not a prawn option but we can't work out how to render it here -
     # it's handled by SVG#rewrite_call_arguments
-    if (anchor = attributes['text-anchor'] || state[:text_anchor]) &&
+    if (anchor = attributes['text-anchor'] || state.text_anchor) &&
         ['start', 'middle', 'end'].include?(anchor)
       opts[:text_anchor] = anchor
     end
@@ -47,7 +47,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
 
     source.children.each do |child|
       if child.node_type == :text
-        text = child.value.strip.gsub(state[:preserve_space] ? /[\n\t]/ : /\s+/, " ")
+        text = child.value.strip.gsub(state.preserve_space ? /[\n\t]/ : /\s+/, " ")
 
         while text != ""
           opts[:at] = [@x_positions.first, @y_positions.first]
@@ -70,10 +70,10 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
         add_call 'save'
 
         new_state = state.dup
-        new_state[:text_x_positions] = @x_positions
-        new_state[:text_y_positions] = @y_positions
-        new_state[:text_relative] = @relative
-        new_state[:text_anchor] = opts[:text_anchor]
+        new_state.text_x_positions = @x_positions
+        new_state.text_y_positions = @y_positions
+        new_state.text_relative = @relative
+        new_state.text_anchor = opts[:text_anchor]
 
         Prawn::SVG::Elements::Text.new(document, child, calls, new_state).process
 

@@ -5,7 +5,7 @@ describe "Integration test" do
 
   describe "a basic SVG file" do
     let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
-    let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, [], {}) }
+    let(:element) { Prawn::SVG::Elements::Root.new(document) }
 
     let(:svg) do
       <<-SVG

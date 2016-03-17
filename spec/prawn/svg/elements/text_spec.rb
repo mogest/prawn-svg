@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe Prawn::SVG::Elements::Text do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
-  let(:element)  { Prawn::SVG::Elements::Text.new(document, document.root, [], {}) }
+  let(:element)  { Prawn::SVG::Elements::Text.new(document, document.root, [], Prawn::SVG::State.new) }
 
   describe "xml:space preserve" do
     let(:svg) { %(<text#{attributes}>some\n\t  text</text>) }
@@ -37,7 +37,7 @@ describe Prawn::SVG::Elements::Text do
 
     it "should inherit text-anchor from parent element" do
       element.process
-      expect(element.state[:text_anchor]).to eq 'middle'
+      expect(element.state.text_anchor).to eq 'middle'
     end
   end
 
@@ -48,7 +48,7 @@ describe Prawn::SVG::Elements::Text do
       element.process
 
       expect(element.base_calls).to eq [
-        ["end_path", [], [
+        ["fill", [], [
           ["text_group", [], [
             ["character_spacing", [5.0], [
               ["draw_text", ["spaced", {:style=>nil, :at=>[0.0, 150.0]}], []]

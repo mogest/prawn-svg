@@ -87,7 +87,7 @@ class Prawn::SVG::Elements::Base
       if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
         add_call "save"
 
-        child = element_class.new(@document, elem, @calls, @state.dup)
+        child = element_class.new(@document, elem, @calls, state.dup)
         child.process
 
         add_call "restore"
@@ -109,8 +109,8 @@ class Prawn::SVG::Elements::Base
   end
 
   def apply_drawing_call(draw_types)
-    if !@state[:disable_drawing] && !container?
-      if draw_types.empty? || @state[:display] == "none"
+    if !state.disable_drawing && !container?
+      if draw_types.empty? || state.display == "none"
         add_call_and_enter("end_path")
       else
         add_call_and_enter(draw_types.join("_and_"))
@@ -128,12 +128,12 @@ class Prawn::SVG::Elements::Base
       when nil
       when 'inherit'
       when 'none'
-        state[type.to_sym] = false
+        state.disable_draw_type(type)
       else
-        state[type.to_sym] = false
+        state.disable_draw_type(type)
 
         if keyword == 'currentcolor'
-          color = state[:color]
+          color = state.color
         else
           color = @attributes[type]
         end
@@ -143,13 +143,13 @@ class Prawn::SVG::Elements::Base
         results.each do |result|
           case result
           when Prawn::SVG::Color::Hex
-            state[type.to_sym] = true
+            state.enable_draw_type(type)
             add_call "#{type}_color", result.value
             break
           when Prawn::SVG::Elements::Gradient
             arguments = result.gradient_arguments(self)
             if arguments
-              state[type.to_sym] = true
+              state.enable_draw_type(type)
               add_call "#{type}_gradient", **arguments
               break
             end
@@ -157,7 +157,7 @@ class Prawn::SVG::Elements::Base
         end
       end
 
-      state[type.to_sym]
+      state.draw_type(type)
     end
   end
 

@@ -4,7 +4,7 @@ describe Prawn::SVG::Elements::Base do
   let(:svg) { "<svg></svg>" }
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
   let(:parent_calls) { [] }
-  let(:element) { Prawn::SVG::Elements::Base.new(document, document.root, parent_calls, {}) }
+  let(:element) { Prawn::SVG::Elements::Base.new(document, document.root, parent_calls, Prawn::SVG::State.new) }
 
   describe "#initialize" do
     let(:svg) { '<something id="hello"/>' }
@@ -52,7 +52,7 @@ describe Prawn::SVG::Elements::Base do
       end
 
       element.process
-      expect(element.parent_calls).to eq [["end_path", [], [["test", ["argument"], []]]]]
+      expect(element.parent_calls).to eq [["fill", [], [["test", ["argument"], []]]]]
     end
 
     it "quietly absorbs a SkipElementQuietly exception" do
@@ -79,33 +79,41 @@ describe Prawn::SVG::Elements::Base do
 
     it "doesn't change anything if no fill attribute provided" do
       subject
-      expect(element.state[:fill]).to be nil
+      expect(element.state.fill).to be true
+
+      element.state.fill = false
+      subject
+      expect(element.state.fill).to be false
     end
 
     it "doesn't change anything if 'inherit' fill attribute provided" do
       element.attributes['fill'] = 'inherit'
       subject
-      expect(element.state[:fill]).to be nil
+      expect(element.state.fill).to be true
+
+      element.state.fill = false
+      subject
+      expect(element.state.fill).to be false
     end
 
     it "turns off filling if 'none' fill attribute provided" do
       element.attributes['fill'] = 'none'
       subject
-      expect(element.state[:fill]).to be false
+      expect(element.state.fill).to be false
     end
 
     it "uses the fill attribute's color" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
       element.attributes['fill'] = 'red'
       subject
-      expect(element.state[:fill]).to be true
+      expect(element.state.fill).to be true
     end
 
     it "uses black if the fill attribute's color is unparseable" do
       expect(element).to receive(:add_call).with('fill_color', '000000')
       element.attributes['fill'] = 'blarble'
       subject
-      expect(element.state[:fill]).to be true
+      expect(element.state.fill).to be true
     end
 
     it "uses the color attribute if 'currentColor' fill attribute provided" do
@@ -114,12 +122,12 @@ describe Prawn::SVG::Elements::Base do
       element.attributes['color'] = 'red'
       element.send :parse_color_attribute
       subject
-      expect(element.state[:fill]).to be true
+      expect(element.state.fill).to be true
     end
 
     context "with a color attribute defined on a parent element" do
       let(:svg) { '<svg style="color: green;"><g style="color: red;"><rect width="10" height="10" style="fill: currentColor;"></rect></g></svg>' }
-      let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, parent_calls, {}) }
+      let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, parent_calls) }
       let(:flattened_calls) { flatten_calls(element.base_calls) }
 
       it "uses the parent's color element if 'currentColor' fill attribute provided" do
@@ -133,7 +141,7 @@ describe Prawn::SVG::Elements::Base do
     it "turns off filling if UnresolvableURLWithNoFallbackError is raised" do
       element.attributes['fill'] = 'url()'
       subject
-      expect(element.state[:fill]).to be false
+      expect(element.state.fill).to be false
     end
   end
 end

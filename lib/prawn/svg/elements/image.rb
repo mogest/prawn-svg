@@ -13,7 +13,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   def parse
     require_attributes 'width', 'height'
 
-    raise SkipElementQuietly if state[:display] == "none"
+    raise SkipElementQuietly if state.display == "none"
 
     @url = attributes['xlink:href'] || attributes['href']
     if @url.nil?

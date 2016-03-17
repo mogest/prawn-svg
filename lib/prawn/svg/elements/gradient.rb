@@ -83,7 +83,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
   def load_stops
     stop_elements = source.elements.map do |child|
-      element = Prawn::SVG::Elements::Base.new(document, child, [], {})
+      element = Prawn::SVG::Elements::Base.new(document, child, [], Prawn::SVG::State.new)
       element.process
       element
     end.select do |element|

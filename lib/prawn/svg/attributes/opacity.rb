@@ -6,10 +6,10 @@ module Prawn::SVG::Attributes::Opacity
     stroke_opacity = clamp(attributes['stroke-opacity'].to_f, 0, 1) if attributes['stroke-opacity']
 
     if fill_opacity || stroke_opacity
-      state[:fill_opacity] = (state[:fill_opacity] || 1) * (fill_opacity || 1)
-      state[:stroke_opacity] = (state[:stroke_opacity] || 1) * (stroke_opacity || 1)
+      state.fill_opacity *= fill_opacity || 1
+      state.stroke_opacity *= stroke_opacity || 1
 
-      add_call_and_enter 'transparent', state[:fill_opacity], state[:stroke_opacity]
+      add_call_and_enter 'transparent', state.fill_opacity, state.stroke_opacity
     end
   end
 end

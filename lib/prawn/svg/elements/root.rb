@@ -1,4 +1,8 @@
 class Prawn::SVG::Elements::Root < Prawn::SVG::Elements::Base
+  def initialize(document, source = document.root, parent_calls = [], state = ::Prawn::SVG::State.new)
+    super
+  end
+
   def apply
     add_call 'fill_color', '000000'
     add_call 'transformation_matrix', @document.sizing.x_scale, 0, 0, @document.sizing.y_scale, 0, 0
