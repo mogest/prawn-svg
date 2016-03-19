@@ -20,10 +20,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       raise SkipElementError, "image tag must have an xlink:href"
     end
 
-    if !@document.url_loader.valid?(@url)
-      raise SkipElementError, "image tag xlink:href attribute must use http, https or data scheme"
-    end
-
     x = x(attributes['x'] || 0)
     y = y(attributes['y'] || 0)
     width = distance(attributes['width'])
@@ -34,7 +30,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
     @image = begin
       @document.url_loader.load(@url)
-    rescue => e
+    rescue Prawn::SVG::UrlLoader::Error => e
       raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
     end
 

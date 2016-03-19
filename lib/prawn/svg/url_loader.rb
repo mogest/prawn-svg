@@ -1,34 +1,37 @@
-require 'open-uri'
-require 'base64'
-
 class Prawn::SVG::UrlLoader
-  attr_accessor :enable_cache, :enable_web
-  attr_reader :url_cache
+  Error = Class.new(StandardError)
 
-  DATAURL_REGEXP = /(data:image\/(png|jpg);base64(;[a-z0-9]+)*,)/
-  URL_REGEXP = /^https?:\/\/|#{DATAURL_REGEXP}/
+  attr_reader :enable_cache, :enable_web
 
-  def initialize(opts = {})
+  def initialize(enable_cache: false, enable_web: true)
     @url_cache = {}
-    @enable_cache = opts.fetch(:enable_cache, false)
-    @enable_web = opts.fetch(:enable_web, true)
-  end
-
-  def valid?(url)
-    !!url.match(URL_REGEXP)
+    @enable_cache = enable_cache
+    @enable_web = enable_web
   end
 
   def load(url)
-    @url_cache[url] || begin
-      if m = url.match(DATAURL_REGEXP)
-        data = Base64.decode64(url[m[0].length .. -1])
-      elsif enable_web
-        data = open(url).read
-      else
-        raise "No handler available to retrieve URL #{url}"
-      end
-      @url_cache[url] = data if enable_cache
-      data
-    end
+    retrieve_from_cache(url) || perform_and_cache(url)
+  end
+
+  def add_to_cache(url, data)
+    @url_cache[url] = data
+  end
+
+  def retrieve_from_cache(url)
+    @url_cache[url]
+  end
+
+  private
+
+  def perform_and_cache(url)
+    data = perform(url)
+    add_to_cache(url, data) if enable_cache
+    data
+  end
+
+  def perform(url)
+    Prawn::SVG::Loaders::Data.from_url(url) or
+      enable_web && Prawn::SVG::Loaders::Web.from_url(url) or
+      raise Error, "No handler available for this URL scheme"
   end
 end
