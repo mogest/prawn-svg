@@ -109,7 +109,7 @@ describe "Integration test" do
             doc.url_loader.add_to_cache("https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg", IO.read("#{root}/spec/sample_images/mushroom-long.jpg"))
           end
 
-          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ || w =~ /render gradients$/}
+          warnings = r[:warnings].reject {|w| w =~ /Verdana/ && w =~ /is not a known font/ || w =~ /(render gradients$|waiting on the Prawn project)/}
         end
         warnings.should == []
       end
