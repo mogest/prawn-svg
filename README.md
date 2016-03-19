@@ -20,18 +20,16 @@ Prawn::Document.generate("svg.pdf") do
 end
 ```
 
-Supply <tt>:at</tt> if you want to render it at a specific location on the page.
-Use <tt>:position</tt> with a value of <tt>:left</tt>, <tt>:center</tt>, <tt>:right</tt> or a number to render it at the current cursor position, or use <tt>:vposition</tt> with a value
-of <tt>:top</tt>, <tt>:center</tt>, <tt>:bottom</tt> or a number to specify its Y position too.
-
-Either <tt>:width</tt>, <tt>:height</tt>, or neither may be specified; if neither is present,
-the dimensions specified in the SVG will be used, or if the dimensions aren't specified, it'll
-fit to the space available on the page.
-
-<tt>:cache_images</tt>, if set to true, will cache images per document based on their URL.
-
-<tt>:fallback_font_name</tt> takes a font name which will override the default fallback font of Times-Roman.
-If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
+Option      | Data type | Description
+----------- | --------- | -----------
+:at         | [integer, integer] | Specify the location on the page you want the SVG to appear.
+:position   | :left, :center, :right, integer | If :at not specified, specifies the horizontal position to show the SVG.  Defaults to :left.
+:vposition  | :top, :center, :bottom, integer | If :at not specified, specifies the vertical position to show the SVG.  Defaults to current cursor position.
+:width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
+:height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
+:enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images.  Defaults to true.
+:cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
+:fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
 
 ## Supported features
 
