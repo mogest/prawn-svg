@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe Prawn::SVG::Loaders::Data do
   let(:uri) { URI(url) }
 
-  subject { Prawn::SVG::Loaders::Data.from_url(url) }
+  subject { Prawn::SVG::Loaders::Data.new.from_url(url) }
 
   context "with a valid image/png data URL" do
     let(:url) { "data:image/png;base64,aGVsbG8=" }

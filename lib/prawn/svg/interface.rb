@@ -5,7 +5,7 @@
 module Prawn
   module SVG
     class Interface
-      VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :fallback_font_name]
+      VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :enable_web_requests, :enable_file_requests_with_root, :fallback_font_name]
 
       DEFAULT_FONT_PATHS = ["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]
 
@@ -21,17 +21,7 @@ module Prawn
       #
       # +data+ is the SVG data to convert.  +prawn+ is your Prawn::Document object.
       #
-      # Options:
-      # <tt>:at</tt>:: an array [x,y] specifying the location of the top-left corner of the SVG.
-      # <tt>:position</tt>::  one of (nil, :left, :center, :right) or an x-offset
-      # <tt>:vposition</tt>::  one of (nil, :top, :center, :bottom) or a y-offset
-      # <tt>:width</tt>:: the width that the SVG is to be rendered
-      # <tt>:height</tt>:: the height that the SVG is to be rendered
-      #
-      # If <tt>:at</tt> is provided, the SVG will be placed in the current page but
-      # the text position will not be changed.
-      #
-      # If both <tt>:width</tt> and <tt>:height</tt> are specified, only the width will be used.
+      # See README.md for the options that can be passed to this method.
       #
       def initialize(data, prawn, options, &block)
         Prawn.verify_options VALID_OPTIONS, options

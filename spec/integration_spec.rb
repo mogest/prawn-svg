@@ -104,7 +104,7 @@ describe "Integration test" do
 
         warnings = nil
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do |prawn|
-          r = prawn.svg IO.read(file), :at => [0, prawn.bounds.top], :width => prawn.bounds.width do |doc|
+          r = prawn.svg IO.read(file), :at => [0, prawn.bounds.top], :width => prawn.bounds.width, :enable_file_requests_with_root => File.dirname(__FILE__) do |doc|
             doc.url_loader.add_to_cache("https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg", IO.read("#{root}/spec/sample_images/mushroom-wide.jpg"))
             doc.url_loader.add_to_cache("https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg", IO.read("#{root}/spec/sample_images/mushroom-long.jpg"))
           end

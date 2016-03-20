@@ -1,12 +1,16 @@
 class Prawn::SVG::UrlLoader
   Error = Class.new(StandardError)
 
-  attr_reader :enable_cache, :enable_web
+  attr_reader :enable_cache, :loaders
 
-  def initialize(enable_cache: false, enable_web: true)
+  def initialize(enable_cache: false, enable_web: true, enable_file_with_root: nil)
     @url_cache = {}
     @enable_cache = enable_cache
-    @enable_web = enable_web
+
+    @loaders = []
+    loaders << Prawn::SVG::Loaders::Data.new
+    loaders << Prawn::SVG::Loaders::Web.new if enable_web
+    loaders << Prawn::SVG::Loaders::File.new(enable_file_with_root) if enable_file_with_root
   end
 
   def load(url)
@@ -30,8 +34,13 @@ class Prawn::SVG::UrlLoader
   end
 
   def perform(url)
-    Prawn::SVG::Loaders::Data.from_url(url) or
-      enable_web && Prawn::SVG::Loaders::Web.from_url(url) or
-      raise Error, "No handler available for this URL scheme"
+    try_each_loader(url) or raise Error, "No handler available for this URL scheme"
+  end
+
+  def try_each_loader(url)
+    loaders.detect do |loader|
+      data = loader.from_url(url)
+      break data if data
+    end
   end
 end

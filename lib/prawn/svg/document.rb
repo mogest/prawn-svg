@@ -14,7 +14,8 @@ class Prawn::SVG::Document
 
   attr_reader :root,
     :sizing,
-    :cache_images, :enable_web_requests, :fallback_font_name,
+    :fallback_font_name,
+    :url_loader,
     :css_parser, :elements_by_id, :gradients
 
   def initialize(data, bounds, options)
@@ -25,9 +26,13 @@ class Prawn::SVG::Document
     @options = options
     @elements_by_id = {}
     @gradients = {}
-    @cache_images = options[:cache_images]
-    @enable_web_requests = options.fetch(:enable_web_requests, true)
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
+
+    @url_loader = Prawn::SVG::UrlLoader.new(
+      enable_cache:          options[:cache_images],
+      enable_web:            options.fetch(:enable_web_requests, true),
+      enable_file_with_root: options[:enable_file_requests_with_root]
+    )
 
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, @root.attributes)
     sizing.requested_width = options[:width]
@@ -53,9 +58,5 @@ class Prawn::SVG::Document
 
   def points(value, axis = nil)
     Prawn::SVG::Calculators::Pixels.to_pixels(value, @axis_to_size.fetch(axis, sizing.viewport_diagonal))
-  end
-
-  def url_loader
-    @url_loader ||= Prawn::SVG::UrlLoader.new(enable_cache: cache_images, enable_web: enable_web_requests)
   end
 end

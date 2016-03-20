@@ -4,7 +4,7 @@ module Prawn::SVG::Loaders
   class Data
     REGEXP = %r[\A(?i:data):image/(png|jpeg);base64(;[a-z0-9]+)*,]
 
-    def self.from_url(url)
+    def from_url(url)
       return if url[0..4].downcase != "data:"
 
       matches = url.match(REGEXP)

@@ -28,6 +28,7 @@ Option      | Data type | Description
 :width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images.  Defaults to true.
+:enable_file_requests_with_root | string | If not nil, prawn-svg will serve file: URLs from your local disk if the file is located under the specified directory. It is very dangerous to specify your root path ("/") if you're not fully in control of your input SVG.  Defaults to nil (off).
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
 

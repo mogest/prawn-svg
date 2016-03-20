@@ -4,7 +4,7 @@ RSpec.describe Prawn::SVG::Loaders::Web do
   let(:url) { "http://hello.there/path" }
   let(:uri) { URI(url) }
 
-  subject { Prawn::SVG::Loaders::Web.from_url(url) }
+  subject { Prawn::SVG::Loaders::Web.new.from_url(url) }
 
   it "loads an HTTP URL" do
     expect(Net::HTTP).to receive(:get).with(uri).and_return("hello!")
