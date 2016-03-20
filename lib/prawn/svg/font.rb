@@ -35,11 +35,11 @@ class Prawn::SVG::Font
   # supports.  We'll add fonts we find in the font path to this hash.
   def self.load_external_fonts(fonts)
     Prawn::SVG::Interface.font_path.uniq.collect {|path| Dir["#{path}/**/*"]}.flatten.each do |filename|
-      information = font_information(filename) rescue nil
-      if information && font_name = (information[16] || information[1])
-        subfamily = (information[17] || information[2] || "normal").gsub(/\s+/, "_").downcase.to_sym
+      ttf = Prawn::SVG::TTF.new(filename)
+      if ttf.family
+        subfamily = (ttf.subfamily || "normal").gsub(/\s+/, "_").downcase.to_sym
         subfamily = :normal if subfamily == :regular
-        (fonts[font_name] ||= {})[subfamily] ||= filename
+        (fonts[ttf.family] ||= {})[subfamily] ||= filename
       end
     end
 
@@ -96,52 +96,5 @@ class Prawn::SVG::Font
     end
 
     sfn.strip.gsub(/\s+/, "_").downcase.to_sym
-  end
-
-  def self.font_information(filename)
-    File.open(filename, "r") do |f|
-      x = f.read(12)
-      table_count = x[4].ord * 256 + x[5].ord
-      tables = f.read(table_count * 16)
-
-      offset, length = table_count.times do |index|
-        start = index * 16
-        if tables[start..start+3] == 'name'
-          break tables[start+8..start+15].unpack("NN")
-        end
-      end
-
-      return unless length
-      f.seek(offset)
-      data = f.read(length)
-
-      format, name_count, string_offset = data[0..5].unpack("nnn")
-
-      names = {}
-      name_count.times do |index|
-        start = 6 + index * 12
-        platform_id, platform_specific_id, language_id, name_id, length, offset = data[start..start+11].unpack("nnnnnn")
-        next unless language_id == 0 # English
-        next unless [1, 2, 16, 17].include?(name_id)
-
-        offset += string_offset
-        field = data[offset..offset+length-1]
-        names[name_id] = if platform_id == 0
-          begin
-            if field.respond_to?(:encode)
-              field.encode(Encoding::UTF16)
-            else
-              require "iconv"
-              Iconv.iconv('UTF-8', 'UTF-16', field)
-            end
-          rescue
-            field
-          end
-        else
-          field
-        end
-      end
-      names
-    end
   end
 end
