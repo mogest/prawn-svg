@@ -23,7 +23,7 @@ module Prawn::SVG::Attributes::Font
       usable_font_families = [state.font_family, document.fallback_font_name]
 
       font_used = usable_font_families.compact.detect do |name|
-        if font = Prawn::SVG::Font.load(name, state.font_weight, state.font_style)
+        if font = document.font_registry.load(name, state.font_weight, state.font_style)
           state.font_subfamily = font.subfamily
           add_call_and_enter 'font', font.name, :style => state.font_subfamily
           true

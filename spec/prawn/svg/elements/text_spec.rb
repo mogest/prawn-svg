@@ -33,7 +33,7 @@ describe Prawn::SVG::Elements::Text do
   end
 
   describe "when text-anchor is specified" do
-    let(:svg) { '<g text-anchor="middle" font-family="sans-serif" font-size="12"><text x="50" y="14">Text</text></g>' }
+    let(:svg) { '<g text-anchor="middle" font-size="12"><text x="50" y="14">Text</text></g>' }
 
     it "should inherit text-anchor from parent element" do
       element.process

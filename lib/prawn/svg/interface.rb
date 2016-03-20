@@ -7,13 +7,6 @@ module Prawn
     class Interface
       VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :enable_web_requests, :enable_file_requests_with_root, :fallback_font_name]
 
-      DEFAULT_FONT_PATHS = ["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]
-
-      @font_path = []
-      DEFAULT_FONT_PATHS.each {|path| @font_path << path if File.exists?(path)}
-
-      class << self; attr_accessor :font_path; end
-
       attr_reader :data, :prawn, :document, :options
 
       #
@@ -30,9 +23,9 @@ module Prawn
         @prawn = prawn
         @options = options
 
-        Prawn::SVG::Font.load_external_fonts(prawn.font_families)
+        font_registry = Prawn::SVG::FontRegistry.new(prawn.font_families)
 
-        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options, &block)
+        @document = Document.new(data, [prawn.bounds.width, prawn.bounds.height], options, font_registry: font_registry, &block)
       end
 
       #
@@ -61,6 +54,10 @@ module Prawn
 
       def position
         @options[:at] || [x_based_on_requested_alignment, y_based_on_requested_alignment]
+      end
+
+      def self.font_path # backwards support for when the font_path used to be stored on this class
+        Prawn::SVG::FontRegistry.font_path
       end
 
       private

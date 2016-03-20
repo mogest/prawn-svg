@@ -4,16 +4,19 @@ describe Prawn::SVG::Attributes::Font do
   class FontTestElement
     include Prawn::SVG::Attributes::Font
 
-    attr_accessor :attributes, :warnings, :state
+    attr_accessor :attributes, :warnings, :state, :document
 
-    def initialize
+    def initialize(document)
       @state = Prawn::SVG::State.new
+      @document = document
       @warnings = []
     end
   end
 
-  let(:element) { FontTestElement.new }
-  let(:document) { double(fallback_font_name: "Times-Roman") }
+  let(:pdf) { Prawn::Document.new }
+  let(:font_registry) { Prawn::SVG::FontRegistry.new(pdf.font_families) }
+  let(:document) { double(fallback_font_name: "Times-Roman", font_registry: font_registry) }
+  let(:element) { FontTestElement.new(document) }
 
   before do
     allow(element).to receive(:document).and_return(document)

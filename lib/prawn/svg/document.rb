@@ -14,10 +14,11 @@ class Prawn::SVG::Document
   attr_reader :root,
     :sizing,
     :fallback_font_name,
+    :font_registry,
     :url_loader,
     :css_parser, :elements_by_id, :gradients
 
-  def initialize(data, bounds, options)
+  def initialize(data, bounds, options, font_registry: nil)
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
 
     @root = REXML::Document.new(data).root
@@ -26,6 +27,7 @@ class Prawn::SVG::Document
     @elements_by_id = {}
     @gradients = {}
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
+    @font_registry = font_registry
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],

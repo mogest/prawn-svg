@@ -31,5 +31,3 @@ RSpec.configure do |config|
 
   config.include Support
 end
-
-Prawn::SVG::Font.load_external_fonts(Prawn::Document.new.font_families)
