@@ -10,7 +10,6 @@ class Prawn::SVG::Document
 
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
-  attr_writer :url_cache
 
   attr_reader :root,
     :sizing,
