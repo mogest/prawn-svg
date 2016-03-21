@@ -23,8 +23,8 @@ class Prawn::SVG::FontRegistry
   end
 
   def load(family, weight = nil, style = nil)
-    family.split(",").detect do |name|
-      name = name.gsub(/['"]/, '').gsub(/\s{2,}/, ' ').strip.downcase
+    Prawn::SVG::CSS.parse_font_family_string(family).detect do |name|
+      name = name.gsub(/\s{2,}/, ' ').downcase
 
       font = Prawn::SVG::Font.new(name, weight, style, font_registry: self)
       break font if font.installed?
