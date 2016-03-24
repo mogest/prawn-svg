@@ -20,6 +20,9 @@ Prawn::Document.generate("test.pdf") do
 end
 ```
 
+prawn-svg will do something sensible if you call it with only an SVG document, but you can also
+pass the following arguments as a second argument to tailor its operation:
+
 Option      | Data type | Description
 ----------- | --------- | -----------
 :at         | [integer, integer] | Specify the location on the page you want the SVG to appear.
