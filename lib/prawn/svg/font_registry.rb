@@ -63,7 +63,11 @@ class Prawn::SVG::FontRegistry
     private
 
     def external_font_paths
-      font_path.uniq.flat_map {|path| Dir["#{path}/**/*"]}
+      font_path
+        .uniq
+        .flat_map { |path| Dir["#{path}/**/*"] }
+        .uniq
+        .select { |path| File.file?(path) }
     end
   end
 end

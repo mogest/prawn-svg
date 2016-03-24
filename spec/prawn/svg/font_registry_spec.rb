@@ -43,6 +43,7 @@ RSpec.describe Prawn::SVG::FontRegistry do
       expect(Dir).to receive(:[]).with("x/**/*").and_return(["file.ttf", "second.ttf"])
       expect(Prawn::SVG::TTF).to receive(:new).with("file.ttf").and_return(ttf)
       expect(Prawn::SVG::TTF).to receive(:new).with("second.ttf").and_return(ttf2)
+      expect(File).to receive(:file?).at_least(:once).and_return(true)
 
       Prawn::SVG::FontRegistry.load_external_fonts
 
