@@ -2,13 +2,6 @@ class Prawn::SVG::Document
   Error = Class.new(StandardError)
   InvalidSVGData = Class.new(Error)
 
-  begin
-    require 'css_parser'
-    CSS_PARSER_LOADED = true
-  rescue LoadError
-    CSS_PARSER_LOADED = false
-  end
-
   DEFAULT_FALLBACK_FONT_NAME = "Times-Roman"
 
   # An +Array+ of warnings that occurred while parsing the SVG data.
@@ -22,8 +15,6 @@ class Prawn::SVG::Document
     :css_parser, :elements_by_id, :gradients
 
   def initialize(data, bounds, options, font_registry: nil)
-    @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
-
     @root = REXML::Document.new(data).root
 
     if @root.nil?
@@ -53,6 +44,8 @@ class Prawn::SVG::Document
     sizing.calculate
 
     @axis_to_size = {:x => sizing.viewport_width, :y => sizing.viewport_height}
+
+    @css_parser = CssParser::Parser.new
 
     yield self if block_given?
   end

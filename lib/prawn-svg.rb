@@ -3,6 +3,8 @@ require 'rexml/document'
 require 'prawn'
 require 'prawn/svg/version'
 
+require 'css_parser'
+
 require 'prawn/svg/font_registry'
 require 'prawn/svg/calculators/aspect_ratio'
 require 'prawn/svg/calculators/document_sizing'
