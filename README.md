@@ -5,7 +5,7 @@
 
 An SVG renderer for the Prawn PDF library.
 
-This will take an SVG file as input and render it into your PDF.  Find out more about the Prawn PDF library at:
+This will take an SVG document as input and render it into your PDF.  Find out more about the Prawn PDF library at:
 
   http://github.com/prawnpdf/prawn 
 
