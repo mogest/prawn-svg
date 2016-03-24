@@ -56,5 +56,6 @@ class Prawn::SVG::TTF
       @family = names[16] || names[1]
       @subfamily = names[17] || names[2]
     end
+  rescue Errno::ENOENT # in case the file disappears between the scan and the load, we don't want to crash
   end
 end
