@@ -1,4 +1,7 @@
 class Prawn::SVG::Document
+  Error = Class.new(StandardError)
+  InvalidSVGData = Class.new(Error)
+
   begin
     require 'css_parser'
     CSS_PARSER_LOADED = true
@@ -22,6 +25,15 @@ class Prawn::SVG::Document
     @css_parser = CssParser::Parser.new if CSS_PARSER_LOADED
 
     @root = REXML::Document.new(data).root
+
+    if @root.nil?
+      if data.respond_to?(:end_with?) && data.end_with?(".svg")
+        raise InvalidSVGData, "The data supplied is not a valid SVG document.  It looks like you've supplied a filename instead; use IO.read(filename) to get the data before you pass it to prawn-svg."
+      else
+        raise InvalidSVGData, "The data supplied is not a valid SVG document."
+      end
+    end
+
     @warnings = []
     @options = options
     @elements_by_id = {}
