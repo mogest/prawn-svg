@@ -21,7 +21,7 @@ end
 ```
 
 prawn-svg will do something sensible if you call it with only an SVG document, but you can also
-pass the following arguments as a second argument to tailor its operation:
+pass the following options to tailor its operation:
 
 Option      | Data type | Description
 ----------- | --------- | -----------
