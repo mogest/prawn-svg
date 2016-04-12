@@ -25,7 +25,7 @@ describe Prawn::SVG::Elements::Base do
     describe "applying calls from the standard attributes" do
       let(:svg) do
         <<-SVG
-          <something transform="rotate(90)" fill-opacity="0.5" fill="red" stroke="blue" stroke-width="5" font-family="Helvetica"/>
+          <something transform="rotate(90)" fill-opacity="0.5" fill="red" stroke="blue" stroke-width="5"/>
         SVG
       end
 
@@ -37,9 +37,7 @@ describe Prawn::SVG::Elements::Base do
               ["fill_color", ["ff0000"], []],
               ["stroke_color", ["0000ff"], []],
               ["line_width", [5.0], []],
-              ["font", ["Helvetica", {:style=>:normal}], [
-                ["fill_and_stroke", [], []]
-              ]]
+              ["fill_and_stroke", [], []]
             ]]
           ]]
         ]

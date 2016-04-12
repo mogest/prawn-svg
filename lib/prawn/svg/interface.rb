@@ -169,6 +169,9 @@ module Prawn
           # never want closepath to be automatically run as it stuffs up many drawing operations, such as dashes
           # and line caps, and makes paths close that we didn't ask to be closed when fill is specified.
           prawn.add_content 'B'
+
+        when 'noop'
+          yield
         end
       end
 

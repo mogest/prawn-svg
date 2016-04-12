@@ -11,12 +11,12 @@ class Prawn::SVG::Font
 
   def self.weight_for_css_font_weight(weight)
     case weight
-    when '100', '200', '300' then :light
-    when '400', '500'        then :normal
-    when '600'               then :semibold
-    when '700', 'bold'       then :bold
-    when '800'               then :extrabold
-    when '900'               then :black
+    when '100', '200', '300'    then :light
+    when '400', '500', 'normal' then :normal
+    when '600'                  then :semibold
+    when '700', 'bold'          then :bold
+    when '800'                  then :extrabold
+    when '900'                  then :black
     end
   end
 

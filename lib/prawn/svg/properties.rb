@@ -1,6 +1,17 @@
 class Prawn::SVG::Properties
   Config = Struct.new(:default, :inheritable?, :keywords, :keyword_restricted?, :attr, :ivar)
 
+  EM = 16
+  FONT_SIZES = {
+    'xx-small' => EM / 4,
+    'x-small'  => EM / 4 * 2,
+    'small'    => EM / 4 * 3,
+    'medium'   => EM / 4 * 4,
+    'large'    => EM / 4 * 5,
+    'x-large'  => EM / 4 * 6,
+    'xx-large' => EM / 4 * 7
+  }
+
   PROPERTIES = {
     "clip-path"        => Config.new("none", false, %w(inherit none)),
     "color"            => Config.new('', true),
@@ -8,10 +19,10 @@ class Prawn::SVG::Properties
     "fill"             => Config.new("black", true),
     "fill-opacity"     => Config.new("1", true),
     "font-family"      => Config.new("sans-serif", true),
-    "font-size"        => Config.new("medium", true),
+    "font-size"        => Config.new("medium", true, %w(inherit xx-small x-small small medium large x-large xx-large larger smaller)),
     "font-style"       => Config.new("normal", true, %w(inherit normal italic oblique), true),
     "font-variant"     => Config.new("normal", true, %w(inherit normal small-caps), true),
-    "font-weight"      => Config.new("normal", true, %w(inherit normal bold bolder lighter 100 200 300 400 500 600 700 800 900), true),
+    "font-weight"      => Config.new("normal", true, %w(inherit normal bold 100 200 300 400 500 600 700 800 900), true), # bolder/lighter not supported
     "letter-spacing"   => Config.new("normal", true, %w(inherit normal)),
     "marker-end"       => Config.new("none", true, %w(inherit none)),
     "marker-mid"       => Config.new("none", true, %w(inherit none)),
@@ -21,7 +32,7 @@ class Prawn::SVG::Properties
     "stop-color"       => Config.new("black", false, %w(inherit currentColor)),
     "stroke"           => Config.new("none", true),
     "stroke-dasharray" => Config.new("none", true, %w(inherit none)),
-    "stroke-linecap"   => Config.new("butt", true, %w(inherit butt round square)),
+    "stroke-linecap"   => Config.new("butt", true, %w(inherit butt round square), true),
     "stroke-opacity"   => Config.new("1", true),
     "stroke-width"     => Config.new("1", true),
     "text-anchor"      => Config.new("start", true, %w(inherit start middle end), true),
@@ -76,14 +87,36 @@ class Prawn::SVG::Properties
     PROPERTY_CONFIGS.each do |config|
       value = other.send(config.attr)
 
-      keyword = value.strip.downcase if value
-      keyword = nil if keyword == ''
-
-      if keyword && keyword != 'inherit'
+      if value && value != 'inherit'
+        value = compute_font_size_property(value).to_s if config.attr == "font_size"
         instance_variable_set(config.ivar, value)
-      elsif keyword.nil? && !config.inheritable?
+
+      elsif value.nil? && !config.inheritable?
         instance_variable_set(config.ivar, config.default)
       end
+    end
+  end
+
+  def numerical_font_size
+    # px = pt for PDFs
+    FONT_SIZES[font_size] || font_size.to_f
+  end
+
+  private
+
+  def compute_font_size_property(value)
+    if value[-1] == "%"
+      numerical_font_size * (value.to_f / 100.0)
+    elsif value == 'larger'
+      numerical_font_size + 4
+    elsif value == 'smaller'
+      numerical_font_size - 4
+    elsif value.match(/(\d|\.)em\z/i)
+      numerical_font_size * value.to_f
+    elsif value.match(/(\d|\.)rem\z/i)
+      value.to_f * EM
+    else
+      FONT_SIZES[value] || value.to_f
     end
   end
 end

@@ -5,7 +5,6 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::Opacity
   include Prawn::SVG::Attributes::ClipPath
   include Prawn::SVG::Attributes::Stroke
-  include Prawn::SVG::Attributes::Font
 
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
 
@@ -110,7 +109,6 @@ class Prawn::SVG::Elements::Base
     parse_clip_path_attribute_and_call
     draw_types = parse_fill_and_stroke_attributes_and_call
     parse_stroke_attributes_and_call
-    parse_font_attributes_and_call
     apply_drawing_call(draw_types)
   end
 
