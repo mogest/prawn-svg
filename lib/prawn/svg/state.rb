@@ -3,12 +3,13 @@ class Prawn::SVG::State
     :color, :display,
     :font_size, :font_weight, :font_style, :font_family, :font_subfamily,
     :text_anchor, :text_relative, :text_x_positions, :text_y_positions, :preserve_space,
-    :fill_opacity, :stroke_opacity,
+    :fill_opacity, :stroke_opacity, :stroke_width,
     :fill, :stroke
 
   def initialize
     @fill = true
     @stroke = false
+    @stroke_width = 1
     @fill_opacity = 1
     @stroke_opacity = 1
   end

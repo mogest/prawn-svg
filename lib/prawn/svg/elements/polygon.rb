@@ -1,17 +1,25 @@
 class Prawn::SVG::Elements::Polygon < Prawn::SVG::Elements::Base
+  include Prawn::SVG::Pathable
+
   def parse
     require_attributes('points')
     @points = parse_points(attributes['points'])
   end
 
   def apply
-    add_call 'polygon', *@points
+    apply_commands
+    apply_markers
   end
 
-  def bounding_box
-    x1, x2 = @points.map(&:first).minmax
-    y2, y1 = @points.map(&:last).minmax
-    [x1, y1, x2, y2]
+  protected
+
+  def commands
+    @commands ||= [
+      Prawn::SVG::Pathable::Move.new(@points[0])
+    ] + @points[1..-1].map { |point|
+      Prawn::SVG::Pathable::Line.new(point)
+    } + [
+      Prawn::SVG::Pathable::Close.new(@points[0])
+    ]
   end
 end
-

@@ -14,7 +14,7 @@ describe Prawn::SVG::Elements::Path do
 
       it "correctly parses" do
         calls = []
-        path.stub(:run_path_command) {|*args| calls << args}
+        path.stub(:parse_path_command) {|*args| calls << args}
         path.parse
 
         calls.should == [
@@ -40,7 +40,7 @@ describe Prawn::SVG::Elements::Path do
           ["m", [5,6,7,8]],
           ["l", [7,8]]
         ].each do |args|
-          path.should_receive(:run_path_command).with(*args).and_call_original
+          path.should_receive(:parse_path_command).with(*args).and_call_original
         end
 
         path.parse
@@ -81,9 +81,9 @@ describe Prawn::SVG::Elements::Path do
 
       it "uses bezier curves to approximate an arc path" do
         expect(subject).to eq [
-          ["move_to", [100.0, 200.0]],
-          ["curve_to", [150.0, 150.0, 100.0, 172.57081148225683, 122.57081148225683, 150.0]],
-          ["curve_to", [200.0, 200.0, 177.42918851774317, 150.0, 200.0, 172.57081148225683]]
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Curve.new([150.0, 150.0], [100.0, 172.57081148225683], [122.57081148225683, 150.0]),
+          Prawn::SVG::Elements::Path::Curve.new([200.0, 200.0], [177.42918851774317, 150.0], [200.0, 172.57081148225683])
         ]
       end
     end
@@ -93,7 +93,7 @@ describe Prawn::SVG::Elements::Path do
 
       it "ignores the path" do
         expect(subject).to eq [
-          ["move_to", [100.0, 200.0]]
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
         ]
       end
     end
@@ -103,8 +103,8 @@ describe Prawn::SVG::Elements::Path do
 
       it "substitutes a line_to" do
         expect(subject).to eq [
-          ["move_to", [100.0, 200.0]],
-          ["line_to", [200.0, 200.0]]
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Line.new([200.0, 200.0])
         ]
       end
     end
@@ -114,8 +114,8 @@ describe Prawn::SVG::Elements::Path do
 
       it "substitutes a line_to" do
         expect(subject).to eq [
-          ["move_to", [100.0, 200.0]],
-          ["line_to", [200.0, 200.0]]
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Line.new([200.0, 200.0])
         ]
       end
     end

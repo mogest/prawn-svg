@@ -2,8 +2,10 @@ module Prawn::SVG::Attributes::Stroke
   CAP_STYLE_TRANSLATIONS = {"butt" => :butt, "round" => :round, "square" => :projecting_square}
 
   def parse_stroke_attributes_and_call
-    if width = attributes['stroke-width']
-      add_call('line_width', distance(width))
+    if width_string = attributes['stroke-width']
+      width = distance(width_string)
+      state.stroke_width = width
+      add_call('line_width', width)
     end
 
     if (linecap = attribute_value_as_keyword('stroke-linecap')) && linecap != 'inherit'

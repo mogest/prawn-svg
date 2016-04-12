@@ -1,22 +1,23 @@
 class Prawn::SVG::Elements::Polyline < Prawn::SVG::Elements::Base
+  include Prawn::SVG::Pathable
+
   def parse
     require_attributes('points')
     @points = parse_points(attributes['points'])
   end
 
   def apply
-    raise SkipElementQuietly unless @points.length > 0
-
-    add_call 'move_to', *@points[0]
-    add_call_and_enter 'stroke'
-    @points[1..-1].each do |x, y|
-      add_call "line_to", x, y
-    end
+    apply_commands
+    apply_markers
   end
 
-  def bounding_box
-    x1, x2 = @points.map(&:first).minmax
-    y2, y1 = @points.map(&:last).minmax
-    [x1, y1, x2, y2]
+  protected
+
+  def commands
+    @commands ||= [
+      Prawn::SVG::Pathable::Move.new(@points[0])
+    ] + @points[1..-1].map { |point|
+      Prawn::SVG::Pathable::Line.new(point)
+    }
   end
 end

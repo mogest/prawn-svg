@@ -7,7 +7,7 @@ An SVG renderer for the Prawn PDF library.
 
 This will take an SVG document as input and render it into your PDF.  Find out more about the Prawn PDF library at:
 
-  http://github.com/prawnpdf/prawn 
+  http://github.com/prawnpdf/prawn
 
 prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
 The minimum Ruby version required is 2.0.0.
@@ -69,18 +69,22 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;style&gt;</tt> plus <tt>id</tt>, <tt>class</tt> and <tt>style</tt> attributes (see CSS section below)
 
- - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt> and <tt>data:image/\*;base64</tt> schemes
+ - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt>, <tt>data:image/\*;base64</tt> and `file:` schemes
+   (`file:` is disabled by default for security reasons, see Options section above)
 
  - <tt>&lt;clipPath&gt;</tt>
 
- - <tt>&lt;linearGradient&gt;</tt> but only with Prawn 2.0.4+. gradientTransform, spreadMethod and stop-opacity are
-   unimplemented.
+ - `<marker>`, although style properties defined on the `<marker>` tag itself (and its ancestors) aren't
+   currently inherited into the marker due to a limitation in the design.
 
- - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>
+ - <tt>&lt;linearGradient&gt;</tt> is implemented but not currently working as we are waiting for a pull request to be accepted
+   into Prawn. (gradientTransform, spreadMethod and stop-opacity are unimplemented.)
 
- - the <tt>viewBox</tt> attribute on the <tt>&lt;svg&gt;</tt> tag
+ - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>, `marker-start`, `marker-mid`, `marker-end`
 
- - the <tt>preserveAspectRatio</tt> attribute on the <tt>&lt;svg&gt;</tt> and <tt>&lt;image&gt;</tt> tags
+ - the <tt>viewBox</tt> attribute on <tt>&lt;svg&gt;</tt> and `<marker>` tags
+
+ - the <tt>preserveAspectRatio</tt> attribute on <tt>&lt;svg&gt;</tt>, <tt>&lt;image&gt;</tt> and `<marker>` tags
 
  - transform methods: <tt>translate</tt>, <tt>rotate</tt>, <tt>scale</tt>, <tt>matrix</tt>
 
@@ -92,11 +96,11 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
 ## CSS
 
-prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  It only handles simple tag, class or id selectors; attribute and other advanced selectors are not supported.
+prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  It only handles simple tag, class or id selectors; attribute and other advanced selectors are not supported by the gem.
 
 ## Not supported
 
-prawn-svg does not support external <tt>url()</tt> references, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, radial gradients, patterns or markers.
+prawn-svg does not support external <tt>url()</tt> references for anything except image source, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, radial gradients, or patterns.
 
 ## Configuration
 

@@ -2,7 +2,7 @@ module Prawn::SVG::Elements
   COMMA_WSP_REGEXP = /(?:\s+,?\s*|,\s*)/
 end
 
-%w(base root container style text line polyline polygon circle ellipse rect path use image gradient ignored).each do |filename|
+%w(base root container style text line polyline polygon circle ellipse rect path use image gradient marker ignored).each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
 
@@ -25,6 +25,7 @@ module Prawn::SVG::Elements
     use: Prawn::SVG::Elements::Use,
     image: Prawn::SVG::Elements::Image,
     linearGradient: Prawn::SVG::Elements::Gradient,
+    marker: Prawn::SVG::Elements::Marker,
     title: Prawn::SVG::Elements::Ignored,
     desc: Prawn::SVG::Elements::Ignored,
     metadata: Prawn::SVG::Elements::Ignored,

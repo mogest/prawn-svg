@@ -82,12 +82,19 @@ class Prawn::SVG::Elements::Base
     @calls.concat other.base_calls
   end
 
-  def process_child_elements
-    source.elements.each do |elem|
+  def new_call_context_from_base
+    old_calls = @calls
+    @calls = @base_calls
+    yield
+    @calls = old_calls
+  end
+
+  def process_child_elements(xml_elements: source.elements, base_state: state)
+    xml_elements.each do |elem|
       if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
         add_call "save"
 
-        child = element_class.new(@document, elem, @calls, state.dup)
+        child = element_class.new(@document, elem, @calls, base_state.dup)
         child.process
 
         add_call "restore"
@@ -213,16 +220,6 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def parse_points(points_string)
-    points_string.
-      to_s.
-      strip.
-      gsub(/(\d)-(\d)/, '\1 -\2').
-      split(COMMA_WSP_REGEXP).
-      each_slice(2).
-      map {|x, y| [x(x), y(y)]}
-  end
-
   def require_attributes(*names)
     missing_attrs = names - attributes.keys
     if missing_attrs.any?
@@ -234,5 +231,11 @@ class Prawn::SVG::Elements::Base
     if args.any? {|arg| arg.nil? || arg <= 0}
       raise SkipElementError, "Invalid attributes on tag #{name}; skipping tag"
     end
+  end
+
+  def extract_element_from_url_id_reference(value, expected_type = nil)
+    matches = value.strip.match(/\Aurl\(\s*#(\S+)\s*\)\z/i) if value
+    element = document.elements_by_id[matches[1]] if matches
+    element if element && (expected_type.nil? || element.name == expected_type)
   end
 end
