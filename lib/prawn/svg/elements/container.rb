@@ -1,12 +1,11 @@
 class Prawn::SVG::Elements::Container < Prawn::SVG::Elements::Base
   def parse
-    state.disable_drawing = true if name == "clipPath"
-  end
+    state.disable_drawing = true if name == 'clipPath'
 
-  def apply
-    process_child_elements
-
-    raise SkipElementQuietly if %w(symbol defs clipPath).include?(name)
+    if %w(symbol defs clipPath).include?(name)
+      properties.display = 'none'
+      computed_properties.display = 'none'
+    end
   end
 
   def container?

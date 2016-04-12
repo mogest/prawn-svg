@@ -17,6 +17,7 @@ class Prawn::SVG::Elements::Base
   attr_accessor :calls
 
   def_delegators :@document, :x, :y, :distance, :points, :warnings
+  def_delegator :@state, :computed_properties
 
   def initialize(document, source, parent_calls, state)
     @document = document
@@ -37,7 +38,9 @@ class Prawn::SVG::Elements::Base
     apply_calls_from_standard_attributes
     apply
 
-    append_calls_to_parent
+    process_child_elements if container?
+
+    append_calls_to_parent unless computed_properties.display == 'none'
   rescue SkipElementQuietly
   rescue SkipElementError => e
     @document.warnings << e.message
@@ -113,7 +116,7 @@ class Prawn::SVG::Elements::Base
 
   def apply_drawing_call(draw_types)
     if !state.disable_drawing && !container?
-      if draw_types.empty? || state.computed_properties.display == "none"
+      if draw_types.empty?
         add_call_and_enter("end_path")
       else
         add_call_and_enter(draw_types.join("_and_"))
