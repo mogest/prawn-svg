@@ -6,8 +6,6 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::ClipPath
   include Prawn::SVG::Attributes::Stroke
   include Prawn::SVG::Attributes::Font
-  include Prawn::SVG::Attributes::Display
-  include Prawn::SVG::Attributes::Color
 
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
 
@@ -15,7 +13,7 @@ class Prawn::SVG::Elements::Base
   SkipElementError = Class.new(StandardError)
   MissingAttributesError = Class.new(SkipElementError)
 
-  attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes
+  attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes, :properties
   attr_accessor :calls
 
   def_delegators :@document, :x, :y, :distance, :points, :warnings
@@ -33,8 +31,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
-    combine_attributes_and_style_declarations
-    parse_standard_attributes
+    parse_attributes_and_properties
     parse
 
     apply_calls_from_standard_attributes
@@ -111,13 +108,12 @@ class Prawn::SVG::Elements::Base
     draw_types = parse_fill_and_stroke_attributes_and_call
     parse_stroke_attributes_and_call
     parse_font_attributes_and_call
-    parse_display_attribute
     apply_drawing_call(draw_types)
   end
 
   def apply_drawing_call(draw_types)
     if !state.disable_drawing && !container?
-      if draw_types.empty? || state.display == "none"
+      if draw_types.empty? || state.computed_properties.display == "none"
         add_call_and_enter("end_path")
       else
         add_call_and_enter(draw_types.join("_and_"))
@@ -125,13 +121,12 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def parse_standard_attributes
-    parse_color_attribute
-  end
-
   def parse_fill_and_stroke_attributes_and_call
     ["fill", "stroke"].select do |type|
-      case keyword = attribute_value_as_keyword(type)
+      keyword = properties.send(type)
+      keyword = keyword.strip.downcase if keyword
+
+      case keyword
       when nil
       when 'inherit'
       when 'none'
@@ -140,9 +135,9 @@ class Prawn::SVG::Elements::Base
         state.disable_draw_type(type)
 
         if keyword == 'currentcolor'
-          color = state.color
+          color = state.computed_properties.color
         else
-          color = @attributes[type]
+          color = properties.send(type)
         end
 
         results = Prawn::SVG::Color.parse(color, document.gradients)
@@ -172,7 +167,7 @@ class Prawn::SVG::Elements::Base
     [[value, min_value].max, max_value].min
   end
 
-  def combine_attributes_and_style_declarations
+  def parse_attributes_and_properties
     if @document && @document.css_parser
       tag_style = @document.css_parser.find_by_selector(source.name)
       id_style = @document.css_parser.find_by_selector("##{source.attributes["id"]}") if source.attributes["id"]
@@ -192,12 +187,17 @@ class Prawn::SVG::Elements::Base
       style = source.attributes['style'] || ""
     end
 
-    @attributes = parse_css_declarations(style)
+    @attributes = {}
+    @properties = Prawn::SVG::Properties.new
 
     source.attributes.each do |name, value|
-      name = name.downcase # TODO : this is incorrect; attributes are case sensitive
-      @attributes[name] = value unless @attributes[name]
+      # Properties#set returns nil if it's not a recognised property name
+      @properties.set(name, value) or @attributes[name] = value
     end
+
+    @properties.load_hash(parse_css_declarations(style))
+
+    state.computed_properties.compute_properties(@properties)
   end
 
   def parse_css_declarations(declarations)
@@ -212,12 +212,6 @@ class Prawn::SVG::Elements::Base
       end
     end
     output
-  end
-
-  def attribute_value_as_keyword(name)
-    if value = @attributes[name]
-      value.strip.downcase
-    end
   end
 
   def require_attributes(*names)

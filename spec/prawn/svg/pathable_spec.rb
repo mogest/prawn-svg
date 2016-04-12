@@ -6,7 +6,7 @@ RSpec.describe Prawn::SVG::Pathable do
 
     def initialize(*args)
       super
-      @attributes = {}
+      @properties = Struct.new(:marker_start, :marker_mid, :marker_end).new
     end
 
     public :apply_commands
@@ -57,7 +57,7 @@ RSpec.describe Prawn::SVG::Pathable do
 
     context "with marker-start attribute specified" do
       before do
-        subject.attributes["marker-start"] = "url(#triangle)"
+        subject.properties.marker_start = "url(#triangle)"
       end
 
       it "calls apply_marker on the marker" do
@@ -68,7 +68,7 @@ RSpec.describe Prawn::SVG::Pathable do
 
     context "with marker-mid attribute specified" do
       before do
-        subject.attributes["marker-mid"] = "url(#triangle)"
+        subject.properties.marker_mid = "url(#triangle)"
       end
 
       it "calls apply_marker on the marker" do
@@ -80,7 +80,7 @@ RSpec.describe Prawn::SVG::Pathable do
 
     context "with marker-end attribute specified" do
       before do
-        subject.attributes["marker-end"] = "url(#triangle)"
+        subject.properties.marker_end = "url(#triangle)"
       end
 
       it "calls apply_marker on the marker" do

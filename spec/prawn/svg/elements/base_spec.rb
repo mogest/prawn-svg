@@ -72,7 +72,7 @@ describe Prawn::SVG::Elements::Base do
 
   describe "#parse_fill_and_stroke_attributes_and_call" do
     before do
-      element.send(:combine_attributes_and_style_declarations)
+      element.send(:parse_attributes_and_properties)
     end
 
     subject { element.send :parse_fill_and_stroke_attributes_and_call }
@@ -87,7 +87,7 @@ describe Prawn::SVG::Elements::Base do
     end
 
     it "doesn't change anything if 'inherit' fill attribute provided" do
-      element.attributes['fill'] = 'inherit'
+      element.properties.fill = 'inherit'
       subject
       expect(element.state.fill).to be true
 
@@ -97,30 +97,29 @@ describe Prawn::SVG::Elements::Base do
     end
 
     it "turns off filling if 'none' fill attribute provided" do
-      element.attributes['fill'] = 'none'
+      element.properties.fill = 'none'
       subject
       expect(element.state.fill).to be false
     end
 
     it "uses the fill attribute's color" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
-      element.attributes['fill'] = 'red'
+      element.properties.fill = 'red'
       subject
       expect(element.state.fill).to be true
     end
 
     it "uses black if the fill attribute's color is unparseable" do
       expect(element).to receive(:add_call).with('fill_color', '000000')
-      element.attributes['fill'] = 'blarble'
+      element.properties.fill = 'blarble'
       subject
       expect(element.state.fill).to be true
     end
 
     it "uses the color attribute if 'currentColor' fill attribute provided" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
-      element.attributes['fill'] = 'currentColor'
-      element.attributes['color'] = 'red'
-      element.send :parse_color_attribute
+      element.properties.fill = 'currentColor'
+      element.state.computed_properties.color = 'red'
       subject
       expect(element.state.fill).to be true
     end
@@ -139,7 +138,7 @@ describe Prawn::SVG::Elements::Base do
     end
 
     it "turns off filling if UnresolvableURLWithNoFallbackError is raised" do
-      element.attributes['fill'] = 'url()'
+      element.properties.fill = 'url()'
       subject
       expect(element.state.fill).to be false
     end

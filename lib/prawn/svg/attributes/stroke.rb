@@ -2,17 +2,17 @@ module Prawn::SVG::Attributes::Stroke
   CAP_STYLE_TRANSLATIONS = {"butt" => :butt, "round" => :round, "square" => :projecting_square}
 
   def parse_stroke_attributes_and_call
-    if width_string = attributes['stroke-width']
+    if width_string = properties.stroke_width
       width = distance(width_string)
       state.stroke_width = width
       add_call('line_width', width)
     end
 
-    if (linecap = attribute_value_as_keyword('stroke-linecap')) && linecap != 'inherit'
+    if (linecap = properties.stroke_linecap) && linecap != 'inherit'
       add_call('cap_style', CAP_STYLE_TRANSLATIONS.fetch(linecap, :butt))
     end
 
-    if dasharray = attribute_value_as_keyword('stroke-dasharray')
+    if dasharray = properties.stroke_dasharray
       case dasharray
       when 'inherit'
         # don't do anything

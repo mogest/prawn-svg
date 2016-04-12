@@ -51,16 +51,16 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def load_gradient_configuration
-    @units = attributes["gradientunits"] == 'userSpaceOnUse' ? :user_space : :bounding_box
+    @units = attributes["gradientUnits"] == 'userSpaceOnUse' ? :user_space : :bounding_box
 
-    if transform = attributes["gradienttransform"]
+    if transform = attributes["gradientTransform"]
       matrix = transform.split(COMMA_WSP_REGEXP).map(&:to_f)
       if matrix != [1, 0, 0, 1, 0, 0]
         raise SkipElementError, "prawn-svg does not yet support gradients with a non-identity gradientTransform attribute"
       end
     end
 
-    if (spread_method = attributes['spreadmethod']) && spread_method != "pad"
+    if (spread_method = attributes['spreadMethod']) && spread_method != "pad"
       warnings << "prawn-svg only currently supports the 'pad' spreadMethod attribute value"
     end
   end
@@ -98,7 +98,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         offset = result.last.first
       end
 
-      if color_hex = Prawn::SVG::Color.color_to_hex(child.attributes["stop-color"])
+      if color_hex = Prawn::SVG::Color.color_to_hex(child.properties.stop_color)
         result << [offset, color_hex]
       end
     end

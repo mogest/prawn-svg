@@ -1,21 +1,21 @@
 module Prawn::SVG::Attributes::Font
   def parse_font_attributes_and_call
-    if size = attributes['font-size']
+    if size = properties.font_size
       state.font_size = size.to_f
     end
-    if weight = attributes['font-weight']
+    if weight = properties.font_weight
       font_updated = true
       state.font_weight = Prawn::SVG::Font.weight_for_css_font_weight(weight)
     end
-    if style = attributes['font-style']
+    if style = properties.font_style
       font_updated = true
       state.font_style = style == 'italic' ? :italic : nil
     end
-    if (family = attributes['font-family']) && family.strip != ""
+    if (family = properties.font_family) && family.strip != ""
       font_updated = true
       state.font_family = family
     end
-    if (anchor = attributes['text-anchor'])
+    if anchor = properties.text_anchor
       state.text_anchor = anchor
     end
 

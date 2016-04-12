@@ -4,12 +4,13 @@ describe Prawn::SVG::Attributes::Font do
   class FontTestElement
     include Prawn::SVG::Attributes::Font
 
-    attr_accessor :attributes, :warnings, :state, :document
+    attr_accessor :properties, :warnings, :state, :document
 
     def initialize(document)
       @state = Prawn::SVG::State.new
       @document = document
       @warnings = []
+      @properties = Prawn::SVG::Properties.new
     end
   end
 
@@ -20,7 +21,7 @@ describe Prawn::SVG::Attributes::Font do
 
   before do
     allow(element).to receive(:document).and_return(document)
-    element.attributes = {"font-family" => family}
+    element.properties.font_family = family
   end
 
   describe "#parse_font_attributes_and_call" do

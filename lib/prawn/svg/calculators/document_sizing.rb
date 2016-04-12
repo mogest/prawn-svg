@@ -19,8 +19,8 @@ module Prawn::SVG::Calculators
     def set_from_attributes(attributes)
       @document_width = attributes['width']
       @document_height = attributes['height']
-      @view_box = attributes['viewBox'] || attributes['viewbox']
-      @preserve_aspect_ratio = attributes['preserveAspectRatio'] || attributes['preserveaspectratio'] || DEFAULT_ASPECT_RATIO
+      @view_box = attributes['viewBox']
+      @preserve_aspect_ratio = attributes['preserveAspectRatio'] || DEFAULT_ASPECT_RATIO
     end
 
     def calculate

@@ -4,11 +4,11 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
   end
 
   def apply_marker(element, point: nil, angle: 0)
-    return if element.state.display == 'none'
+    return if element.state.computed_properties.display == 'none'
 
     sizing = Prawn::SVG::Calculators::DocumentSizing.new([0, 0], attributes)
-    sizing.document_width = attributes["markerwidth"] || 3
-    sizing.document_height = attributes["markerheight"] || 3
+    sizing.document_width = attributes["markerWidth"] || 3
+    sizing.document_height = attributes["markerHeight"] || 3
     sizing.calculate
 
     if sizing.invalid?
@@ -32,18 +32,18 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       element.add_call_and_enter 'rotate', -angle, origin: [0, y('0')] if angle != 0
 
-      if attributes['markerunits'] != 'userSpaceOnUse'
+      if attributes['markerUnits'] != 'userSpaceOnUse'
         scale = element.state.stroke_width
         element.add_call 'transformation_matrix', scale, 0, 0, scale, 0, 0
       end
 
-      ref_x = document.distance(attributes['refx']) || 0
-      ref_y = document.distance(attributes['refy']) || 0
+      ref_x = document.distance(attributes['refX']) || 0
+      ref_y = document.distance(attributes['refY']) || 0
 
       element.add_call 'transformation_matrix', 1, 0, 0, 1, -ref_x * sizing.x_scale, ref_y * sizing.y_scale
 
       # `overflow: visible` must be on the <marker> element
-      if attributes['overflow'] != 'visible'
+      if properties.overflow != 'visible'
         point = [sizing.x_offset * sizing.x_scale, y(sizing.y_offset * sizing.y_scale)]
         element.add_call "rectangle", point, sizing.output_width, sizing.output_height
         element.add_call "clip"

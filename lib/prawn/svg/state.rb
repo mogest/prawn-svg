@@ -4,7 +4,8 @@ class Prawn::SVG::State
     :font_size, :font_weight, :font_style, :font_family, :font_subfamily,
     :text_anchor, :text_relative, :text_x_positions, :text_y_positions, :preserve_space,
     :fill_opacity, :stroke_opacity, :stroke_width,
-    :fill, :stroke
+    :fill, :stroke,
+    :computed_properties
 
   def initialize
     @fill = true
@@ -12,6 +13,11 @@ class Prawn::SVG::State
     @stroke_width = 1
     @fill_opacity = 1
     @stroke_opacity = 1
+    @computed_properties = Prawn::SVG::Properties.new.load_default_stylesheet
+  end
+
+  def initialize_dup(other)
+    @computed_properties = @computed_properties.dup
   end
 
   def enable_draw_type(type)

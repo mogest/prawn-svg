@@ -14,7 +14,7 @@ describe Prawn::SVG::Elements::Text do
         element.process
 
         expect(element.calls).to eq [
-          ["draw_text", ["some    text", {:style=>nil, :at=>[0.0, 150.0]}], []]
+          ["draw_text", ["some    text", {:style=>nil, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
         ]
       end
     end
@@ -26,7 +26,7 @@ describe Prawn::SVG::Elements::Text do
         element.process
 
         expect(element.calls).to eq [
-          ["draw_text", ["some text", {:style=>nil, :at=>[0.0, 150.0]}], []]
+          ["draw_text", ["some text", {:style=>nil, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
         ]
       end
     end
@@ -51,7 +51,7 @@ describe Prawn::SVG::Elements::Text do
         ["fill", [], [
           ["text_group", [], [
             ["character_spacing", [5.0], [
-              ["draw_text", ["spaced", {:style=>nil, :at=>[0.0, 150.0]}], []]
+              ["draw_text", ["spaced", {:style=>nil, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
             ]]
           ]]
         ]]

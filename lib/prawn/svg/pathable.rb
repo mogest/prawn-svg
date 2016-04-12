@@ -32,17 +32,17 @@ module Prawn::SVG::Pathable
   end
 
   def apply_markers
-    if marker = extract_element_from_url_id_reference(attributes['marker-start'], "marker")
+    if marker = extract_element_from_url_id_reference(properties.marker_start, "marker")
       marker.apply_marker(self, point: commands.first.destination, angle: angles.first)
     end
 
-    if marker = extract_element_from_url_id_reference(attributes['marker-mid'], "marker")
+    if marker = extract_element_from_url_id_reference(properties.marker_mid, "marker")
       (1..commands.length-2).each do |index|
         marker.apply_marker(self, point: commands[index].destination, angle: angles[index])
       end
     end
 
-    if marker = extract_element_from_url_id_reference(attributes['marker-end'], "marker")
+    if marker = extract_element_from_url_id_reference(properties.marker_end, "marker")
       marker.apply_marker(self, point: commands.last.destination, angle: angles.last)
     end
   end

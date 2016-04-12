@@ -20,7 +20,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
   end
 
   def apply
-    raise SkipElementQuietly if state.display == "none"
+    raise SkipElementQuietly if state.computed_properties.display == "none"
 
     add_call_and_enter "text_group" if name == 'text'
 
@@ -36,13 +36,11 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
 
     # This is not a prawn option but we can't work out how to render it here -
     # it's handled by SVG#rewrite_call_arguments
-    if (anchor = attributes['text-anchor'] || state.text_anchor) &&
-        ['start', 'middle', 'end'].include?(anchor)
-      opts[:text_anchor] = anchor
-    end
+    opts[:text_anchor] = state.computed_properties.text_anchor
 
-    if spacing = attributes['letter-spacing']
-      add_call_and_enter 'character_spacing', document.points(spacing)
+    if spacing = properties.letter_spacing
+      spacing = spacing == 'normal' ? 0 : document.points(spacing)
+      add_call_and_enter 'character_spacing', spacing
     end
 
     source.children.each do |child|
