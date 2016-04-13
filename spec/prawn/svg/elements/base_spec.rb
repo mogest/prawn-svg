@@ -68,50 +68,40 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
-  describe "#parse_fill_and_stroke_attributes_and_call" do
+  describe "#apply_colors" do
     before do
       element.send(:parse_attributes_and_properties)
     end
 
-    subject { element.send :parse_fill_and_stroke_attributes_and_call }
+    subject { element.send :apply_colors }
 
     it "doesn't change anything if no fill attribute provided" do
+      expect(element).to_not receive(:add_call)
       subject
-      expect(element.state.fill).to be true
-
-      element.state.fill = false
-      subject
-      expect(element.state.fill).to be false
     end
 
     it "doesn't change anything if 'inherit' fill attribute provided" do
       element.properties.fill = 'inherit'
+      expect(element).to_not receive(:add_call)
       subject
-      expect(element.state.fill).to be true
-
-      element.state.fill = false
-      subject
-      expect(element.state.fill).to be false
     end
 
-    it "turns off filling if 'none' fill attribute provided" do
+    it "doesn't change anything if 'none' fill attribute provided" do
       element.properties.fill = 'none'
+      expect(element).to_not receive(:add_call)
       subject
-      expect(element.state.fill).to be false
     end
 
     it "uses the fill attribute's color" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
       element.properties.fill = 'red'
       subject
-      expect(element.state.fill).to be true
     end
 
     it "uses black if the fill attribute's color is unparseable" do
       expect(element).to receive(:add_call).with('fill_color', '000000')
       element.properties.fill = 'blarble'
       subject
-      expect(element.state.fill).to be true
     end
 
     it "uses the color attribute if 'currentColor' fill attribute provided" do
@@ -119,7 +109,6 @@ describe Prawn::SVG::Elements::Base do
       element.properties.fill = 'currentColor'
       element.state.computed_properties.color = 'red'
       subject
-      expect(element.state.fill).to be true
     end
 
     context "with a color attribute defined on a parent element" do
@@ -135,10 +124,11 @@ describe Prawn::SVG::Elements::Base do
       end
     end
 
-    it "turns off filling if UnresolvableURLWithNoFallbackError is raised" do
+    it "computes to 'none' if UnresolvableURLWithNoFallbackError is raised" do
+      expect(element).to_not receive(:add_call)
       element.properties.fill = 'url()'
       subject
-      expect(element.state.fill).to be false
+      expect(element.computed_properties.fill).to eq 'none'
     end
   end
 end

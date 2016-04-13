@@ -6,6 +6,7 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::ClipPath
   include Prawn::SVG::Attributes::Stroke
 
+  PAINT_TYPES = %w(fill stroke)
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
 
   SkipElementQuietly = Class.new(StandardError)
@@ -107,13 +108,15 @@ class Prawn::SVG::Elements::Base
     parse_transform_attribute_and_call
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call
-    draw_types = parse_fill_and_stroke_attributes_and_call
+    apply_colors
     parse_stroke_attributes_and_call
-    apply_drawing_call(draw_types)
+    apply_drawing_call
   end
 
-  def apply_drawing_call(draw_types)
+  def apply_drawing_call
     if !state.disable_drawing && !container?
+      draw_types = PAINT_TYPES.select { |property| computed_properties.send(property) != 'none' }
+
       if draw_types.empty?
         add_call_and_enter("end_path")
       else
@@ -122,45 +125,37 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def parse_fill_and_stroke_attributes_and_call
-    ["fill", "stroke"].select do |type|
-      keyword = properties.send(type)
-      keyword = keyword.strip.downcase if keyword
+  def apply_colors
+    PAINT_TYPES.each do |type|
+      color = properties.send(type)
 
-      case keyword
-      when nil
-      when 'inherit'
-      when 'none'
-        state.disable_draw_type(type)
-      else
-        state.disable_draw_type(type)
+      next if [nil, 'inherit', 'none'].include?(color)
 
-        if keyword == 'currentcolor'
-          color = state.computed_properties.color
-        else
-          color = properties.send(type)
-        end
+      if color == 'currentColor'
+        color = computed_properties.color
+      end
 
-        results = Prawn::SVG::Color.parse(color, document.gradients)
+      results = Prawn::SVG::Color.parse(color, document.gradients)
 
-        results.each do |result|
-          case result
-          when Prawn::SVG::Color::Hex
-            state.enable_draw_type(type)
-            add_call "#{type}_color", result.value
-            break
-          when Prawn::SVG::Elements::Gradient
-            arguments = result.gradient_arguments(self)
-            if arguments
-              state.enable_draw_type(type)
-              add_call "#{type}_gradient", **arguments
-              break
-            end
+      success = results.detect do |result|
+        case result
+        when Prawn::SVG::Color::Hex
+          add_call "#{type}_color", result.value
+          true
+        when Prawn::SVG::Elements::Gradient
+          arguments = result.gradient_arguments(self)
+          if arguments
+            add_call "#{type}_gradient", **arguments
+            true
           end
         end
       end
 
-      state.draw_type(type)
+      # If we were unable to find a suitable color candidate,
+      # we turn off this type of paint.
+      if success.nil?
+        computed_properties.set(type, 'none')
+      end
     end
   end
 
