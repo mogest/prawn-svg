@@ -5,14 +5,16 @@
      viewBox="0 0 4000 2000" version="1.1"
      xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <g stroke="red" fill="cyan" stroke-dasharray="3 3" stroke-opacity="0.5">
       <marker id="Triangle"
         viewBox="0 0 20 20" refX="0" refY="5"
         markerUnits="strokeWidth"
         markerWidth="4" markerHeight="3"
+        stroke-width="4"
+        fill="blue"
         orient="auto">
         <path d="M 0 0 L 20 5 L 0 10 z" />
       </marker>
-    <g stroke="red" fill="none" stroke-dasharray="3 3" stroke-opacity="0.3">
     </g>
   </defs>
   <rect x="10" y="10" width="3980" height="1980" fill="none" stroke="blue" stroke-width="10" />

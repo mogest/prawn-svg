@@ -1,6 +1,7 @@
 module Prawn::SVG::Attributes::ClipPath
   def parse_clip_path_attribute_and_call
     return unless clip_path = properties.clip_path
+    return if clip_path == 'none'
 
     clip_path_element = extract_element_from_url_id_reference(clip_path, 'clipPath')
 

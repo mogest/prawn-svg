@@ -25,8 +25,10 @@ class Prawn::SVG::Elements::Base
     @parent_calls = parent_calls
     @state = state
     @base_calls = @calls = []
+    @attributes = {}
+    @properties = Prawn::SVG::Properties.new
 
-    if id = source.attributes["id"]
+    if source && id = source.attributes["id"]
       document.elements_by_id[id] = self
     end
   end
@@ -51,7 +53,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def name
-    @name ||= source.name
+    @name ||= source ? source.name : "???"
   end
 
   protected
@@ -78,6 +80,15 @@ class Prawn::SVG::Elements::Base
     @calls = @calls.last.last
   end
 
+  def push_call_position
+    @call_positions ||= []
+    @call_positions << @calls
+  end
+
+  def pop_call_position
+    @calls = @call_positions.pop
+  end
+
   def append_calls_to_parent
     @parent_calls.concat(@base_calls)
   end
@@ -93,12 +104,14 @@ class Prawn::SVG::Elements::Base
     @calls = old_calls
   end
 
-  def process_child_elements(xml_elements: source.elements, base_state: state)
-    xml_elements.each do |elem|
+  def process_child_elements
+    return unless source
+
+    source.elements.each do |elem|
       if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
         add_call "save"
 
-        child = element_class.new(@document, elem, @calls, base_state.dup)
+        child = element_class.new(@document, elem, @calls, state.dup)
         child.process
 
         add_call "restore"
@@ -186,9 +199,6 @@ class Prawn::SVG::Elements::Base
     else
       style = source.attributes['style'] || ""
     end
-
-    @attributes = {}
-    @properties = Prawn::SVG::Properties.new
 
     source.attributes.each do |name, value|
       # Properties#set returns nil if it's not a recognised property name

@@ -1,11 +1,14 @@
 class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
   def parse
-    raise SkipElementQuietly # we don't want anything pushed onto the call stack
+    properties.display = 'none'
+    computed_properties.display = 'none'
+  end
+
+  def container?
+    true
   end
 
   def apply_marker(element, point: nil, angle: 0)
-    return if element.state.computed_properties.display == 'none'
-
     sizing = Prawn::SVG::Calculators::DocumentSizing.new([0, 0], attributes)
     sizing.document_width = attributes["markerWidth"] || 3
     sizing.document_height = attributes["markerHeight"] || 3
@@ -30,6 +33,7 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
         angle = attributes['orient'].to_f # defaults to 0 if not specified
       end
 
+      element.push_call_position
       element.add_call_and_enter 'rotate', -angle, origin: [0, y('0')] if angle != 0
 
       if attributes['markerUnits'] != 'userSpaceOnUse'
@@ -51,13 +55,17 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       element.add_call 'transformation_matrix', sizing.x_scale, 0, 0, sizing.y_scale, 0, 0
 
-      element.add_call_and_enter 'fill'
-      element.add_call 'fill_color', '000000'
+      new_state = state.dup
+      new_state.computed_properties = computed_properties.dup
 
-      # TODO : process attributes on <marker> element (and ancestors???), not just its children
-      # but ignore 'display' attribute on marker
-      element.process_child_elements(xml_elements: source.elements, base_state: Prawn::SVG::State.new)
+      container = Prawn::SVG::Elements::Container.new(document, nil, [], new_state)
+      container.properties.compute_properties(new_state.computed_properties)
+      container.parse_and_apply
+      container.add_calls_from_element(self)
 
+      element.add_calls_from_element(container)
+
+      element.pop_call_position
       element.add_call 'restore'
     end
   end

@@ -29,8 +29,9 @@ RSpec.describe Prawn::SVG::Elements::Marker do
   end
 
   describe "#parse" do
-    it "skips" do
-      expect { subject.parse }.to raise_error Prawn::SVG::Elements::Base::SkipElementQuietly
+    it "forces display none" do
+      subject.parse
+      expect(subject.properties.display).to eq 'none'
     end
   end
 
@@ -63,8 +64,11 @@ RSpec.describe Prawn::SVG::Elements::Marker do
             ["rectangle", [[-0.5, 600.0], 4.0, 3.0], []],
             ["clip", [], []],
             ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], []],
-            ["fill", [], [
+            ["transparent", [1.0, 1.0], [
                 ["fill_color", ["000000"], []],
+                ["line_width", [100.0], []],
+                ["cap_style", [:butt], []],
+                ["undash", [], []],
                 ["save", [], []],
                 ["fill", [], [
                     ["join_style", [:bevel], []],
@@ -75,11 +79,11 @@ RSpec.describe Prawn::SVG::Elements::Marker do
                   ]
                 ],
                 ["restore", [], []],
-                ["restore", [], []]
               ]
             ]
           ]
-        ]
+        ],
+        ["restore", [], []]
       ]
     end
   end
