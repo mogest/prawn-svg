@@ -32,7 +32,11 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
-    parse_attributes_and_properties
+    extract_attributes_and_properties
+    parse_and_apply
+  end
+
+  def parse_and_apply
     parse
 
     apply_calls_from_standard_attributes
@@ -163,7 +167,7 @@ class Prawn::SVG::Elements::Base
     [[value, min_value].max, max_value].min
   end
 
-  def parse_attributes_and_properties
+  def extract_attributes_and_properties
     if @document && @document.css_parser
       tag_style = @document.css_parser.find_by_selector(source.name)
       id_style = @document.css_parser.find_by_selector("##{source.attributes["id"]}") if source.attributes["id"]

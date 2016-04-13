@@ -70,7 +70,7 @@ describe Prawn::SVG::Elements::Base do
 
   describe "#apply_colors" do
     before do
-      element.send(:parse_attributes_and_properties)
+      element.send(:extract_attributes_and_properties)
     end
 
     subject { element.send :apply_colors }
