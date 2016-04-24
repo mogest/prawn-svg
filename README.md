@@ -100,7 +100,7 @@ prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  I
 
 ## Not supported
 
-prawn-svg does not support external <tt>url()</tt> references for anything except image source, measurements in <tt>en</tt> or <tt>em</tt>, sub-viewports, radial gradients, or patterns.
+prawn-svg does not support sub-viewports, radial gradients, or patterns.
 
 ## Configuration
 
