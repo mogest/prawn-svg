@@ -60,8 +60,12 @@ module Prawn::SVG::Pathable
         angle = Math.atan2(command.destination[1] - last_point[1], command.destination[0] - last_point[0]) * 180.0 / Math::PI
         [angle, angle]
       when Curve
-        start = Math.atan2(command.point1[1] - last_point[1], command.point1[0] - last_point[0]) * 180.0 / Math::PI
-        stop = Math.atan2(command.destination[1] - command.point2[1], command.destination[0] - command.point2[0]) * 180.0 / Math::PI
+        point = select_non_equal_point(last_point, command.point1, command.point2, command.destination)
+        start = Math.atan2(point[1] - last_point[1], point[0] - last_point[0]) * 180.0 / Math::PI
+
+        point = select_non_equal_point(command.destination, command.point2, command.point1, last_point)
+        stop = Math.atan2(command.destination[1] - point[1], command.destination[0] - point[0]) * 180.0 / Math::PI
+
         [start, stop]
       else
         raise NotImplementedError, "Unknown path command type"
@@ -126,5 +130,17 @@ module Prawn::SVG::Pathable
 
   def translate(point)
     [point[0].to_f, document.sizing.output_height - point[1].to_f]
+  end
+
+  private
+
+  def select_non_equal_point(base, point_a, point_b, point_c)
+    if point_a != base
+      point_a
+    elsif point_b != base
+      point_b
+    else
+      point_c
+    end
   end
 end
