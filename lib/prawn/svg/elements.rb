@@ -13,6 +13,7 @@ module Prawn::SVG::Elements
     symbol: Prawn::SVG::Elements::Container,
     defs: Prawn::SVG::Elements::Container,
     clipPath: Prawn::SVG::Elements::Container,
+    switch: Prawn::SVG::Elements::Container,
     style: Prawn::SVG::Elements::Style,
     text: Prawn::SVG::Elements::Text,
     line: Prawn::SVG::Elements::Line,
@@ -29,6 +30,7 @@ module Prawn::SVG::Elements
     title: Prawn::SVG::Elements::Ignored,
     desc: Prawn::SVG::Elements::Ignored,
     metadata: Prawn::SVG::Elements::Ignored,
+    foreignObject: Prawn::SVG::Elements::Ignored,
     :"font-face" => Prawn::SVG::Elements::Ignored,
   }
 end
