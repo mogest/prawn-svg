@@ -74,8 +74,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;clipPath&gt;</tt>
 
- - `<marker>`, although style properties defined on the `<marker>` tag itself (and its ancestors) aren't
-   currently inherited into the marker due to a limitation in the design.
+ - `<marker>`
 
  - <tt>&lt;linearGradient&gt;</tt> is implemented but not currently working as we are waiting for a pull request to be accepted
    into Prawn. (gradientTransform, spreadMethod and stop-opacity are unimplemented.)
