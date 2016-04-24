@@ -91,4 +91,18 @@ describe Prawn::SVG::Interface do
       end
     end
   end
+
+  describe "#sizing and #resize" do
+    let(:interface) { Prawn::SVG::Interface.new(svg, prawn, {}) }
+
+    it "allows the advanced user to resize the SVG after learning about its dimensions" do
+      expect(interface.sizing.output_width).to eq 250
+      expect(interface.sizing.output_height).to eq 100
+
+      interface.resize(width: 500)
+
+      expect(interface.sizing.output_width).to eq 500
+      expect(interface.sizing.output_height).to eq 200
+    end
+  end
 end

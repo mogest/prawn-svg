@@ -54,6 +54,14 @@ module Prawn
         end
       end
 
+      def sizing
+        document.sizing
+      end
+
+      def resize(width: nil, height: nil)
+        document.calculate_sizing(requested_width: width, requested_height: height)
+      end
+
       def position
         @options[:at] || [x_based_on_requested_alignment, y_based_on_requested_alignment]
       end
