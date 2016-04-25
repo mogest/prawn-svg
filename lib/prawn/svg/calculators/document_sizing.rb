@@ -36,7 +36,6 @@ module Prawn::SVG::Calculators
       if @view_box
         values = @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
-        @x_offset = -@x_offset
 
         if @viewport_width > 0 && @viewport_height > 0
           @output_width ||= container_width
