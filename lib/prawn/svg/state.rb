@@ -1,6 +1,6 @@
 class Prawn::SVG::State
   attr_accessor :disable_drawing,
-    :text_relative, :text_x_positions, :text_y_positions, :preserve_space,
+    :text, :preserve_space,
     :fill_opacity, :stroke_opacity, :stroke_width,
     :computed_properties,
     :viewport_sizing

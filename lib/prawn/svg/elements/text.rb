@@ -1,4 +1,8 @@
 class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
+  attr_reader :text_state
+
+  TextState = Struct.new(:relative, :x_positions, :y_positions)
+
   def parse
     case attributes['xml:space']
     when 'preserve'
@@ -7,16 +11,17 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
       state.preserve_space = false
     end
 
-    @relative = state.text_relative || false
+    state.text ||= TextState.new(false)
+    @text_state = state.text
 
     if attributes['x'] || attributes['y']
-      @relative = false
-      @x_positions = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
-      @y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
+      text_state.relative = false
+      text_state.x_positions = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
+      text_state.y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
     end
 
-    @x_positions ||= state.text_x_positions || [x(0)]
-    @y_positions ||= state.text_y_positions || [y(0)]
+    text_state.x_positions ||= [x(0)]
+    text_state.y_positions ||= [y(0)]
   end
 
   def apply
@@ -77,17 +82,17 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
     text = child.value.strip.gsub(state.preserve_space ? /[\n\t]/ : /\s+/, " ")
 
     while text != ""
-      opts[:at] = [@x_positions.first, @y_positions.first]
+      opts[:at] = [text_state.x_positions.first, text_state.y_positions.first]
 
-      if @x_positions.length > 1 || @y_positions.length > 1
+      if text_state.x_positions.length > 1 || text_state.y_positions.length > 1
         add_call 'draw_text', text[0..0], opts.dup
         text = text[1..-1]
 
-        @x_positions.shift if @x_positions.length > 1
-        @y_positions.shift if @y_positions.length > 1
+        text_state.x_positions.shift if text_state.x_positions.length > 1
+        text_state.y_positions.shift if text_state.y_positions.length > 1
       else
-        add_call @relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
-        @relative = true
+        add_call text_state.relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
+        text_state.relative = true
         break
       end
     end
@@ -95,14 +100,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
 
   def process_tspan(child)
     add_call 'save'
-
-    new_state = state.dup
-    new_state.text_x_positions = @x_positions
-    new_state.text_y_positions = @y_positions
-    new_state.text_relative = @relative
-
-    Prawn::SVG::Elements::Text.new(document, child, calls, new_state).process
-
+    Prawn::SVG::Elements::Text.new(document, child, calls, state.dup).process
     add_call 'restore'
   end
 
