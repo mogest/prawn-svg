@@ -44,40 +44,16 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
 
     add_call_and_enter 'character_spacing', spacing
 
-    source.children.each do |child|
+    text_children.each do |child|
       if child.node_type == :text
-        text = child.value.strip.gsub(state.preserve_space ? /[\n\t]/ : /\s+/, " ")
-
-        while text != ""
-          opts[:at] = [@x_positions.first, @y_positions.first]
-
-          if @x_positions.length > 1 || @y_positions.length > 1
-            add_call 'draw_text', text[0..0], opts.dup
-            text = text[1..-1]
-
-            @x_positions.shift if @x_positions.length > 1
-            @y_positions.shift if @y_positions.length > 1
-          else
-            add_call @relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
-            @relative = true
-            break
-          end
-        end
-
-      elsif child.name == "tspan"
-        add_call 'save'
-
-        new_state = state.dup
-        new_state.text_x_positions = @x_positions
-        new_state.text_y_positions = @y_positions
-        new_state.text_relative = @relative
-
-        Prawn::SVG::Elements::Text.new(document, child, calls, new_state).process
-
-        add_call 'restore'
-
+        append_text(child, opts)
       else
-        warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
+        case child.name
+        when 'tspan', 'tref'
+          process_tspan(child)
+        else
+          warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
+        end
       end
     end
 
@@ -87,6 +63,57 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
   end
 
   private
+
+  def text_children
+    if name == 'tref'
+      reference = find_referenced_element
+      reference ? reference.source.children : []
+    else
+      source.children
+    end
+  end
+
+  def append_text(child, opts)
+    text = child.value.strip.gsub(state.preserve_space ? /[\n\t]/ : /\s+/, " ")
+
+    while text != ""
+      opts[:at] = [@x_positions.first, @y_positions.first]
+
+      if @x_positions.length > 1 || @y_positions.length > 1
+        add_call 'draw_text', text[0..0], opts.dup
+        text = text[1..-1]
+
+        @x_positions.shift if @x_positions.length > 1
+        @y_positions.shift if @y_positions.length > 1
+      else
+        add_call @relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
+        @relative = true
+        break
+      end
+    end
+  end
+
+  def process_tspan(child)
+    add_call 'save'
+
+    new_state = state.dup
+    new_state.text_x_positions = @x_positions
+    new_state.text_y_positions = @y_positions
+    new_state.text_relative = @relative
+
+    Prawn::SVG::Elements::Text.new(document, child, calls, new_state).process
+
+    add_call 'restore'
+  end
+
+  def find_referenced_element
+    href = attributes['xlink:href']
+
+    if href && href[0..0] == '#'
+      element = document.elements_by_id[href[1..-1]]
+      element if element.name == 'text'
+    end
+  end
 
   def select_font
     font_families = [computed_properties.font_family, document.fallback_font_name]

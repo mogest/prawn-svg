@@ -90,4 +90,20 @@ describe Prawn::SVG::Elements::Text do
       end
     end
   end
+
+  describe "<tref>" do
+    let(:svg) { '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><defs><text id="ref" fill="green">my reference text</text></defs><text x="10"><tref xlink:href="#ref" fill="red" /></text></svg>' }
+    let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, [], fake_state) }
+
+    it "references the text" do
+      element.process
+      expect(flatten_calls(element.base_calls)[11..15]).to eq [
+        ["fill_color", ["ff0000"]],
+        ["fill", []],
+        ["font", ["Helvetica", {:style=>:normal}]],
+        ["character_spacing", [0]],
+        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, 150.0]}]],
+      ]
+    end
+  end
 end
