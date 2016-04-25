@@ -2,10 +2,10 @@ class Prawn::SVG::Elements::Line < Prawn::SVG::Elements::Base
   include Prawn::SVG::Pathable
 
   def parse
-    @x1 = points(attributes['x1'] || '0', :x)
-    @y1 = points(attributes['y1'] || '0', :y)
-    @x2 = points(attributes['x2'] || '0', :x)
-    @y2 = points(attributes['y2'] || '0', :y)
+    @x1 = x_pixels(attributes['x1'] || 0)
+    @y1 = y_pixels(attributes['y1'] || 0)
+    @x2 = x_pixels(attributes['x2'] || 0)
+    @y2 = y_pixels(attributes['y2'] || 0)
   end
 
   def apply

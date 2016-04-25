@@ -43,26 +43,8 @@ class Prawn::SVG::Document
     sizing.requested_height = options[:height]
     sizing.calculate
 
-    @axis_to_size = {:x => sizing.viewport_width, :y => sizing.viewport_height}
-
     @css_parser = CssParser::Parser.new
 
     yield self if block_given?
-  end
-
-  def x(value)
-    points(value, :x)
-  end
-
-  def y(value)
-    sizing.output_height - points(value, :y)
-  end
-
-  def distance(value, axis = nil)
-    value && points(value, axis)
-  end
-
-  def points(value, axis = nil)
-    Prawn::SVG::Calculators::Pixels.to_pixels(value, @axis_to_size.fetch(axis, sizing.viewport_diagonal))
   end
 end

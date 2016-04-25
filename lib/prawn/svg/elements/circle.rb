@@ -6,7 +6,7 @@ class Prawn::SVG::Elements::Circle < Prawn::SVG::Elements::Base
 
     @x = x(attributes['cx'] || "0")
     @y = y(attributes['cy'] || "0")
-    @r = distance(attributes['r'])
+    @r = pixels(attributes['r'])
 
     require_positive_value @r
   end

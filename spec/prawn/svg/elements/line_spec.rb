@@ -4,7 +4,7 @@ RSpec.describe Prawn::SVG::Elements::Line do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {width: 800, height: 600}) }
 
   subject do
-    Prawn::SVG::Elements::Line.new(document, document.root, [], Prawn::SVG::State.new)
+    Prawn::SVG::Elements::Line.new(document, document.root, [], fake_state)
   end
 
   context "with attributes specified" do

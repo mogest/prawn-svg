@@ -6,7 +6,7 @@ module Prawn::SVG::Attributes::Transform
       case name
       when 'translate'
         x, y = arguments
-        add_call_and_enter name, distance(x.to_f, :x), -distance(y.to_f, :y)
+        add_call_and_enter name, x_pixels(x.to_f), -y_pixels(y.to_f)
 
       when 'rotate'
         r, x, y = arguments.collect {|a| a.to_f}
@@ -29,7 +29,7 @@ module Prawn::SVG::Attributes::Transform
           warnings << "transform 'matrix' must have six arguments"
         else
           a, b, c, d, e, f = arguments.collect {|argument| argument.to_f}
-          add_call_and_enter "transformation_matrix", a, -b, -c, d, distance(e, :x), -distance(f, :y)
+          add_call_and_enter "transformation_matrix", a, -b, -c, d, x_pixels(e), -y_pixels(f)
         end
 
       else

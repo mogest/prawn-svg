@@ -41,8 +41,8 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
         element.add_call 'transformation_matrix', scale, 0, 0, scale, 0, 0
       end
 
-      ref_x = document.distance(attributes['refX']) || 0
-      ref_y = document.distance(attributes['refY']) || 0
+      ref_x = x_pixels(attributes['refX']) || 0
+      ref_y = y_pixels(attributes['refY']) || 0
 
       element.add_call 'transformation_matrix', 1, 0, 0, 1, -ref_x * sizing.x_scale, ref_y * sizing.y_scale
 

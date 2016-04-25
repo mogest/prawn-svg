@@ -4,12 +4,12 @@ class Prawn::SVG::Elements::Rect < Prawn::SVG::Elements::Base
 
     @x = x(attributes['x'] || '0')
     @y = y(attributes['y'] || '0')
-    @width = distance(attributes['width'], :x)
-    @height = distance(attributes['height'], :y)
+    @width = x_pixels(attributes['width'])
+    @height = y_pixels(attributes['height'])
 
     require_positive_value @width, @height
 
-    @radius = distance(attributes['rx'] || attributes['ry'])
+    @radius = x_pixels(attributes['rx']) || y_pixels(attributes['ry'])
     if @radius
       # If you implement separate rx and ry in the future, you'll want to change this
       # so that rx is constrained to @width/2 and ry is constrained to @height/2.

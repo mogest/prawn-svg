@@ -3,6 +3,10 @@ class Prawn::SVG::Elements::Root < Prawn::SVG::Elements::Base
     super
   end
 
+  def parse
+    state.viewport_sizing = @document.sizing
+  end
+
   def apply
     add_call 'fill_color', '000000'
     add_call 'transformation_matrix', @document.sizing.x_scale, 0, 0, @document.sizing.y_scale, 0, 0

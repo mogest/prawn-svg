@@ -6,8 +6,8 @@ class Prawn::SVG::Elements::Ellipse < Prawn::SVG::Elements::Base
 
     @x = x(attributes['cx'] || "0")
     @y = y(attributes['cy'] || "0")
-    @rx = distance(attributes['rx'], :x)
-    @ry = distance(attributes['ry'], :y)
+    @rx = x_pixels(attributes['rx'])
+    @ry = y_pixels(attributes['ry'])
 
     require_positive_value @rx, @ry
   end

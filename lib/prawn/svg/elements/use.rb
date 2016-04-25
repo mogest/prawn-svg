@@ -21,7 +21,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def apply
     if @x || @y
-      add_call_and_enter "translate", distance(@x || 0, :x), -distance(@y || 0, :y)
+      add_call_and_enter "translate", x_pixels(@x || 0), -y_pixels(@y || 0)
     end
 
     add_calls_from_element @definition_element

@@ -3,7 +3,7 @@ module Prawn::SVG::Attributes::Stroke
 
   def parse_stroke_attributes_and_call
     if width_string = properties.stroke_width
-      width = distance(width_string)
+      width = pixels(width_string)
       state.stroke_width = width
       add_call('line_width', width)
     end
@@ -21,7 +21,7 @@ module Prawn::SVG::Attributes::Stroke
       else
         array = dasharray.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
         array *= 2 if array.length % 2 == 1
-        number_array = array.map {|value| distance(value)}
+        number_array = array.map {|value| pixels(value)}
 
         if number_array.any? {|number| number < 0}
           @document.warnings << "stroke-dasharray cannot have negative numbers; treating as 'none'"

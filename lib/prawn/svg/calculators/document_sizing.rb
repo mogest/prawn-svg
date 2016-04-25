@@ -30,8 +30,8 @@ module Prawn::SVG::Calculators
       container_width = @requested_width || @bounds[0]
       container_height = @requested_height || @bounds[1]
 
-      @output_width = Pixels.to_pixels(@document_width || @requested_width, container_width)
-      @output_height = Pixels.to_pixels(@document_height || @requested_height, container_height)
+      @output_width = Pixels::Measurement.to_pixels(@document_width || @requested_width, container_width)
+      @output_height = Pixels::Measurement.to_pixels(@document_height || @requested_height, container_height)
 
       if @view_box
         values = @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
@@ -49,8 +49,8 @@ module Prawn::SVG::Calculators
           @y_offset -= aspect.y / @y_scale
         end
       else
-        @output_width ||= Pixels.to_pixels(DEFAULT_WIDTH, container_width)
-        @output_height ||= Pixels.to_pixels(DEFAULT_HEIGHT, container_height)
+        @output_width ||= Pixels::Measurement.to_pixels(DEFAULT_WIDTH, container_width)
+        @output_height ||= Pixels::Measurement.to_pixels(DEFAULT_HEIGHT, container_height)
 
         @viewport_width = @output_width
         @viewport_height = @output_height

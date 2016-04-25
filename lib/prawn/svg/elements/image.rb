@@ -22,8 +22,8 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
     x = x(attributes['x'] || 0)
     y = y(attributes['y'] || 0)
-    width = distance(attributes['width'])
-    height = distance(attributes['height'])
+    width = x_pixels(attributes['width'])
+    height = y_pixels(attributes['height'])
 
     raise SkipElementQuietly if width.zero? || height.zero?
     require_positive_value width, height

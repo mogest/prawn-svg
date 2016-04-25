@@ -20,8 +20,8 @@ describe Prawn::SVG::Attributes::Transform do
     describe "translate" do
       it "handles a missing y argument" do
         expect(element).to receive(:add_call_and_enter).with('translate', -5.5, 0)
-        expect(element).to receive(:distance).with(-5.5, :x).and_return(-5.5)
-        expect(element).to receive(:distance).with(0.0, :y).and_return(0.0)
+        expect(element).to receive(:x_pixels).with(-5.5).and_return(-5.5)
+        expect(element).to receive(:y_pixels).with(0.0).and_return(0.0)
 
         element.attributes['transform'] = 'translate(-5.5)'
         subject

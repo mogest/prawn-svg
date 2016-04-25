@@ -18,6 +18,12 @@ module Support
       add.call element.base_calls
     end
   end
+
+  def fake_state
+    state = Prawn::SVG::State.new
+    state.viewport_sizing = document.sizing if defined?(document)
+    state
+  end
 end
 
 RSpec.configure do |config|

@@ -4,7 +4,7 @@ describe Prawn::SVG::Elements::Base do
   let(:svg) { "<svg></svg>" }
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}, font_registry: Prawn::SVG::FontRegistry.new("Helvetica" => {:normal => nil})) }
   let(:parent_calls) { [] }
-  let(:element) { Prawn::SVG::Elements::Base.new(document, document.root, parent_calls, Prawn::SVG::State.new) }
+  let(:element) { Prawn::SVG::Elements::Base.new(document, document.root, parent_calls, fake_state) }
 
   describe "#initialize" do
     let(:svg) { '<something id="hello"/>' }

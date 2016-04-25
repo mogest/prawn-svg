@@ -1,6 +1,8 @@
 class Prawn::SVG::Elements::Base
   extend Forwardable
 
+  include Prawn::SVG::Calculators::Pixels
+
   include Prawn::SVG::Attributes::Transform
   include Prawn::SVG::Attributes::Opacity
   include Prawn::SVG::Attributes::ClipPath
@@ -16,7 +18,7 @@ class Prawn::SVG::Elements::Base
   attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes, :properties
   attr_accessor :calls
 
-  def_delegators :@document, :x, :y, :distance, :points, :warnings
+  def_delegators :@document, :warnings
   def_delegator :@state, :computed_properties
 
   def initialize(document, source, parent_calls, state)

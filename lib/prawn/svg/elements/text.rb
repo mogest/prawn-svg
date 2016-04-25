@@ -11,12 +11,12 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
 
     if attributes['x'] || attributes['y']
       @relative = false
-      @x_positions = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| document.x(n)} if attributes['x']
-      @y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| document.y(n)} if attributes['y']
+      @x_positions = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
+      @y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
     end
 
-    @x_positions ||= state.text_x_positions || [document.x(0)]
-    @y_positions ||= state.text_y_positions || [document.y(0)]
+    @x_positions ||= state.text_x_positions || [x(0)]
+    @y_positions ||= state.text_y_positions || [y(0)]
   end
 
   def apply
@@ -28,7 +28,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
     add_call_and_enter "text_group" if name == 'text'
 
     if attributes['dx'] || attributes['dy']
-      add_call_and_enter "translate", document.distance(attributes['dx'] || 0), -document.distance(attributes['dy'] || 0)
+      add_call_and_enter "translate", x_pixels(attributes['dx'] || 0), -y_pixels(attributes['dy'] || 0)
     end
 
     # text_anchor isn't a Prawn option; we have to do some math to support it
@@ -40,7 +40,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
     }
 
     spacing = computed_properties.letter_spacing
-    spacing = spacing == 'normal' ? 0 : document.points(spacing)
+    spacing = spacing == 'normal' ? 0 : pixels(spacing)
 
     add_call_and_enter 'character_spacing', spacing
 

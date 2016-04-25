@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Prawn::SVG::Elements::Gradient do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {width: 800, height: 600}) }
-  let(:element)  { Prawn::SVG::Elements::Gradient.new(document, document.root, [], Prawn::SVG::State.new) }
+  let(:element)  { Prawn::SVG::Elements::Gradient.new(document, document.root, [], fake_state) }
 
   before do
     allow(element).to receive(:assert_compatible_prawn_version)

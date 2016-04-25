@@ -28,6 +28,10 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     Prawn::SVG::Elements::Marker.new(document, document.root.elements[1], [], state)
   end
 
+  before do
+    state.viewport_sizing = document.sizing
+  end
+
   describe "#parse" do
     it "forces display none" do
       subject.parse
