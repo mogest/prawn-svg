@@ -60,8 +60,8 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - <tt>&lt;path&gt;</tt> supports all commands defined in SVG 1.1, although the
    implementation of elliptical arc is a bit rough at the moment.
 
- - `<text>`, `<tspan>` and `<tref>` with attributes
-   <tt>text-anchor</tt>, <tt>font-size</tt>, <tt>font-family</tt>, <tt>font-weight</tt>, <tt>font-style</tt>, <tt>letter-spacing</tt>, <tt>dx</tt>, <tt>dy</tt>
+ - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, and with extra properties
+   `text-anchor`, `font-size`, `font-family`, `font-weight`, `font-style`, `letter-spacing`
 
  - <tt>&lt;svg&gt;</tt>, <tt>&lt;g&gt;</tt> and <tt>&lt;symbol&gt;</tt>
 

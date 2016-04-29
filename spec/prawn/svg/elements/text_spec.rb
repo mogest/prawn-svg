@@ -151,4 +151,32 @@ Even more
       ]
     end
   end
+
+  describe "rotate attribute" do
+    let(:svg) { '<text rotate="10 20 30 40 50 60 70 80 90 100">Hi <tspan rotate="0">this</tspan> ok!</text>' }
+
+    it "correctly calculates the positinos of the text" do
+      element.process
+
+      expect(flatten_calls(element.base_calls)).to eq [
+        ["text_group", []],
+        ["fill", []],
+        ["font", ["Helvetica", {:style=>:normal}]],
+        ["character_spacing", [0]],
+        ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-10.0}]],
+        ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-20.0}]],
+        ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-30.0}]],
+        ["save", []],
+        ["fill", []],
+        ["font", ["Helvetica", {:style=>:normal}]],
+        ["character_spacing", [0]],
+        ["draw_text", ["this", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0]}]],
+        ["restore", []],
+        ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-80.0}]],
+        ["draw_text", ["o", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-90.0}]],
+        ["draw_text", ["k", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}]],
+        ["draw_text", ["!", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}]]
+      ]
+    end
+  end
 end

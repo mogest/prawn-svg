@@ -2,13 +2,14 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   attr_reader :commands, :text_state
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
-  PositionsList = Struct.new(:x, :y, :dx, :dy, :parent)
+  PositionsList = Struct.new(:x, :y, :dx, :dy, :rotation, :parent)
 
   def parse
     state.text.x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
     state.text.y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
     state.text.dx = attributes['dx'].split(COMMA_WSP_REGEXP).collect {|n| x_pixels(n)} if attributes['dx']
     state.text.dy = attributes['dy'].split(COMMA_WSP_REGEXP).collect {|n| y_pixels(n)} if attributes['dy']
+    state.text.rotation = attributes['rotate'].split(COMMA_WSP_REGEXP).collect(&:to_f) if attributes['rotate']
 
     @commands = []
 
@@ -80,7 +81,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def append_child(child)
     new_state = state.dup
-    new_state.text = PositionsList.new([], [], [], [], state.text)
+    new_state.text = PositionsList.new([], [], [], [], [], state.text)
 
     element = self.class.new(document, child, calls, new_state)
     @commands << element
@@ -89,8 +90,8 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def apply_text(text, opts)
     while text != ""
-      x = y = dx = dy = nil
-      remaining = false
+      x = y = dx = dy = rotate = nil
+      remaining = rotation_remaining = false
 
       list = state.text
       while list
@@ -103,18 +104,45 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
         shifted = list.dy.shift
         dy ||= shifted
 
-        remaining ||= list.x.any? || list.y.any? || list.dx.any? || list.dy.any?
+        shifted = list.rotation.length > 1 ? list.rotation.shift : list.rotation.first
+        if shifted && rotate.nil?
+          rotate = shifted
+          remaining ||= list.rotation != [0]
+        end
+
+        remaining ||= list.x.any? || list.y.any? || list.dx.any? || list.dy.any? || (rotate && rotate != 0)
+        rotation_remaining ||= list.rotation.length > 1
         list = list.parent
       end
 
       opts[:at] = [x || :relative, y || :relative]
       opts[:offset] = [dx || 0, dy || 0]
 
+      if rotate && rotate != 0
+        opts[:rotate] = -rotate
+      else
+        opts.delete(:rotate)
+      end
+
       if remaining
         add_call 'draw_text', text[0..0], opts.dup
         text = text[1..-1]
       else
         add_call 'draw_text', text, opts.dup
+
+        # we can get to this path with rotations still pending
+        # solve this by shifting them out by the number of
+        # characters we've just drawn
+        shift = text.length - 1
+        if rotation_remaining && shift > 0
+          list = state.text
+          while list
+            count = [shift, list.rotation.length - 1].min
+            list.rotation.shift(count) if count > 0
+            list = list.parent
+          end
+        end
+
         break
       end
     end
