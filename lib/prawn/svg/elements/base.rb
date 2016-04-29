@@ -7,6 +7,7 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::Opacity
   include Prawn::SVG::Attributes::ClipPath
   include Prawn::SVG::Attributes::Stroke
+  include Prawn::SVG::Attributes::Space
 
   PAINT_TYPES = %w(fill stroke)
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
@@ -124,6 +125,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def apply_calls_from_standard_attributes
+    parse_xml_space_attribute
     parse_transform_attribute_and_call
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call

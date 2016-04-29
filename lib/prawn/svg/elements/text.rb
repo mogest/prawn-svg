@@ -4,12 +4,6 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
   TextState = Struct.new(:relative, :x_positions, :y_positions)
 
   def parse
-    case attributes['xml:space']
-    when 'preserve'
-      state.preserve_space = true
-    when 'default'
-      state.preserve_space = false
-    end
 
     state.text ||= TextState.new(false)
     @text_state = state.text
