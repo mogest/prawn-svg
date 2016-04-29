@@ -13,7 +13,7 @@ describe Prawn::SVG::Elements::Text do
       it "converts newlines and tabs to spaces, and preserves spaces" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]]
       end
     end
 
@@ -23,7 +23,7 @@ describe Prawn::SVG::Elements::Text do
       it "strips space" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]]
       end
     end
   end
@@ -65,7 +65,7 @@ Even more
 
     it "should inherit text-anchor from parent element" do
       element.process
-      expect(element.calls.flatten).to include(:size => 12.0, :style => :normal, :text_anchor => "middle", :at => [50.0, 136.0])
+      expect(element.calls.flatten).to include(:size => 12.0, :style => :normal, :text_anchor => "middle", :at => [50.0, 136.0], :offset => [0,0])
     end
   end
 
@@ -80,7 +80,7 @@ Even more
           ["fill", [], [
             ["font", ["Helvetica", {style: :normal}], []],
             ["character_spacing", [5.0], [
-              ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}], []]
+              ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}], []]
             ]]
           ]]
         ]]
@@ -129,7 +129,25 @@ Even more
         ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
         ["character_spacing", [0]],
-        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative]}]],
+        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[0,0]}]],
+      ]
+    end
+  end
+
+  describe "dx and dy attributes" do
+    let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
+
+    it "correctly calculates the positinos of the text" do
+      element.process
+
+      expect(flatten_calls(element.base_calls)).to eq [
+        ["text_group", []],
+        ["fill", []],
+        ["font", ["Helvetica", {:style=>:normal}]],
+        ["character_spacing", [0]],
+        ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[30.0, 2.0]}]],
+        ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[20.0, :relative], :offset=>[50.0, 0]}]],
+        ["draw_text", [" there, this is a good test", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[80.0, 0]}]]
       ]
     end
   end

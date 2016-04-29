@@ -2,11 +2,13 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   attr_reader :commands, :text_state
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
-  PositionsList = Struct.new(:x, :y, :parent)
+  PositionsList = Struct.new(:x, :y, :dx, :dy, :parent)
 
   def parse
     state.text.x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
     state.text.y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
+    state.text.dx = attributes['dx'].split(COMMA_WSP_REGEXP).collect {|n| x_pixels(n)} if attributes['dx']
+    state.text.dy = attributes['dy'].split(COMMA_WSP_REGEXP).collect {|n| y_pixels(n)} if attributes['dy']
 
     @commands = []
 
@@ -29,10 +31,6 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
     font = select_font
     apply_font(font) if font
-
-    if attributes['dx'] || attributes['dy']
-      add_call_and_enter "translate", x_pixels(attributes['dx'] || 0), -y_pixels(attributes['dy'] || 0)
-    end
 
     # text_anchor isn't a Prawn option; we have to do some math to support it
     # and so we handle this in Prawn::SVG::Interface#rewrite_call_arguments
@@ -82,7 +80,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def append_child(child)
     new_state = state.dup
-    new_state.text = PositionsList.new([], [], state.text)
+    new_state.text = PositionsList.new([], [], [], [], state.text)
 
     element = self.class.new(document, child, calls, new_state)
     @commands << element
@@ -91,26 +89,26 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def apply_text(text, opts)
     while text != ""
-      x = y = nil
+      x = y = dx = dy = nil
       remaining = false
 
       list = state.text
       while list
         shifted = list.x.shift
         x ||= shifted
-        remaining ||= list.x.any?
-        list = list.parent
-      end
-
-      list = state.text
-      while list
         shifted = list.y.shift
         y ||= shifted
-        remaining ||= list.y.any?
+        shifted = list.dx.shift
+        dx ||= shifted
+        shifted = list.dy.shift
+        dy ||= shifted
+
+        remaining ||= list.x.any? || list.y.any? || list.dx.any? || list.dy.any?
         list = list.parent
       end
 
       opts[:at] = [x || :relative, y || :relative]
+      opts[:offset] = [dx || 0, dy || 0]
 
       if remaining
         add_call 'draw_text', text[0..0], opts.dup

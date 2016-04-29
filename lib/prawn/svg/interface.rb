@@ -131,6 +131,11 @@ module Prawn
           at[0] = @cursor[0] if at[0] == :relative
           at[1] = @cursor[1] if at[1] == :relative
 
+          if offset = options.delete(:offset)
+            at[0] += offset[0]
+            at[1] -= offset[1]
+          end
+
           width = prawn.width_of(text, options.merge(kerning: true))
 
           case options.delete(:text_anchor)
