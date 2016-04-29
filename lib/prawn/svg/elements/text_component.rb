@@ -1,5 +1,5 @@
 class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
-  attr_reader :commands, :text_state
+  attr_reader :commands
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
   PositionsList = Struct.new(:x, :y, :dx, :dy, :rotation, :parent)
