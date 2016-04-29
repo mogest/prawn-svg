@@ -120,24 +120,29 @@ module Prawn
       def rewrite_call_arguments(prawn, call, arguments)
         case call
         when 'text_group'
-          @relative_text_position = nil
+          @cursor = [0, document.sizing.output_height]
           yield
 
         when 'draw_text'
           text, options = arguments
 
-          if options.delete(:relative)
-            options[:at][0] = @relative_text_position if @relative_text_position
+          at = options.fetch(:at)
+
+          at[0] = @cursor[0] if at[0] == :relative
+          at[1] = @cursor[1] if at[1] == :relative
+
+          width = prawn.width_of(text, options.merge(kerning: true))
+
+          case options.delete(:text_anchor)
+          when 'middle'
+            at[0] -= width / 2
+            @cursor = [at[0] + width / 2, at[1]]
+          when 'end'
+            at[0] -= width
+            @cursor = at.dup
+          else
+            @cursor = [at[0] + width, at[1]]
           end
-
-          width = prawn.width_of(text, options.merge(:kerning => true))
-
-          if (anchor = options.delete(:text_anchor)) && %w(middle end).include?(anchor)
-            width /= 2 if anchor == 'middle'
-            options[:at][0] -= width
-          end
-
-          @relative_text_position = options[:at][0] + width
 
         when 'transformation_matrix'
           left = prawn.bounds.absolute_left

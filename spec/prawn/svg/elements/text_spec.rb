@@ -13,7 +13,7 @@ describe Prawn::SVG::Elements::Text do
       it "converts newlines and tabs to spaces, and preserves spaces" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}]]
       end
     end
 
@@ -23,7 +23,7 @@ describe Prawn::SVG::Elements::Text do
       it "strips space" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}]]
       end
     end
   end
@@ -80,7 +80,7 @@ Even more
           ["fill", [], [
             ["font", ["Helvetica", {style: :normal}], []],
             ["character_spacing", [5.0], [
-              ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
+              ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative]}], []]
             ]]
           ]]
         ]]
@@ -129,7 +129,7 @@ Even more
         ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
         ["character_spacing", [0]],
-        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, 150.0]}]],
+        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative]}]],
       ]
     end
   end

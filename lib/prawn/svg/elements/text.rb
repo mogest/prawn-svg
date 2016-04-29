@@ -1,8 +1,6 @@
 class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
-  TextState = Struct.new(:relative, :x_positions, :y_positions)
-
   def parse
-    state.text = TextState.new(false)
+    state.text = Prawn::SVG::Elements::TextComponent::PositionsList.new([], [], nil)
 
     @text_root = Prawn::SVG::Elements::TextComponent.new(document, source, nil, state.dup)
     @text_root.parse_step
@@ -19,6 +17,11 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
 
   def drawable?
     false
+  end
+
+  def apply_calls_from_standard_attributes
+    # overridden because we want the attributes to be applied in the TextComponent root,
+    # which is a duplicate of this element.
   end
 
   def reintroduce_trailing_and_leading_whitespace

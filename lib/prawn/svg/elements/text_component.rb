@@ -2,10 +2,11 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   attr_reader :commands, :text_state
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
+  PositionsList = Struct.new(:x, :y, :parent)
 
   def parse
-    @x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
-    @y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
+    state.text.x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
+    state.text.y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
 
     @commands = []
 
@@ -25,17 +26,6 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def apply
     raise SkipElementQuietly if computed_properties.display == "none"
-
-    @text_state = state.text
-
-    if @x || @y
-      text_state.relative = false
-      text_state.x_positions = @x if @x
-      text_state.y_positions = @y if @y
-    end
-
-    text_state.x_positions ||= [x(0)]
-    text_state.y_positions ||= [y(0)]
 
     font = select_font
     apply_font(font) if font
@@ -91,31 +81,42 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   def append_child(child)
-    element = self.class.new(document, child, calls, state.dup)
+    new_state = state.dup
+    new_state.text = PositionsList.new([], [], state.text)
+
+    element = self.class.new(document, child, calls, new_state)
     @commands << element
     element.parse_step
   end
 
   def apply_text(text, opts)
     while text != ""
-      opts[:at] = [text_state.x_positions.first, text_state.y_positions.first]
+      x = y = nil
+      remaining = false
 
-      multiple_x_positions = text_state.x_positions.length > 1
-      multiple_y_positions = text_state.y_positions.length > 1
-      multiple_positions   = multiple_x_positions || multiple_y_positions
+      list = state.text
+      while list
+        shifted = list.x.shift
+        x ||= shifted
+        remaining ||= list.x.any?
+        list = list.parent
+      end
 
-      opts[:relative] = true if text_state.relative
-      text_state.relative = !multiple_positions
+      list = state.text
+      while list
+        shifted = list.y.shift
+        y ||= shifted
+        remaining ||= list.y.any?
+        list = list.parent
+      end
 
-      if multiple_positions
+      opts[:at] = [x || :relative, y || :relative]
+
+      if remaining
         add_call 'draw_text', text[0..0], opts.dup
         text = text[1..-1]
-
-        text_state.x_positions.shift if multiple_x_positions
-        text_state.y_positions.shift if multiple_y_positions
       else
         add_call 'draw_text', text, opts.dup
-        text_state.relative = true
         break
       end
     end
