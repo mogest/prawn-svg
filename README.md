@@ -67,7 +67,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;use&gt;</tt>
 
- - <tt>&lt;style&gt;</tt> plus <tt>id</tt>, <tt>class</tt> and <tt>style</tt> attributes (see CSS section below)
+ - <tt>&lt;style&gt;</tt> (see CSS section below)
 
  - <tt>&lt;image&gt;</tt> with <tt>http:</tt>, <tt>https:</tt>, <tt>data:image/\*;base64</tt> and `file:` schemes
    (`file:` is disabled by default for security reasons, see Options section above)
@@ -82,19 +82,23 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
 
- - attributes/styles: <tt>fill</tt>, <tt>stroke</tt>, <tt>stroke-width</tt>, <tt>stroke-linecap</tt>, <tt>stroke-dasharray</tt>, <tt>opacity</tt>, <tt>fill-opacity</tt>, <tt>stroke-opacity</tt>, <tt>transform</tt>, <tt>clip-path</tt>, <tt>display</tt>, `marker-start`, `marker-mid`, `marker-end`
+ - properties: `clip-path`, `color`, `display`, `fill-opacity`, `fill`, `opacity`, `overflow`, `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-opacity`, `stroke-width`
 
- - the <tt>viewBox</tt> attribute on <tt>&lt;svg&gt;</tt> and `<marker>` tags
+ - properties on lines, polylines, polygons and paths: `marker-end`, `marker-mid`, `marker-start`
 
- - the <tt>preserveAspectRatio</tt> attribute on <tt>&lt;svg&gt;</tt>, <tt>&lt;image&gt;</tt> and `<marker>` tags
+ - attributes on all elements: `class`, `id`, `style`, `transform`, `xml:space`
 
- - transform methods: <tt>translate</tt>, <tt>rotate</tt>, <tt>scale</tt>, <tt>matrix</tt>
+ - the <tt>viewBox</tt> attribute on <tt>&lt;svg&gt;</tt> and `<marker>` elements
+
+ - the <tt>preserveAspectRatio</tt> attribute on <tt>&lt;svg&gt;</tt>, <tt>&lt;image&gt;</tt> and `<marker>` elements
+
+ - transform methods: <tt>translate()</tt>, <tt>rotate()</tt>, <tt>scale()</tt>, <tt>matrix()</tt>
 
  - colors: HTML standard names, <tt>#xxx</tt>, <tt>#xxxxxx</tt>, <tt>rgb(1, 2, 3)</tt>, <tt>rgb(1%, 2%, 3%)</tt>
 
  - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>pc</tt>, <tt>%</tt>
 
- - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path
+ - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path, specified in any of the measurements above plus `em` or `rem`
 
 ## CSS
 
