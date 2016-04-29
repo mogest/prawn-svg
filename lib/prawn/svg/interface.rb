@@ -118,11 +118,6 @@ module Prawn
       end
 
       def rewrite_call_arguments(prawn, call, arguments)
-        if call == 'relative_draw_text'
-          call.replace "draw_text"
-          arguments.last[:at][0] = @relative_text_position if @relative_text_position
-        end
-
         case call
         when 'text_group'
           @relative_text_position = nil
@@ -131,6 +126,10 @@ module Prawn
         when 'draw_text'
           text, options = arguments
 
+          if options.delete(:relative)
+            options[:at][0] = @relative_text_position if @relative_text_position
+          end
+
           width = prawn.width_of(text, options.merge(:kerning => true))
 
           if (anchor = options.delete(:text_anchor)) && %w(middle end).include?(anchor)
@@ -138,8 +137,7 @@ module Prawn
             options[:at][0] -= width
           end
 
-          space_width = prawn.width_of("n", options)
-          @relative_text_position = options[:at][0] + width + space_width
+          @relative_text_position = options[:at][0] + width
 
         when 'transformation_matrix'
           left = prawn.bounds.absolute_left

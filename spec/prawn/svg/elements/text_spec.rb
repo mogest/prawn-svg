@@ -13,9 +13,7 @@ describe Prawn::SVG::Elements::Text do
       it "converts newlines and tabs to spaces, and preserves spaces" do
         element.process
 
-        expect(element.calls).to eq [
-          ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
-        ]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}]]
       end
     end
 
@@ -25,10 +23,39 @@ describe Prawn::SVG::Elements::Text do
       it "strips space" do
         element.process
 
-        expect(element.calls).to eq [
-          ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
-        ]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}]]
       end
+    end
+  end
+
+  describe "conventional whitespace handling" do
+    let(:svg) do
+      <<-SVG
+<text>
+  <tspan>
+  </tspan>
+  Some text here
+  <tspan>More text</tspan>
+Even more
+<tspan></tspan>
+<tspan>
+  leading goodness
+  </tspan>
+  ok
+      <tspan>
+      </tspan>
+</text>
+      SVG
+    end
+
+    it "correctly apportions white space between the tags" do
+      element.process
+      calls = element.calls.flatten
+      expect(calls).to include "Some text here "
+      expect(calls).to include "More text"
+      expect(calls).to include "Even more"
+      expect(calls).to include " leading goodness "
+      expect(calls).to include "ok"
     end
   end
 
@@ -49,9 +76,9 @@ describe Prawn::SVG::Elements::Text do
       element.process
 
       expect(element.base_calls).to eq [
-        ["fill", [], [
-          ["font", ["Helvetica", {style: :normal}], []],
-          ["text_group", [], [
+        ["text_group", [], [
+          ["fill", [], [
+            ["font", ["Helvetica", {style: :normal}], []],
             ["character_spacing", [5.0], [
               ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[0.0, 150.0]}], []]
             ]]
@@ -67,7 +94,7 @@ describe Prawn::SVG::Elements::Text do
 
       it "finds the font and uses it" do
         element.process
-        expect(element.base_calls[0][2][0]).to eq ['font', ['Courier', {style: :normal}], []]
+        expect(flatten_calls(element.base_calls)).to include ['font', ['Courier', {style: :normal}]]
       end
     end
 
@@ -76,7 +103,7 @@ describe Prawn::SVG::Elements::Text do
 
       it "uses the fallback font" do
         element.process
-        expect(element.base_calls[0][2][0]).to eq ['font', ['Times-Roman', {style: :normal}], []]
+        expect(flatten_calls(element.base_calls)).to include ['font', ['Times-Roman', {style: :normal}]]
       end
 
       context "when there is no fallback font" do

@@ -42,6 +42,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def parse_and_apply
+    parse_standard_attributes
     parse
 
     apply_calls_from_standard_attributes
@@ -72,6 +73,14 @@ class Prawn::SVG::Elements::Base
 
   def container?
     false
+  end
+
+  def drawable?
+    !container?
+  end
+
+  def parse_standard_attributes
+    parse_xml_space_attribute
   end
 
   def add_call(name, *arguments)
@@ -125,7 +134,6 @@ class Prawn::SVG::Elements::Base
   end
 
   def apply_calls_from_standard_attributes
-    parse_xml_space_attribute
     parse_transform_attribute_and_call
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call
@@ -135,7 +143,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def apply_drawing_call
-    if !state.disable_drawing && !container?
+    if !state.disable_drawing && drawable?
       draw_types = PAINT_TYPES.select { |property| computed_properties.send(property) != 'none' }
 
       if draw_types.empty?

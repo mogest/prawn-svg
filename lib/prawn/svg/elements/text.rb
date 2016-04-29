@@ -1,127 +1,67 @@
-class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::Base
-  attr_reader :text_state
-
+class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
   TextState = Struct.new(:relative, :x_positions, :y_positions)
 
   def parse
+    state.text = TextState.new(false)
 
-    state.text ||= TextState.new(false)
-    @text_state = state.text
+    @text_root = Prawn::SVG::Elements::TextComponent.new(document, source, nil, state.dup)
+    @text_root.parse_step
 
-    if attributes['x'] || attributes['y']
-      text_state.relative = false
-      text_state.x_positions = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
-      text_state.y_positions = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
-    end
-
-    text_state.x_positions ||= [x(0)]
-    text_state.y_positions ||= [y(0)]
+    reintroduce_trailing_and_leading_whitespace
   end
 
   def apply
-    raise SkipElementQuietly if computed_properties.display == "none"
-
-    font = select_font
-    apply_font(font) if font
-
-    add_call_and_enter "text_group" if name == 'text'
-
-    if attributes['dx'] || attributes['dy']
-      add_call_and_enter "translate", x_pixels(attributes['dx'] || 0), -y_pixels(attributes['dy'] || 0)
-    end
-
-    # text_anchor isn't a Prawn option; we have to do some math to support it
-    # and so we handle this in Prawn::SVG::Interface#rewrite_call_arguments
-    opts = {
-      size:        computed_properties.numerical_font_size,
-      style:       font && font.subfamily,
-      text_anchor: computed_properties.text_anchor
-    }
-
-    spacing = computed_properties.letter_spacing
-    spacing = spacing == 'normal' ? 0 : pixels(spacing)
-
-    add_call_and_enter 'character_spacing', spacing
-
-    text_children.each do |child|
-      if child.node_type == :text
-        append_text(child, opts)
-      else
-        case child.name
-        when 'tspan', 'tref'
-          process_tspan(child)
-        else
-          warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
-        end
-      end
-    end
-
-    # It's possible there was no text to render.  In that case, add a 'noop' so
-    # character_spacing doesn't blow up when it finds it doesn't have a block to execute.
-    add_call 'noop' if calls.empty?
+    add_call_and_enter "text_group"
+    @text_root.apply_step(calls)
   end
 
   private
 
-  def text_children
-    if name == 'tref'
-      reference = find_referenced_element
-      reference ? reference.source.children : []
-    else
-      source.children
-    end
+  def drawable?
+    false
   end
 
-  def append_text(child, opts)
-    text = child.value.strip.gsub(state.preserve_space ? /[\n\t]/ : /\s+/, " ")
+  def reintroduce_trailing_and_leading_whitespace
+    printables = []
+    built_printable_queue(printables, @text_root)
 
-    while text != ""
-      opts[:at] = [text_state.x_positions.first, text_state.y_positions.first]
+    remove_whitespace_only_printables_and_start_and_end(printables)
+    remove_printables_that_are_completely_empty(printables)
+    apportion_leading_and_trailing_spaces(printables)
+  end
 
-      if text_state.x_positions.length > 1 || text_state.y_positions.length > 1
-        add_call 'draw_text', text[0..0], opts.dup
-        text = text[1..-1]
-
-        text_state.x_positions.shift if text_state.x_positions.length > 1
-        text_state.y_positions.shift if text_state.y_positions.length > 1
+  def built_printable_queue(queue, component)
+    component.commands.each do |command|
+      case command
+      when Prawn::SVG::Elements::TextComponent::Printable
+        queue << command
       else
-        add_call text_state.relative ? 'relative_draw_text' : 'draw_text', text, opts.dup
-        text_state.relative = true
-        break
+        built_printable_queue(queue, command)
       end
     end
   end
 
-  def process_tspan(child)
-    add_call 'save'
-    Prawn::SVG::Elements::Text.new(document, child, calls, state.dup).process
-    add_call 'restore'
+  def remove_whitespace_only_printables_and_start_and_end(printables)
+    printables.pop   while printables.last  && printables.last.text.empty?
+    printables.shift while printables.first && printables.first.text.empty?
   end
 
-  def find_referenced_element
-    href = attributes['xlink:href']
-
-    if href && href[0..0] == '#'
-      element = document.elements_by_id[href[1..-1]]
-      element if element.name == 'text'
+  def remove_printables_that_are_completely_empty(printables)
+    printables.reject! do |printable|
+      printable.text.empty? && !printable.trailing_space? && !printable.leading_space?
     end
   end
 
-  def select_font
-    font_families = [computed_properties.font_family, document.fallback_font_name]
-    font_style = :italic if computed_properties.font_style == 'italic'
-    font_weight = Prawn::SVG::Font.weight_for_css_font_weight(computed_properties.font_weight)
-
-    font_families.compact.each do |name|
-      font = document.font_registry.load(name, font_weight, font_style)
-      return font if font
+  def apportion_leading_and_trailing_spaces(printables)
+    printables.each_cons(2) do |a, b|
+      if a.text.empty?
+        # Empty strings can only get a leading space from the previous non-empty text,
+        # and never get a trailing space
+      elsif a.trailing_space?
+        a.text += ' '
+      elsif b.leading_space?
+        b.text = " #{b.text}"
+      end
     end
-
-    warnings << "Font family '#{computed_properties.font_family}' style '#{computed_properties.font_style}' is not a known font, and the fallback font could not be found."
-    nil
-  end
-
-  def apply_font(font)
-    add_call 'font', font.name, style: font.subfamily
   end
 end
