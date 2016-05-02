@@ -1,6 +1,8 @@
 class Prawn::SVG::Elements::Base
   extend Forwardable
 
+  include Prawn::SVG::Elements::CallDuplicator
+
   include Prawn::SVG::Calculators::Pixels
 
   include Prawn::SVG::Attributes::Transform
@@ -106,7 +108,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def add_calls_from_element(other)
-    @calls.concat other.base_calls
+    @calls.concat duplicate_calls(other.base_calls)
   end
 
   def new_call_context_from_base

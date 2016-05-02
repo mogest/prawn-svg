@@ -2,6 +2,8 @@ module Prawn::SVG::Elements
   COMMA_WSP_REGEXP = /(?:\s+,?\s*|,\s*)/
 end
 
+require 'prawn/svg/elements/call_duplicator'
+
 %w(base depth_first_base root container viewport style text text_component line polyline polygon circle ellipse rect path use image gradient marker ignored).each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
