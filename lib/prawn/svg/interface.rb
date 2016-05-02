@@ -184,12 +184,12 @@ module Prawn
       end
 
       def clip_rectangle(x, y, width, height)
-          prawn.move_to x, y
-          prawn.line_to x + width, y
-          prawn.line_to x + width, y + height
-          prawn.line_to x, y + height
-          prawn.close_path
-          prawn.add_content "W n" # clip to path
+        prawn.move_to x, y
+        prawn.line_to x + width, y
+        prawn.line_to x + width, y + height
+        prawn.line_to x, y + height
+        prawn.close_path
+        prawn.add_content "W n" # clip to path
       end
     end
   end
