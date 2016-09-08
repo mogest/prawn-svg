@@ -3,7 +3,8 @@ class Prawn::SVG::FontRegistry
     "/Library/Fonts",
     "/System/Library/Fonts",
     "#{ENV["HOME"]}/Library/Fonts",
-    "/usr/share/fonts/truetype"
+    "/usr/share/fonts/truetype",
+    "/mnt/c/Windows/Fonts", # Bash on Ubuntu on Windows
   ]
 
   @font_path = DEFAULT_FONT_PATHS.select { |path| Dir.exist?(path) }
