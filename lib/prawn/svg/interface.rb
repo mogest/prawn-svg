@@ -39,15 +39,17 @@ module Prawn
 
         @document.warnings.clear
 
-        prawn.bounding_box(position, :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
-          prawn.save_graphics_state do
-            clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
+        prawn.save_font do
+          prawn.bounding_box(position, :width => @document.sizing.output_width, :height => @document.sizing.output_height) do
+            prawn.save_graphics_state do
+              clip_rectangle 0, 0, @document.sizing.output_width, @document.sizing.output_height
 
-            calls = []
-            root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls)
-            root_element.process
+              calls = []
+              root_element = Prawn::SVG::Elements::Root.new(@document, @document.root, calls)
+              root_element.process
 
-            proc_creator(prawn, calls).call
+              proc_creator(prawn, calls).call
+            end
           end
         end
       end
