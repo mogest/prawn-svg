@@ -24,7 +24,7 @@ RSpec.describe Prawn::SVG::Loaders::File do
 
       expect(Dir).to receive(:exist?).with(fake_root_path).and_return(true)
       expect(File).to receive(:exist?).with("#{fake_root_path}/relative/path").and_return(true)
-      expect(IO).to receive(:read).with("#{fake_root_path}/relative/path").and_return("data")
+      expect(IO).to receive(:binread).with("#{fake_root_path}/relative/path").and_return("data")
 
       expect(subject).to eq 'data'
     end
@@ -39,7 +39,7 @@ RSpec.describe Prawn::SVG::Loaders::File do
 
       expect(Dir).to receive(:exist?).with(fake_root_path).and_return(true)
       expect(File).to receive(:exist?).with("/some/absolute/path").and_return(true)
-      expect(IO).to receive(:read).with("/some/absolute/path").and_return("data")
+      expect(IO).to receive(:binread).with("/some/absolute/path").and_return("data")
 
       expect(subject).to eq 'data'
     end
@@ -54,7 +54,7 @@ RSpec.describe Prawn::SVG::Loaders::File do
 
       expect(Dir).to receive(:exist?).with(fake_root_path).and_return(true)
       expect(File).to receive(:exist?).with("/some/absolute/path name").and_return(true)
-      expect(IO).to receive(:read).with("/some/absolute/path name").and_return("data")
+      expect(IO).to receive(:binread).with("/some/absolute/path name").and_return("data")
 
       expect(subject).to eq 'data'
     end
@@ -94,7 +94,7 @@ RSpec.describe Prawn::SVG::Loaders::File do
 
       expect(Dir).to receive(:exist?).with(fake_root_path).and_return(true)
       expect(File).to receive(:exist?).with("c:/full/path/to/file.png").and_return(true)
-      expect(IO).to receive(:read).with("c:/full/path/to/file.png").and_return("data")
+      expect(IO).to receive(:binread).with("c:/full/path/to/file.png").and_return("data")
 
       allow(file_loader).to receive(:windows?).and_return true
       expect(subject).to eq 'data'

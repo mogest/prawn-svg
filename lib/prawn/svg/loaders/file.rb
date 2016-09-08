@@ -19,6 +19,13 @@
 # you're passing in a filename that hasn't been taken from an XML document's attribute,
 # you will want to URL encode it before you pass it in.
 #
+# FILES READ AS BINARY
+# ====================
+# At the moment, prawn-svg uses this class only to load graphical files, which are binary.
+# This class therefore uses IO.binread to read file data.  If it is ever used in the future
+# to load text files, it will have to be taught about what kind of file it's expecting to
+# read, and adjust the file read function accordingly.
+#
 module Prawn::SVG::Loaders
   class File
     attr_reader :root_path
@@ -53,7 +60,7 @@ module Prawn::SVG::Loaders
       path = build_absolute_and_expand_path(path)
       assert_valid_path!(path)
       assert_file_exists!(path)
-      IO.read(path)
+      IO.binread(path)
     end
 
     def build_uri(url)
