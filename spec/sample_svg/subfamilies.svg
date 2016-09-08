@@ -8,5 +8,6 @@
     <text y="100" fill="black" style="font-weight: 400;">prawn-svg</text>
     <text y="200" fill="black" style="font-weight: 600;">prawn-svg</text>
     <text y="300" fill="black" style="font-weight: 800;">prawn-svg</text>
+    <text y="400" fill="black" style="font-style: italic;">prawn-svg</text>
   </g>
 </svg>
