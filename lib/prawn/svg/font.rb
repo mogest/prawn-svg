@@ -52,14 +52,12 @@ class Prawn::SVG::Font
   # Construct a subfamily name from the weight and style information.
   # Note that this name might not actually exist in the font.
   def subfamily_name
-    sfn = if weight == :normal && style
+    if weight == :normal && style
       style
     elsif weight || style
-      "#{weight} #{style}"
+      [weight, style].compact.join('_').to_sym
     else
-      "normal"
+      :normal
     end
-
-    sfn.strip.gsub(/\s+/, "_").downcase.to_sym
   end
 end
