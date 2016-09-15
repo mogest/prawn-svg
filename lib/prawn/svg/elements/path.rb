@@ -4,7 +4,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
   INSIDE_SPACE_REGEXP = /[ \t\r\n,]*/
   OUTSIDE_SPACE_REGEXP = /[ \t\r\n]*/
-  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])e[+-]?[0-9]+)?)/
+  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?)/
   VALUES_REGEXP = /^#{INSIDE_REGEXP}/
   COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
 
