@@ -25,4 +25,37 @@ describe Prawn::SVG::Document do
       end
     end
   end
+
+  describe "#parse_style_elements" do
+    let(:svg) do
+      <<-SVG
+<svg>
+  <some-tag>
+    <style>a
+  before&gt;
+  x <![CDATA[ y
+  inside <>&gt;
+  k ]]> j
+  after
+z</style>
+  </some-tag>
+
+  <other-tag>
+    <more-tag>
+      <style>hello</style>
+    </more-tag>
+  </other-tag>
+</svg>
+      SVG
+    end
+
+    it "scans the document for style tags and adds the style information to the css parser" do
+      css_parser = instance_double(CssParser::Parser)
+
+      expect(css_parser).to receive(:add_block!).with("a\n  before>\n  x  y\n  inside <>&gt;\n  k  j\n  after\nz")
+      expect(css_parser).to receive(:add_block!).with("hello")
+
+      Prawn::SVG::Document.new(svg, bounds, options, css_parser: css_parser)
+    end
+  end
 end
