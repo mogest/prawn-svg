@@ -34,5 +34,6 @@ module Prawn::SVG::Elements
     metadata: Prawn::SVG::Elements::Ignored,
     foreignObject: Prawn::SVG::Elements::Ignored,
     :"font-face" => Prawn::SVG::Elements::Ignored,
+    filter: Prawn::SVG::Elements::Ignored, # unsupported
   }
 end
