@@ -5,3 +5,5 @@ Gemfile.lock
 .rvmrc
 .*.swp
 .ruby-version
+vendor/bundle/
+.bundle/
