@@ -2,12 +2,14 @@ module Prawn::SVG::Calculators::Pixels
   class Measurement
     extend Prawn::Measurements
 
-    def self.to_pixels(value, axis_length = nil)
+    def self.to_pixels(value, axis_length = nil, font_size: nil)
       if value.is_a?(String)
         if match = value.match(/\d(cm|dm|ft|in|m|mm|yd)$/)
           send("#{match[1]}2pt", value.to_f)
         elsif match = value.match(/\dpc$/)
           value.to_f * 15 # according to http://www.w3.org/TR/SVG11/coords.html
+        elsif font_size && match = value.match(/\dem$/)
+          value.to_f * font_size
         elsif value[-1..-1] == "%"
           value.to_f * axis_length / 100.0
         else
@@ -41,5 +43,13 @@ module Prawn::SVG::Calculators::Pixels
 
   def y_pixels(value)
     value && Measurement.to_pixels(value, state.viewport_sizing.viewport_height)
+  end
+
+  def x_pixels_with_em(value)
+    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_width, font_size: computed_properties.numerical_font_size)
+  end
+
+  def y_pixels_with_em(value)
+    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_height, font_size: computed_properties.numerical_font_size)
   end
 end

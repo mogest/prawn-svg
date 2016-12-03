@@ -7,8 +7,8 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   def parse
     state.text.x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
     state.text.y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
-    state.text.dx = attributes['dx'].split(COMMA_WSP_REGEXP).collect {|n| x_pixels(n)} if attributes['dx']
-    state.text.dy = attributes['dy'].split(COMMA_WSP_REGEXP).collect {|n| y_pixels(n)} if attributes['dy']
+    state.text.dx = attributes['dx'].split(COMMA_WSP_REGEXP).collect {|n| x_pixels_with_em(n)} if attributes['dx']
+    state.text.dy = attributes['dy'].split(COMMA_WSP_REGEXP).collect {|n| y_pixels_with_em(n)} if attributes['dy']
     state.text.rotation = attributes['rotate'].split(COMMA_WSP_REGEXP).collect(&:to_f) if attributes['rotate']
 
     @commands = []
