@@ -33,8 +33,11 @@ class Prawn::SVG::Elements::Base
     @attributes = {}
     @properties = Prawn::SVG::Properties.new
 
-    if source && id = source.attributes["id"]
-      document.elements_by_id[id] = self
+    if source && !state.inside_use
+      id = source.attributes["id"]
+      id = id.strip if id
+
+      document.elements_by_id[id] = self if id && id != ''
     end
   end
 

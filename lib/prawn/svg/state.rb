@@ -3,7 +3,8 @@ class Prawn::SVG::State
     :text, :preserve_space,
     :fill_opacity, :stroke_opacity, :stroke_width,
     :computed_properties,
-    :viewport_sizing
+    :viewport_sizing,
+    :inside_use
 
   def initialize
     @stroke_width = 1

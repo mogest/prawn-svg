@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe Prawn::SVG::Elements::Path do
   let(:source) { double(name: "path", attributes: {}) }
-  let(:path) { Prawn::SVG::Elements::Path.new(nil, source, [], {}) }
+  let(:state) { Prawn::SVG::State.new }
+  let(:path) { Prawn::SVG::Elements::Path.new(nil, source, [], state) }
 
   before do
     allow(path).to receive(:attributes).and_return("d" => d)
