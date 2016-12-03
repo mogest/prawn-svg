@@ -4,6 +4,10 @@ describe Prawn::SVG::Calculators::Pixels do
   class TestPixelsCalculator
     include Prawn::SVG::Calculators::Pixels
 
+    def computed_properties
+      Struct.new(:numerical_font_size).new(16)
+    end
+
     [:x, :y, :pixels, :x_pixels, :y_pixels].each { |method| public method }
   end
 
@@ -31,13 +35,14 @@ describe Prawn::SVG::Calculators::Pixels do
       expect(subject.pixels(32.0)).to eq 32.0
       expect(subject.pixels("32")).to eq 32.0
       expect(subject.pixels("32unknown")).to eq 32.0
+      expect(subject.pixels("32px")).to eq 32.0
       expect(subject.pixels("32pt")).to eq 32.0
       expect(subject.pixels("32in")).to eq 32.0 * 72
-      expect(subject.pixels("32ft")).to eq 32.0 * 72 * 12
       expect(subject.pixels("32pc")).to eq 32.0 * 15
+      expect(subject.pixels("4em")).to eq 4 * 16
+      expect(subject.pixels("4ex")).to eq 4 * 8
       expect(subject.pixels("32mm")).to be_within(0.0001).of(32 * 72 * 0.0393700787)
       expect(subject.pixels("32cm")).to be_within(0.0001).of(32 * 72 * 0.393700787)
-      expect(subject.pixels("32m")).to be_within(0.0001).of(32 * 72 * 39.3700787)
       expect(subject.pixels("50%")).to eq 250
     end
   end
