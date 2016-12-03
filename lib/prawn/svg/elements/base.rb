@@ -13,6 +13,7 @@ class Prawn::SVG::Elements::Base
 
   PAINT_TYPES = %w(fill stroke)
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
+  SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 
   SkipElementQuietly = Class.new(StandardError)
   SkipElementError = Class.new(StandardError)
@@ -124,7 +125,7 @@ class Prawn::SVG::Elements::Base
   def process_child_elements
     return unless source
 
-    source.elements.each do |elem|
+    svg_child_elements.each do |elem|
       if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
         add_call "save"
 
@@ -135,6 +136,14 @@ class Prawn::SVG::Elements::Base
       else
         @document.warnings << "Unknown tag '#{elem.name}'; ignoring"
       end
+    end
+  end
+
+  def svg_child_elements
+    source.elements.select do |elem|
+      # To be strict, we shouldn't treat namespace-less elements as SVG, but for
+      # backwards compatibility, and because it doesn't hurt, we will.
+      elem.namespace == SVG_NAMESPACE || elem.namespace == ''
     end
   end
 

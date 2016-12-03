@@ -13,7 +13,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
     @commands = []
 
-    text_children.each do |child|
+    svg_text_children.each do |child|
       if child.node_type == :text
         append_text(child)
       else
@@ -145,6 +145,12 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
         break
       end
+    end
+  end
+
+  def svg_text_children
+    text_children.select do |child|
+      child.node_type == :text || child.namespace == SVG_NAMESPACE || child.namespace == ''
     end
   end
 

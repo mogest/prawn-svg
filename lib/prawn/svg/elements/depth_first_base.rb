@@ -35,7 +35,7 @@ class Prawn::SVG::Elements::DepthFirstBase < Prawn::SVG::Elements::Base
   def parse_child_elements
     return unless source
 
-    source.elements.each do |elem|
+    svg_child_elements.each do |elem|
       if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
         child = element_class.new(@document, elem, @calls, state.dup)
         child.parse_step
