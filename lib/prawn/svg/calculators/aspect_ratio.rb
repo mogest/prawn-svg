@@ -4,7 +4,7 @@ module Prawn::SVG::Calculators
     attr_reader :width, :height, :x, :y
 
     def initialize(value, container_dimensions, object_dimensions)
-      values = (value || "xMidYMid meet").strip.split(/\s+/)
+      values = (value || "xMidYMid meet").split(' ')
       @x = @y = 0
 
       if values.first == "defer"

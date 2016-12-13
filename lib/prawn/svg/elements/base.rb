@@ -212,7 +212,7 @@ class Prawn::SVG::Elements::Base
       id_style = @document.css_parser.find_by_selector("##{source.attributes["id"]}") if source.attributes["id"]
 
       if classes = source.attributes["class"]
-        class_styles = classes.strip.split(/\s+/).collect do |class_name|
+        class_styles = classes.split(' ').collect do |class_name|
           @document.css_parser.find_by_selector(".#{class_name}")
         end
       end
