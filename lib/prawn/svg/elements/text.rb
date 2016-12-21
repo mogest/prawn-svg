@@ -1,5 +1,12 @@
 class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
-  def parse
+  private
+
+  # This class doesn't represent an element in the SVG document; it's here
+  # to hold together text information.  Because of this, we overload the
+  # parse_step and apply_step methods, and bypass all the normal processing
+  # of the element, delegating it to our root text component.
+
+  def parse_step
     state.text = Prawn::SVG::Elements::TextComponent::PositionsList.new([], [], [], [], [], nil)
 
     @text_root = Prawn::SVG::Elements::TextComponent.new(document, source, nil, state.dup)
@@ -8,20 +15,14 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
     reintroduce_trailing_and_leading_whitespace
   end
 
-  def apply
+  def apply_step(calls)
+    @base_calls = @calls = calls
     add_call_and_enter "text_group"
-    @text_root.apply_step(calls)
+    @text_root.apply_step(@calls)
   end
-
-  private
 
   def drawable?
     false
-  end
-
-  def apply_calls_from_standard_attributes
-    # overridden because we want the attributes to be applied in the TextComponent root,
-    # which is a duplicate of this element.
   end
 
   def reintroduce_trailing_and_leading_whitespace
