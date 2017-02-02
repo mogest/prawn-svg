@@ -74,6 +74,168 @@ describe Prawn::SVG::Elements::Path do
     end
   end
 
+  context "when given an M path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 100 200 M 200 300 m 10 20" }
+
+      it "issues a move command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Move.new([200.0, 300.0]),
+          Prawn::SVG::Elements::Path::Move.new([210.0, 320.0]),
+        ]
+      end
+    end
+
+    context "with only one argument" do
+      let(:d) { "M 100 200 M 100" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+
+    context "with no arguments" do
+      let(:d) { "M 100 200 M" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
+  context "when given an L path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 100 200 L 200 300 l 10 20" }
+
+      it "issues a line command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Line.new([200.0, 300.0]),
+          Prawn::SVG::Elements::Path::Line.new([210.0, 320.0]),
+        ]
+      end
+    end
+
+    context "with only one argument" do
+      let(:d) { "M 100 200 L 100" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
+  context "when given a C path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 100 200 C 10 20 30 40 200 300" }
+
+      it "issues a curve command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Curve.new([200.0, 300.0], [10, 20], [30, 40]),
+        ]
+      end
+    end
+
+    context "with incomplete arguments" do
+      let(:d) { "M 100 200 C 10 20 30 40 50" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
+  context "when given an S path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 100 200 S 30 40 200 300" }
+
+      it "issues a curve command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
+          Prawn::SVG::Elements::Path::Curve.new([200.0, 300.0], [100, 200], [30, 40]),
+        ]
+      end
+    end
+
+    context "with incomplete arguments" do
+      let(:d) { "M 100 200 S 30 40 50" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
+  context "when given a Q path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 0 0 Q 600 300 300 600" }
+
+      it "issues a curve command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([0, 0]),
+          Prawn::SVG::Elements::Path::Curve.new([300.0, 600.0], [400, 200], [500, 400])
+        ]
+      end
+    end
+
+    context "with incomplete arguments" do
+      let(:d) { "M 100 200 Q 30 40 50" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
+  context "when given a T path" do
+    subject { path.parse; path.commands }
+
+    context "with typical arguments" do
+      let(:d) { "M 0 0 T 300 600" }
+
+      it "issues a curve command" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([0, 0]),
+          Prawn::SVG::Elements::Path::Curve.new([300.0, 600.0], [0, 0], [100, 200])
+        ]
+      end
+    end
+
+    context "with incomplete arguments" do
+      let(:d) { "M 100 200 T 30" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+  end
+
   context "when given an A path" do
     subject { path.parse; path.commands }
 
@@ -98,7 +260,7 @@ describe Prawn::SVG::Elements::Path do
         ]
       end
     end
-    
+
     context "with an rx of 0" do
       let(:d) { "M 100 200 A 0 10 0 0 1 200 200" }
 
@@ -117,6 +279,16 @@ describe Prawn::SVG::Elements::Path do
         expect(subject).to eq [
           Prawn::SVG::Elements::Path::Move.new([100.0, 200.0]),
           Prawn::SVG::Elements::Path::Line.new([200.0, 200.0])
+        ]
+      end
+    end
+
+    context "with incomplete arguments" do
+      let(:d) { "M 100 200 A 10 20 30 L 10 20" }
+
+      it "bails out" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
         ]
       end
     end

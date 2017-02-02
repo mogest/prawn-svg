@@ -22,12 +22,14 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     matched_commands = match_all(data, COMMAND_REGEXP)
     raise SkipElementError, "Invalid/unsupported syntax for SVG path data" if matched_commands.nil?
 
-    matched_commands.each do |matched_command|
-      command = matched_command[1]
-      matched_values = match_all(matched_command[2], VALUES_REGEXP)
-      raise "should be impossible to have invalid inside data, but we ended up here" if matched_values.nil?
-      values = matched_values.collect {|value| value[1].to_f}
-      parse_path_command(command, values)
+    catch :invalid_command do
+      matched_commands.each do |matched_command|
+        command = matched_command[1]
+        matched_values = match_all(matched_command[2], VALUES_REGEXP)
+        raise "should be impossible to have invalid inside data, but we ended up here" if matched_values.nil?
+        values = matched_values.collect {|value| value[1].to_f}
+        parse_path_command(command, values)
+      end
     end
   end
 
@@ -46,8 +48,8 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     case upcase_command
     when 'M' # moveto
-      x = values.shift
-      y = values.shift
+      x = values.shift or throw :invalid_command
+      y = values.shift or throw :invalid_command
 
       if relative && @last_point
         x += @last_point.first
@@ -67,7 +69,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     when 'L' # lineto
       while values.any?
         x = values.shift
-        y = values.shift
+        y = values.shift or throw :invalid_command
         if relative && @last_point
           x += @last_point.first
           y += @last_point.last
@@ -92,7 +94,9 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'C' # curveto
       while values.any?
-        x1, y1, x2, y2, x, y = (1..6).collect {values.shift}
+        x1, y1, x2, y2, x, y = values.shift(6)
+        throw :invalid_command unless y
+
         if relative && @last_point
           x += @last_point.first
           x1 += @last_point.first
@@ -108,7 +112,9 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'S' # shorthand/smooth curveto
       while values.any?
-        x2, y2, x, y = (1..4).collect {values.shift}
+        x2, y2, x, y = values.shift(4)
+        throw :invalid_command unless y
+
         if relative && @last_point
           x += @last_point.first
           x2 += @last_point.first
@@ -130,10 +136,12 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     when 'Q', 'T' # quadratic curveto
       while values.any?
         if shorthand = upcase_command == 'T'
-          x, y = (1..2).collect {values.shift}
+          x, y = values.shift(2)
         else
-          x1, y1, x, y = (1..4).collect {values.shift}
+          x1, y1, x, y = values.shift(4)
         end
+
+        throw :invalid_command unless y
 
         if relative && @last_point
           x += @last_point.first
@@ -166,7 +174,9 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       return unless @last_point
 
       while values.any?
-        rx, ry, phi, fa, fs, x2, y2 = (1..7).collect {values.shift}
+        rx, ry, phi, fa, fs, x2, y2 = values.shift(7)
+        throw :invalid_command unless y2
+
         x1, y1 = @last_point
 
         return if rx.zero? && ry.zero?
