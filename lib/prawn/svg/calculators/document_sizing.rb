@@ -1,7 +1,5 @@
 module Prawn::SVG::Calculators
   class DocumentSizing
-    DEFAULT_WIDTH = 300
-    DEFAULT_HEIGHT = 150
     DEFAULT_ASPECT_RATIO = "xMidYMid meet"
 
     attr_writer :document_width, :document_height
@@ -30,17 +28,14 @@ module Prawn::SVG::Calculators
       container_width = @requested_width || @bounds[0]
       container_height = @requested_height || @bounds[1]
 
-      @output_width = Pixels::Measurement.to_pixels(@document_width || @requested_width, container_width)
-      @output_height = Pixels::Measurement.to_pixels(@document_height || @requested_height, container_height)
+      @output_width = Pixels::Measurement.to_pixels(@document_width || container_width, container_width)
+      @output_height = Pixels::Measurement.to_pixels(@document_height || container_height, container_height)
 
       if @view_box
         values = @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
 
         if @viewport_width > 0 && @viewport_height > 0
-          @output_width ||= container_width
-          @output_height ||= @output_width * @viewport_height / @viewport_width
-
           aspect = AspectRatio.new(@preserve_aspect_ratio, [@output_width, @output_height], [@viewport_width, @viewport_height])
           @x_scale = aspect.width / @viewport_width
           @y_scale = aspect.height / @viewport_height
@@ -48,9 +43,6 @@ module Prawn::SVG::Calculators
           @y_offset -= aspect.y / @y_scale
         end
       else
-        @output_width ||= Pixels::Measurement.to_pixels(DEFAULT_WIDTH, container_width)
-        @output_height ||= Pixels::Measurement.to_pixels(DEFAULT_HEIGHT, container_height)
-
         @viewport_width = @output_width
         @viewport_height = @output_height
       end

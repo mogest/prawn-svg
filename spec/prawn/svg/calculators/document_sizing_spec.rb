@@ -74,12 +74,12 @@ describe Prawn::SVG::Calculators::DocumentSizing do
       context "when a viewBox is specified" do
         let(:attributes) { {"viewBox" => "0 0 100 200"} }
 
-        it "defaults to 100% width and the width times aspect ratio in height" do
+        it "defaults to 100% width and height" do
           sizing.calculate
           expect(sizing.viewport_width).to eq 100
           expect(sizing.viewport_height).to eq 200
           expect(sizing.output_width).to eq 1200
-          expect(sizing.output_height).to eq 2400
+          expect(sizing.output_height).to eq 800
         end
       end
 
@@ -116,11 +116,11 @@ describe Prawn::SVG::Calculators::DocumentSizing do
       context "when neither viewBox nor requested width/height specified" do
         let(:attributes) { {} }
 
-        it "defaults to 300x150, because that's what HTML does" do
+        it "defaults to 100%" do
           sizing.calculate
 
-          expect(sizing.output_width).to eq 300
-          expect(sizing.output_height).to eq 150
+          expect(sizing.output_width).to eq 1200
+          expect(sizing.output_height).to eq 800
         end
       end
     end

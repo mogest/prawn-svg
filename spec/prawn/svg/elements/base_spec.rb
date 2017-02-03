@@ -32,7 +32,7 @@ describe Prawn::SVG::Elements::Base do
       it "appends the relevant calls" do
         element.process
         expect(element.base_calls).to eq [
-          ["rotate", [-90.0, {origin: [0, 150.0]}], [
+          ["rotate", [-90.0, {origin: [0, 600.0]}], [
             ["transparent", [0.5, 1], [
               ["fill_color", ["ff0000"], []],
               ["stroke_color", ["0000ff"], []],

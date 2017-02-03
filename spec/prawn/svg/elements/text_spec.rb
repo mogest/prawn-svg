@@ -65,7 +65,7 @@ Even more
 
     it "should inherit text-anchor from parent element" do
       element.process
-      expect(element.calls.flatten).to include(:size => 12.0, :style => :normal, :text_anchor => "middle", :at => [50.0, 136.0], :offset => [0,0])
+      expect(element.calls.flatten).to include(:size => 12.0, :style => :normal, :text_anchor => "middle", :at => [50.0, 586.0], :offset => [0,0])
     end
   end
 
