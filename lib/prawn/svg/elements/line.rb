@@ -2,6 +2,9 @@ class Prawn::SVG::Elements::Line < Prawn::SVG::Elements::Base
   include Prawn::SVG::Pathable
 
   def parse
+    # Lines are one dimensional, so cannot be filled.
+    computed_properties.fill = 'none'
+
     @x1 = x_pixels(attributes['x1'] || 0)
     @y1 = y_pixels(attributes['y1'] || 0)
     @x2 = x_pixels(attributes['x2'] || 0)

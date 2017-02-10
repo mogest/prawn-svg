@@ -12,7 +12,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
 
-        <line x2="10" y2="10" stroke-width="100" />
+        <line x2="10" y2="10" stroke="black" stroke-width="100" />
       </svg>
     SVG
   end
@@ -54,8 +54,9 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       # in section 11.6.3.
 
       expect(line_element.base_calls).to eq [
+        ["stroke_color", ["000000"], []],
         ["line_width", [100.0], []],
-        ["fill", [], [
+        ["stroke", [], [
             ["move_to", [[0.0, 600.0]], []],
             ["line_to", [[10.0, 590.0]], []]
           ]
@@ -69,7 +70,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
             ["clip", [], []],
             ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], []],
             ["transparent", [1.0, 1.0], [
-                ["fill_color", ["000000"], []],
+                ["stroke_color", ["000000"], []],
                 ["line_width", [100.0], []],
                 ["cap_style", [:butt], []],
                 ["undash", [], []],
