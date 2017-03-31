@@ -10,7 +10,7 @@ This will take an SVG document as input and render it into your PDF.  Find out m
   http://github.com/prawnpdf/prawn
 
 prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
-The minimum Ruby version required is 2.0.0.
+The minimum Ruby version required is 2.1.0.
 
 ## Using prawn-svg
 

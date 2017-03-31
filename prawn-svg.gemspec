@@ -18,7 +18,7 @@ spec = Gem::Specification.new do |gem|
   gem.name          = "prawn-svg"
   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = '>= 2.0.0'
+  gem.required_ruby_version = '>= 2.1.0'
 
   gem.add_runtime_dependency "prawn", ">= 0.11.1", "< 3"
   gem.add_runtime_dependency "css_parser", "~> 1.3"
