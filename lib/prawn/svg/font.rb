@@ -21,9 +21,11 @@ class Prawn::SVG::Font
   end
 
   def initialize(name, weight, style, font_registry: nil)
-    name = GENERIC_CSS_FONT_MAPPING.fetch(name, name) # If it's a standard CSS font name, map it to one of the standard PDF fonts.
-
     @font_registry = font_registry
+    unless font_registry.installed_fonts.key?(name)
+      # map generic font name to one of the built-in PDF fonts if not already mapped
+      name = GENERIC_CSS_FONT_MAPPING[name] || name
+    end
     @name = font_registry.correctly_cased_font_name(name) || name
     @weight = weight
     @style = style
