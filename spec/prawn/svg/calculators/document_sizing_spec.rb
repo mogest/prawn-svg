@@ -113,6 +113,34 @@ describe Prawn::SVG::Calculators::DocumentSizing do
         end
       end
 
+      context "when a viewBox and a requested width is supplied" do
+        let(:attributes) { {"viewBox" => "0 0 100 200"} }
+
+        it "uses the requested width and calculates the height based on the viewBox" do
+          sizing.requested_width = 550
+          sizing.calculate
+
+          expect(sizing.viewport_width).to eq 100
+          expect(sizing.viewport_height).to eq 200
+          expect(sizing.output_width).to eq 550
+          expect(sizing.output_height).to eq 1100
+        end
+      end
+
+      context "when a viewBox and a requested height is supplied" do
+        let(:attributes) { {"viewBox" => "0 0 100 200"} }
+
+        it "uses the requested height and calculates the width based on the viewBox" do
+          sizing.requested_height = 400
+          sizing.calculate
+
+          expect(sizing.viewport_width).to eq 100
+          expect(sizing.viewport_height).to eq 200
+          expect(sizing.output_width).to eq 200
+          expect(sizing.output_height).to eq 400
+        end
+      end
+
       context "when neither viewBox nor requested width/height specified" do
         let(:attributes) { {} }
 
