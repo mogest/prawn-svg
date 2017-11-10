@@ -186,7 +186,11 @@ module Prawn
           # prawn (as at 2.0.1 anyway) uses 'b' for its fill_and_stroke.  'b' is 'h' (closepath) + 'B', and we
           # never want closepath to be automatically run as it stuffs up many drawing operations, such as dashes
           # and line caps, and makes paths close that we didn't ask to be closed when fill is specified.
-          prawn.add_content 'B'
+          if properties.fill_rule == 'evenodd'
+            prawn.add_content 'B*'
+          else
+            prawn.add_content 'B'
+          end
 
         when 'noop'
           yield

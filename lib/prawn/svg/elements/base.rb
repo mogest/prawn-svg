@@ -163,7 +163,11 @@ class Prawn::SVG::Elements::Base
       if draw_types.empty?
         add_call_and_enter("end_path")
       else
-        add_call_and_enter(draw_types.join("_and_"))
+        options = {}
+        if computed_properties.fill_rule == 'evenodd'
+          options[:fill_rule] = :even_odd
+        end
+        add_call_and_enter(draw_types.join("_and_"), options)
       end
     end
   end
