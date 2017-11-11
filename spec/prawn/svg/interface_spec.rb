@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Prawn::SVG::Interface do
-  let(:bounds) { double(width: 800, height: 600) }
+  let(:bounds) { double(width: 800, height: 600, absolute_left: 0, absolute_top: 0) }
   let(:prawn)  { instance_double(Prawn::Document, font_families: {}, bounds: bounds, cursor: 600) }
   let(:svg)    { '<svg width="250" height="100"></svg>' }
 
@@ -28,6 +28,38 @@ describe Prawn::SVG::Interface do
       it "doesn't draw anything and adds a warning" do
         interface.draw
         expect(interface.document.warnings).to eq ["Zero or negative sizing data means this SVG cannot be rendered"]
+      end
+    end
+
+    describe "rewrites" do
+      before do
+        [:save_font, :bounding_box].each { |message| allow(prawn).to receive(message).and_yield }
+        allow(prawn).to receive_messages([:move_to, :line_to, :close_path, :fill_color, :stroke_color, :transformation_matrix, :restore_graphics_state])
+        allow(prawn).to receive(:save_graphics_state) { |&block| block.call if block }
+      end
+
+      context "when fill_and_stroke is issued" do
+        context "and fill rule is not set" do
+          let(:interface) { Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red"></rect></svg>', prawn, {}) }
+
+          it "adds content 'B'" do
+            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10)
+            expect(prawn).to receive(:add_content).with("W n")
+            expect(prawn).to receive(:add_content).with("B")
+            interface.draw
+          end
+        end
+
+        context "and fill rule is evenodd" do
+          let(:interface) { Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, {}) }
+
+          it "adds content 'B*'" do
+            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10)
+            expect(prawn).to receive(:add_content).with("W n")
+            expect(prawn).to receive(:add_content).with("B*")
+            interface.draw
+          end
+        end
       end
     end
   end

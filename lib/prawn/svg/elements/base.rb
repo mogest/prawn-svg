@@ -157,14 +157,23 @@ class Prawn::SVG::Elements::Base
   end
 
   def apply_drawing_call
-    if !state.disable_drawing && drawable?
-      draw_types = PAINT_TYPES.select { |property| computed_properties.send(property) != 'none' }
+    return if state.disable_drawing || !drawable?
 
-      if draw_types.empty?
-        add_call_and_enter("end_path")
+    fill   = computed_properties.fill != 'none'
+    stroke = computed_properties.stroke != 'none'
+
+    if fill
+      command = stroke ? 'fill_and_stroke' : 'fill'
+
+      if computed_properties.fill_rule == 'evenodd'
+        add_call_and_enter(command, {fill_rule: :even_odd})
       else
-        add_call_and_enter(draw_types.join("_and_"))
+        add_call_and_enter(command)
       end
+    elsif stroke
+      add_call_and_enter('stroke')
+    else
+      add_call_and_enter('end_path')
     end
   end
 

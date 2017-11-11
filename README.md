@@ -81,7 +81,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
 
- - properties: `clip-path`, `color`, `display`, `fill-opacity`, `fill`, `opacity`, `overflow`, `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-opacity`, `stroke-width`
+ - properties: `clip-path`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `opacity`, `overflow`, `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-opacity`, `stroke-width`
 
  - properties on lines, polylines, polygons and paths: `marker-end`, `marker-mid`, `marker-start`
 

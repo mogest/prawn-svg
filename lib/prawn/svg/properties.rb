@@ -18,6 +18,7 @@ class Prawn::SVG::Properties
     "display"          => Config.new("inline", false, %w(inherit inline none), true),
     "fill"             => Config.new("black", true, %w(inherit none currentColor)),
     "fill-opacity"     => Config.new("1", true),
+    "fill-rule"        => Config.new("nonzero", true, %w(inherit nonzero evenodd)),
     "font-family"      => Config.new("sans-serif", true),
     "font-size"        => Config.new("medium", true, %w(inherit xx-small x-small small medium large x-large xx-large larger smaller)),
     "font-style"       => Config.new("normal", true, %w(inherit normal italic oblique), true),

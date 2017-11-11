@@ -44,6 +44,36 @@ describe Prawn::SVG::Elements::Base do
       end
     end
 
+    describe "fills and strokes" do
+      before { element.process }
+      subject { element.base_calls.last }
+
+      context "with neither fill nor stroke" do
+        let(:svg) { '<rect style="fill: none;"></rect>' }
+        it        { is_expected.to eq ['end_path', [], []] }
+      end
+
+      context "with a fill only" do
+        let(:svg) { '<rect style="fill: black;"></rect>' }
+        it        { is_expected.to eq ['fill', [], []] }
+      end
+
+      context "with a stroke only" do
+        let(:svg) { '<rect style="fill: none; stroke: black;"></rect>' }
+        it        { is_expected.to eq ['stroke', [], []] }
+      end
+
+      context "with fill and stroke" do
+        let(:svg) { '<rect style="fill: black; stroke: black;"></rect>' }
+        it        { is_expected.to eq ['fill_and_stroke', [], []] }
+      end
+
+      context "with fill with evenodd fill rule" do
+        let(:svg) { '<rect style="fill: black; fill-rule: evenodd;"></rect>' }
+        it        { is_expected.to eq ['fill', [{fill_rule: :even_odd}], []] }
+      end
+    end
+
     it "appends calls to the parent element" do
       expect(element).to receive(:apply) do
         element.send :add_call, "test", "argument"
