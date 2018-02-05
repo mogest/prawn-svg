@@ -5,6 +5,10 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   TextState = Struct.new(:parent, :x, :y, :dx, :dy, :rotation, :spacing, :mode)
 
   def parse
+    if state.inside_clip_path
+      raise SkipElementError, "<text> elements are not supported in clip paths"
+    end
+
     state.text.x = (attributes['x'] || "").split(COMMA_WSP_REGEXP).collect { |n| x(n) }
     state.text.y = (attributes['y'] || "").split(COMMA_WSP_REGEXP).collect { |n| y(n) }
     state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }

@@ -1,9 +1,7 @@
 class Prawn::SVG::Elements::Container < Prawn::SVG::Elements::Base
   def parse
-    state.disable_drawing = true if name == 'clipPath'
-
     set_display_none if name == 'symbol' && !state.inside_use
-    set_display_none if %w(defs clipPath).include?(name)
+    set_display_none if name == 'defs'
   end
 
   def container?

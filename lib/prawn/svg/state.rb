@@ -1,10 +1,9 @@
 class Prawn::SVG::State
-  attr_accessor :disable_drawing,
-    :text, :preserve_space,
+  attr_accessor :text, :preserve_space,
     :fill_opacity, :stroke_opacity, :stroke_width,
     :computed_properties,
     :viewport_sizing,
-    :inside_use
+    :inside_use, :inside_clip_path
 
   def initialize
     @stroke_width = 1
@@ -15,5 +14,9 @@ class Prawn::SVG::State
 
   def initialize_dup(other)
     @computed_properties = @computed_properties.dup
+  end
+
+  def disable_drawing
+    inside_clip_path
   end
 end

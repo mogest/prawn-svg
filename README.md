@@ -107,6 +107,8 @@ prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  I
 
 prawn-svg does not support radial gradients, patterns or filters.
 
+It does not support text in the clip area, but you can clip shapes and text by any shape.
+
 ## Configuration
 
 ### Fonts
