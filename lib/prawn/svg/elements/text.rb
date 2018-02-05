@@ -7,7 +7,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
   # of the element, delegating it to our root text component.
 
   def parse_step
-    state.text = Prawn::SVG::Elements::TextComponent::PositionsList.new([], [], [], [], [], nil)
+    state.text = Prawn::SVG::Elements::TextComponent::TextState.new
 
     @text_root = Prawn::SVG::Elements::TextComponent.new(document, source, nil, state.dup)
     @text_root.parse_step

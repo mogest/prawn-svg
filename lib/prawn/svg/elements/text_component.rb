@@ -2,14 +2,16 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   attr_reader :commands
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
-  PositionsList = Struct.new(:x, :y, :dx, :dy, :rotation, :parent)
+  TextState = Struct.new(:parent, :x, :y, :dx, :dy, :rotation, :spacing, :mode)
 
   def parse
-    state.text.x = attributes['x'].split(COMMA_WSP_REGEXP).collect {|n| x(n)} if attributes['x']
-    state.text.y = attributes['y'].split(COMMA_WSP_REGEXP).collect {|n| y(n)} if attributes['y']
-    state.text.dx = attributes['dx'].split(COMMA_WSP_REGEXP).collect {|n| x_pixels(n)} if attributes['dx']
-    state.text.dy = attributes['dy'].split(COMMA_WSP_REGEXP).collect {|n| y_pixels(n)} if attributes['dy']
-    state.text.rotation = attributes['rotate'].split(COMMA_WSP_REGEXP).collect(&:to_f) if attributes['rotate']
+    state.text.x = (attributes['x'] || "").split(COMMA_WSP_REGEXP).collect { |n| x(n) }
+    state.text.y = (attributes['y'] || "").split(COMMA_WSP_REGEXP).collect { |n| y(n) }
+    state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
+    state.text.dy = (attributes['dy'] || "").split(COMMA_WSP_REGEXP).collect { |n| y_pixels(n) }
+    state.text.rotation = (attributes['rotate'] || "").split(COMMA_WSP_REGEXP).collect(&:to_f)
+    state.text.spacing = calculate_character_spacing
+    state.text.mode = calculate_text_rendering_mode
 
     @commands = []
 
@@ -41,10 +43,13 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
       text_anchor: computed_properties.text_anchor
     }
 
-    spacing = computed_properties.letter_spacing
-    spacing = spacing == 'normal' ? 0 : pixels(spacing)
-
-    add_call_and_enter 'character_spacing', spacing
+    if state.text.parent
+      add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing == state.text.parent.spacing
+      add_call_and_enter 'text_rendering_mode', state.text.mode unless state.text.mode == state.text.parent.mode
+    else
+      add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing == 0
+      add_call_and_enter 'text_rendering_mode', state.text.mode unless state.text.mode == :fill
+    end
 
     @commands.each do |command|
       case command
@@ -59,8 +64,8 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
       end
     end
 
-    # It's possible there was no text to render.  In that case, add a 'noop' so
-    # character_spacing doesn't blow up when it finds it doesn't have a block to execute.
+    # It's possible there was no text to render.  In that case, add a 'noop' so character_spacing/text_rendering_mode
+    # don't blow up when they find they don't have a block to execute.
     add_call 'noop' if calls.empty?
   end
 
@@ -81,7 +86,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def append_child(child)
     new_state = state.dup
-    new_state.text = PositionsList.new([], [], [], [], [], state.text)
+    new_state.text = TextState.new(state.text)
 
     element = self.class.new(document, child, calls, new_state)
     @commands << element
@@ -188,5 +193,29 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   def apply_font(font)
     add_call 'font', font.name, style: font.subfamily
+  end
+
+  def calculate_text_rendering_mode
+    fill = computed_properties.fill != 'none'
+    stroke = computed_properties.stroke != 'none'
+
+    if fill && stroke
+      :fill_stroke
+    elsif fill
+      :fill
+    elsif stroke
+      :stroke
+    else
+      :invisible
+    end
+  end
+
+  def calculate_character_spacing
+    spacing = computed_properties.letter_spacing
+    spacing == 'normal' ? 0 : pixels(spacing)
+  end
+
+  # overridden, we don't want to call fill/stroke as draw_text does this for us
+  def apply_drawing_call
   end
 end

@@ -4,6 +4,8 @@ describe Prawn::SVG::Elements::Text do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}, font_registry: Prawn::SVG::FontRegistry.new("Helvetica" => {:normal => nil}, "Courier" => {normal: nil}, 'Times-Roman' => {normal: nil})) }
   let(:element)  { Prawn::SVG::Elements::Text.new(document, document.root, [], fake_state) }
 
+  let(:default_style) { {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]} }
+
   describe "xml:space preserve" do
     let(:svg) { %(<text#{attributes}>some\n\t  text</text>) }
 
@@ -77,14 +79,63 @@ Even more
 
       expect(element.base_calls).to eq [
         ["text_group", [], [
-          ["fill", [], [
-            ["font", ["Helvetica", {style: :normal}], []],
-            ["character_spacing", [5.0], [
-              ["draw_text", ["spaced", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}], []]
-            ]]
+          ["font", ["Helvetica", {style: :normal}], []],
+          ["character_spacing", [5.0], [
+            ["draw_text", ["spaced", default_style], []]
           ]]
         ]]
       ]
+    end
+  end
+
+  describe "fill/stroke modes" do
+    context "with a stroke and no fill" do
+      let(:svg) { '<text stroke="red" fill="none">stroked</text>' }
+
+      it "calls text_rendering_mode with the requested options" do
+        element.process
+
+        expect(element.base_calls).to eq [
+          ["text_group", [], [
+            ["stroke_color", ["ff0000"], []],
+            ["font", ["Helvetica", {style: :normal}], []],
+            ["text_rendering_mode", [:stroke], [
+              ["draw_text", ["stroked", default_style], []]
+            ]]
+          ]]
+        ]
+      end
+    end
+
+    context "with a mixture of everything" do
+      let(:svg) { '<text stroke="red" fill="none">stroked <tspan fill="black">both</tspan><tspan stroke="none">neither</tspan></text>' }
+
+      it "calls text_rendering_mode with the requested options" do
+        element.process
+
+        expect(element.base_calls).to eq [
+          ["text_group", [], [
+            ["stroke_color", ["ff0000"], []],
+            ["font", ["Helvetica", {style: :normal}], []],
+            ["text_rendering_mode", [:stroke], [
+              ["draw_text", ["stroked ", default_style], []],
+              ["save", [], []],
+              ["fill_color", ["000000"], []],
+              ["font", ["Helvetica", {style: :normal}], []],
+              ["text_rendering_mode", [:fill_stroke], [
+                ["draw_text", ["both", default_style], []]
+              ]],
+              ["restore", [], []],
+              ["save", [], []],
+              ["font", ["Helvetica", {style: :normal}], []],
+              ["text_rendering_mode", [:invisible], [
+                ["draw_text", ["neither", default_style], []]
+              ]],
+              ["restore", [], []],
+            ]]
+          ]]
+        ]
+      end
     end
   end
 
@@ -124,11 +175,9 @@ Even more
 
     it "references the text" do
       element.process
-      expect(flatten_calls(element.base_calls)[11..15]).to eq [
+      expect(flatten_calls(element.base_calls)[9..11]).to eq [
         ["fill_color", ["ff0000"]],
-        ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
-        ["character_spacing", [0]],
         ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[0,0]}]],
       ]
     end
@@ -137,14 +186,12 @@ Even more
   describe "dx and dy attributes" do
     let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
 
-    it "correctly calculates the positinos of the text" do
+    it "correctly calculates the positions of the text" do
       element.process
 
       expect(flatten_calls(element.base_calls)).to eq [
         ["text_group", []],
-        ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
-        ["character_spacing", [0]],
         ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[30.0, 2.0]}]],
         ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[20.0, :relative], :offset=>[50.0, 0]}]],
         ["draw_text", [" there, this is a good test", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[80.0, 0]}]]
@@ -155,21 +202,17 @@ Even more
   describe "rotate attribute" do
     let(:svg) { '<text rotate="10 20 30 40 50 60 70 80 90 100">Hi <tspan rotate="0">this</tspan> ok!</text>' }
 
-    it "correctly calculates the positinos of the text" do
+    it "correctly calculates the positions of the text" do
       element.process
 
       expect(flatten_calls(element.base_calls)).to eq [
         ["text_group", []],
-        ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
-        ["character_spacing", [0]],
         ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-10.0}]],
         ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-20.0}]],
         ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-30.0}]],
         ["save", []],
-        ["fill", []],
         ["font", ["Helvetica", {:style=>:normal}]],
-        ["character_spacing", [0]],
         ["draw_text", ["this", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0]}]],
         ["restore", []],
         ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-80.0}]],
