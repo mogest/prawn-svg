@@ -116,7 +116,7 @@ module Prawn::SVG::CSS
       selector.reduce([0, 0, 0]) do |(a, b, c), element|
         [
           a + (element[:id] || []).length,
-          b + (element[:class] || []).length + (element[:pseudo_class] || []).length,
+          b + (element[:class] || []).length + (element[:attribute] || []).length + (element[:pseudo_class] || []).length,
           c + (element[:name] && element[:name] != "*" ? 1 : 0)
         ]
       end
