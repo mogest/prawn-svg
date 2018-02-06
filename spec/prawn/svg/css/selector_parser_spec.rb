@@ -18,5 +18,16 @@ RSpec.describe Prawn::SVG::CSS::SelectorParser do
         {combinator: :descendant, name: "*", pseudo_class: ["nth-child(3)"]},
       ]
     end
+
+    it "parses attributes" do
+      expect(described_class.parse("[abc]")).to eq [{attribute: [["abc", nil, nil]]}]
+      expect(described_class.parse("[abc=123]")).to eq [{attribute: [["abc", '=', '123']]}]
+      expect(described_class.parse("[abc^=123]")).to eq [{attribute: [["abc", '^=', '123']]}]
+      expect(described_class.parse("[ abc ^= 123 ]")).to eq [{attribute: [["abc", '^=', '123']]}]
+      expect(described_class.parse("[abc^='123']")).to eq [{attribute: [["abc", '^=', '123']]}]
+      expect(described_class.parse("[abc^= '123' ]")).to eq [{attribute: [["abc", '^=', '123']]}]
+      expect(described_class.parse("[abc^= '123\\'456' ]")).to eq [{attribute: [["abc", '^=', '123\'456']]}]
+      expect(described_class.parse('[abc^= "123\\"456" ]')).to eq [{attribute: [["abc", '^=', '123"456']]}]
+    end
   end
 end

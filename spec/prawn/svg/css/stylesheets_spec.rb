@@ -15,6 +15,14 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
           circle:first-child { fill: #550000; }
           circle:nth-child(2) { fill: #660000; }
           circle:last-child { fill: #770000; }
+
+          square[chocolate] { fill: #880000; }
+          square[abc=def] { fill: #990000; }
+          square[abc^=ghi] { fill: #aa0000; }
+          square[abc$=jkl] { fill: #bb0000; }
+          square[abc*=mno] { fill: #cc0000; }
+          square[abc~=pqr] { fill: #dd0000; }
+          square[abc|=stu] { fill: #ee0000; }
         </style>
 
         <rect width="1" height="1" />
@@ -33,12 +41,20 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
           <circle width="8" />
           <circle width="9" />
         </g>
+
+        <square width="10" chocolate="hi there" />
+        <square width="11" abc="def" />
+        <square width="12" abc="ghidef" />
+        <square width="13" abc="aghidefjkl" />
+        <square width="14" abc="agmnohidefjklx" />
+        <square width="15" abc="aeo cnj pqr" />
+        <square width="16" abc="eij-stu-asd" />
       </svg>
     SVG
 
     it "associates styles with elements" do
       result = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg)).load
-      width_and_styles = result.map { |k, v| [k.attributes["width"].to_i, v] }
+      width_and_styles = result.map { |k, v| [k.attributes["width"].to_i, v] }.sort_by(&:first)
 
       expect(width_and_styles).to eq [
         [1, [["fill", "#ff0000", false]]],
@@ -50,6 +66,13 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         [7, [["fill", "#550000", false]]],
         [8, [["fill", "#660000", false]]],
         [9, [["fill", "#770000", false]]],
+        [10, [["fill", "#880000", false]]],
+        [11, [["fill", "#990000", false]]],
+        [12, [["fill", "#aa0000", false]]],
+        [13, [["fill", "#bb0000", false]]],
+        [14, [["fill", "#cc0000", false]]],
+        [15, [["fill", "#dd0000", false]]],
+        [16, [["fill", "#ee0000", false]]],
       ]
     end
   end

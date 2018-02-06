@@ -57,6 +57,10 @@ module Prawn::SVG::CSS
       element_styles
     end
 
+    def xpath_quote(value)
+      %{"#{value.gsub('\\', '\\\\').gsub('"', '\\"')}"} if value
+    end
+
     def css_selector_to_xpath(selector)
       selector.map do |element|
         pseudo_classes = Set.new(element[:pseudo_class])
@@ -76,6 +80,25 @@ module Prawn::SVG::CSS
         result << element[:name] if element[:name]
         result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), ' #{name} ')]" }.join)
         result << ((element[:id] || []).map { |name| "[@id='#{name}']" }.join)
+
+        (element[:attribute] || []).each do |key, operator, value|
+          case operator
+          when nil
+            result << "[@#{key}]"
+          when "="
+            result << "[@#{key}=#{xpath_quote value}]"
+          when "^="
+            result << "[starts-with(@#{key}, #{xpath_quote value})]"
+          when "$="
+            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_quote value})]"
+          when "*="
+            result << "[contains(@#{key}, #{xpath_quote value})]"
+          when "~="
+            result << "[contains(concat(' ',@#{key},' '), #{xpath_quote " #{value} "})]"
+          when "|="
+            result << "[contains(concat('-',@#{key},'-'), #{xpath_quote "-#{value}-"})]"
+          end
+        end
 
         pseudo_classes.each do |pc|
           case pc

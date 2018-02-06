@@ -101,12 +101,13 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
 ## CSS
 
-prawn-svg handles basic CSS, both in `<style>` blocks and `style` attributes.
+prawn-svg supports CSS, both in `<style>` blocks and `style` attributes.
 
-In CSS selectors you can use element names, IDs, classes and all combinators (` `, `>`, `+`, `~`).
+In CSS selectors you can use element names, IDs, classes, attributes (existence, `=`, `^=`, `$=`, `*=`, `~=`, `|=`)
+and all combinators (` `, `>`, `+`, `~`).
 The pseudo-classes `:first-child`, `:last-child` and `:nth-child(n)` (where n is a number) also work.
 
-Attributes, pseudo-elements and the other pseudo-classes are not supported.  Specificity ordering is
+Pseudo-elements and the other pseudo-classes are not supported.  Specificity ordering is
 implemented, but `!important` is not.
 
 ## Not supported
