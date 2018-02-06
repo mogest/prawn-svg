@@ -101,7 +101,10 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
 ## CSS
 
-prawn-svg uses the css_parser gem to parse CSS <tt>&lt;style&gt;</tt> blocks.  It only handles simple tag, class or id selectors; attribute and other advanced selectors are not supported by the gem.
+prawn-svg handles basic CSS, both in `<style>` blocks and `style` attributes.
+
+CSS selectors are limited to element names, IDs, classes, descendants and direct children.  This means attribute,
+pseudo-element, pseudo-class and sibling selectors are not supported.  Specificity ordering is implemented, but `!important` is not.
 
 ## Not supported
 

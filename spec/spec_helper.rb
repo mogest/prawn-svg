@@ -8,8 +8,8 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 module Support
   def flatten_calls(calls)
     [].tap do |flattened_calls|
-      add = -> (calls) do
-        calls.each do |call|
+      add = -> (local_calls) do
+        local_calls.each do |call|
           flattened_calls << call[0..1]
           add.call call[2]
         end

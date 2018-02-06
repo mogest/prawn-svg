@@ -216,31 +216,19 @@ class Prawn::SVG::Elements::Base
   end
 
   def extract_attributes_and_properties
-    if @document && @document.css_parser
-      tag_style = @document.css_parser.find_by_selector(source.name)
-      id_style = @document.css_parser.find_by_selector("##{source.attributes["id"]}") if source.attributes["id"]
-
-      if classes = source.attributes["class"]
-        class_styles = classes.split(' ').collect do |class_name|
-          @document.css_parser.find_by_selector(".#{class_name}")
-        end
+    if styles = document.element_styles[source]
+      # TODO : implement !important, at the moment it's just ignored
+      styles.each do |name, value, _important|
+        @properties.set(name, value)
       end
-
-      element_style = source.attributes['style']
-
-      style = [tag_style, class_styles, id_style, element_style].flatten.collect do |s|
-        s.nil? || s.strip == "" ? "" : "#{s}#{";" unless s.match(/;\s*\z/)}"
-      end.join
-    else
-      style = source.attributes['style'] || ""
     end
+
+    @properties.load_hash(parse_css_declarations(source.attributes['style'] || ''))
 
     source.attributes.each do |name, value|
       # Properties#set returns nil if it's not a recognised property name
       @properties.set(name, value) or @attributes[name] = value
     end
-
-    @properties.load_hash(parse_css_declarations(style))
 
     state.computed_properties.compute_properties(@properties)
   end

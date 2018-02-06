@@ -24,7 +24,7 @@ class Prawn::SVG::FontRegistry
   end
 
   def load(family, weight = nil, style = nil)
-    Prawn::SVG::CSS.parse_font_family_string(family).detect do |name|
+    Prawn::SVG::CSS::FontFamilyParser.parse(family).detect do |name|
       name = name.gsub(/\s{2,}/, ' ').downcase
 
       font = Prawn::SVG::Font.new(name, weight, style, font_registry: self)

@@ -161,4 +161,30 @@ describe Prawn::SVG::Elements::Base do
       expect(element.computed_properties.fill).to eq 'none'
     end
   end
+
+  describe "stylesheets" do
+    let(:svg) { <<-SVG }
+      <svg>
+        <style>
+          .special rect { fill: green; }
+          rect { fill: red; }
+        </style>
+        <rect width="100" height="100"></rect>
+        <g class="special">
+          <rect width="100" height="100"></rect>
+          <rect width="100" height="100" style="fill: yellow;"></rect>
+        </g>
+      </svg>
+    SVG
+
+    it "applies stylesheet styling but style attributes take precedence" do
+      document = Prawn::SVG::Document.new(svg, [100, 100], {})
+      calls = []
+      element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
+      element.process
+
+      fill_colors = calls.select { |cmd, _, _| cmd == 'fill_color' }.map { |_, args, _| args.first }
+      expect(fill_colors).to eq ['000000', 'ff0000', '008000', 'ffff00']
+    end
+  end
 end

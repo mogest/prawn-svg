@@ -1,6 +1,6 @@
-class Prawn::SVG::CSS
-  class << self
-    def parse_font_family_string(string)
+module Prawn::SVG::CSS
+  class FontFamilyParser
+    def self.parse(string)
       in_quote = nil
       in_escape = false
       current = nil
@@ -37,4 +37,3 @@ class Prawn::SVG::CSS
     end
   end
 end
-

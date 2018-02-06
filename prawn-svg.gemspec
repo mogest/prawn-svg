@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('../lib/prawn/svg/version', __FILE__)
 
-spec = Gem::Specification.new do |gem|
+Gem::Specification.new do |gem|
   gem.name = 'prawn-svg'
   gem.version = Prawn::SVG::VERSION
   gem.summary = "SVG renderer for Prawn PDF library"
@@ -21,7 +21,7 @@ spec = Gem::Specification.new do |gem|
   gem.required_ruby_version = '>= 2.1.0'
 
   gem.add_runtime_dependency "prawn", ">= 0.11.1", "< 3"
-  gem.add_runtime_dependency "css_parser", "~> 1.3"
+  gem.add_runtime_dependency "css_parser", "~> 1.6"
   gem.add_development_dependency "rspec", "~> 3.0"
   gem.add_development_dependency "rake", "~> 10.1"
 end

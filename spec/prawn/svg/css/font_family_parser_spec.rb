@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-RSpec.describe Prawn::SVG::CSS do
-  describe "#parse_font_family_string" do
+RSpec.describe Prawn::SVG::CSS::FontFamilyParser do
+  describe "#parse" do
     it "correctly handles quotes and escaping" do
       tests = {
         "" => [],
@@ -17,7 +17,7 @@ RSpec.describe Prawn::SVG::CSS do
       }
 
       tests.each do |string, expected|
-        expect(Prawn::SVG::CSS.parse_font_family_string(string)).to eq expected
+        expect(Prawn::SVG::CSS::FontFamilyParser.parse(string)).to eq expected
       end
     end
   end

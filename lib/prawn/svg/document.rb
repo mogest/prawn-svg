@@ -12,7 +12,8 @@ class Prawn::SVG::Document
     :fallback_font_name,
     :font_registry,
     :url_loader,
-    :css_parser, :elements_by_id, :gradients
+    :elements_by_id, :gradients,
+    :element_styles
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new)
     @root = REXML::Document.new(data).root
@@ -31,7 +32,6 @@ class Prawn::SVG::Document
     @gradients = {}
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
-    @css_parser = css_parser
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],
@@ -42,7 +42,7 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, @root.attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    parse_style_elements
+    @element_styles = Prawn::SVG::CSS::Stylesheets.new(css_parser, root).load
 
     yield self if block_given?
   end
@@ -51,17 +51,5 @@ class Prawn::SVG::Document
     sizing.requested_width = requested_width
     sizing.requested_height = requested_height
     sizing.calculate
-  end
-
-  private
-
-  # <style> elements specified anywhere in the document apply to the entire
-  # document.  Because of this, we load all <style> elements before parsing
-  # the rest of the document.
-  def parse_style_elements
-    REXML::XPath.match(root, '//style').each do |source|
-      data = source.texts.map(&:value).join
-      css_parser.add_block!(data)
-    end
   end
 end
