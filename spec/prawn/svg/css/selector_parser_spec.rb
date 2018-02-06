@@ -8,11 +8,14 @@ RSpec.describe Prawn::SVG::CSS::SelectorParser do
     end
 
     it "parses a complex selector" do
-      result = described_class.parse("div#count .c1.c2 > span.large")
+      result = described_class.parse("div#count .c1.c2 > span.large + div~.other:first-child *:nth-child(3)")
       expect(result).to eq [
         {name: "div", id: ["count"]},
-        {association: :descendant, class: ["c1", "c2"]},
-        {association: :child, name: "span", class: ["large"]}
+        {combinator: :descendant, class: ["c1", "c2"]},
+        {combinator: :child, name: "span", class: ["large"]},
+        {combinator: :adjacent, name: "div"},
+        {combinator: :siblings, class: ["other"], pseudo_class: ["first-child"]},
+        {combinator: :descendant, name: "*", pseudo_class: ["nth-child(3)"]},
       ]
     end
   end

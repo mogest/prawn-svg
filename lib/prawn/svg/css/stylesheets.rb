@@ -59,9 +59,32 @@ module Prawn::SVG::CSS
 
     def css_selector_to_xpath(selector)
       selector.map do |element|
-        result = "#{element[:association] == :child ? "/" : "//"}#{element[:name]}"
+        pseudo_classes = Set.new(element[:pseudo_class])
+
+        result = case element[:combinator]
+                 when :child
+                   '/'
+                 when :adjacent
+                   pseudo_classes << 'first-child'
+                   '/following-sibling::'
+                 when :siblings
+                   '/following-sibling::'
+                 else
+                   '//'
+                 end
+
+        result << element[:name] if element[:name]
         result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), ' #{name} ')]" }.join)
         result << ((element[:id] || []).map { |name| "[@id='#{name}']" }.join)
+
+        pseudo_classes.each do |pc|
+          case pc
+          when "first-child" then result << "[1]"
+          when "last-child"  then result << "[last()]"
+          when /^nth-child\((\d+)\)$/ then result << "[#{$1}]"
+          end
+        end
+
         result
       end.join
     end
@@ -70,7 +93,7 @@ module Prawn::SVG::CSS
       selector.reduce([0, 0, 0]) do |(a, b, c), element|
         [
           a + (element[:id] || []).length,
-          b + (element[:class] || []).length,
+          b + (element[:class] || []).length + (element[:pseudo_class] || []).length,
           c + (element[:name] && element[:name] != "*" ? 1 : 0)
         ]
       end

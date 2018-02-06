@@ -103,8 +103,11 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
 prawn-svg handles basic CSS, both in `<style>` blocks and `style` attributes.
 
-CSS selectors are limited to element names, IDs, classes, descendants and direct children.  This means attribute,
-pseudo-element, pseudo-class and sibling selectors are not supported.  Specificity ordering is implemented, but `!important` is not.
+In CSS selectors you can use element names, IDs, classes and all combinators (` `, `>`, `+`, `~`).
+The pseudo-classes `:first-child`, `:last-child` and `:nth-child(n)` (where n is a number) also work.
+
+Attributes, pseudo-elements and the other pseudo-classes are not supported.  Specificity ordering is
+implemented, but `!important` is not.
 
 ## Not supported
 
