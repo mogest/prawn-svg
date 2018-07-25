@@ -37,8 +37,9 @@ class Prawn::SVG::FontRegistry
   def merge_external_fonts
     if @font_case_mapping.nil?
       self.class.load_external_fonts unless self.class.external_font_families
-      @font_families.merge!(self.class.external_font_families)
-
+      @font_families.merge!(self.class.external_font_families) do |key, v1, v2|
+       v1
+      end
       @font_case_mapping = @font_families.keys.each.with_object({}) do |key, result|
         result[key.downcase] = key
       end

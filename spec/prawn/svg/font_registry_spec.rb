@@ -32,6 +32,36 @@ RSpec.describe Prawn::SVG::FontRegistry do
     end
   end
 
+  describe "#installed_fonts" do
+    let(:ttf)  { instance_double(Prawn::SVG::TTF, family: "Awesome Font", subfamily: "Italic") }
+    let(:ttf2) { instance_double(Prawn::SVG::TTF, family: "Awesome Font", subfamily: "Regular") }
+    before { Prawn::SVG::FontRegistry.external_font_families.clear }
+
+    let(:pdf) do
+      doc = Prawn::Document.new
+      doc.font_families.update({
+        "Awesome Font" => {:italic => "second.ttf", :normal => "file.ttf"}
+      })
+      doc
+    end
+
+    let(:font_registry) { Prawn::SVG::FontRegistry.new(pdf.font_families) }
+
+    it "does not override existing entries in pdf when loading external fonts" do
+      expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(["x"])
+      expect(Dir).to receive(:[]).with("x/**/*").and_return(["file.ttf", "second.ttf"])
+      expect(Prawn::SVG::TTF).to receive(:new).with("file.ttf").and_return(ttf)
+      expect(Prawn::SVG::TTF).to receive(:new).with("second.ttf").and_return(ttf2)
+      expect(File).to receive(:file?).at_least(:once).and_return(true)
+
+      Prawn::SVG::FontRegistry.load_external_fonts
+      font_registry.installed_fonts
+
+      existing_font = font_registry.installed_fonts["Awesome Font"]
+      expect(existing_font).to eq(:italic => "second.ttf",:normal => "file.ttf")
+    end
+  end
+
   describe "::load_external_fonts" do
     let(:ttf)  { instance_double(Prawn::SVG::TTF, family: "Awesome Font", subfamily: "Italic") }
     let(:ttf2) { instance_double(Prawn::SVG::TTF, family: "Awesome Font", subfamily: "Regular") }
