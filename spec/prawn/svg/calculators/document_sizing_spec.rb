@@ -31,8 +31,8 @@ describe Prawn::SVG::Calculators::DocumentSizing do
   describe "#calculate" do
     it "calculates the document sizing measurements for a given set of inputs" do
       sizing.calculate
-      expect(sizing.x_offset).to eq -75 / 0.25
-      expect(sizing.y_offset).to eq -30
+      expect(sizing.x_offset).to eq(-75 / 0.25)
+      expect(sizing.y_offset).to eq(-30)
       expect(sizing.x_scale).to eq 0.25
       expect(sizing.y_scale).to eq 0.25
       expect(sizing.viewport_width).to eq 300
@@ -74,12 +74,12 @@ describe Prawn::SVG::Calculators::DocumentSizing do
       context "when a viewBox is specified" do
         let(:attributes) { {"viewBox" => "0 0 100 200"} }
 
-        it "defaults to 100% width and height" do
+        it "defaults to 100% width and uses the viewbox ratio for height" do
           sizing.calculate
           expect(sizing.viewport_width).to eq 100
           expect(sizing.viewport_height).to eq 200
           expect(sizing.output_width).to eq 1200
-          expect(sizing.output_height).to eq 800
+          expect(sizing.output_height).to eq 2400
         end
       end
 

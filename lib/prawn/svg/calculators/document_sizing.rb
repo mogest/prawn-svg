@@ -36,10 +36,10 @@ module Prawn::SVG::Calculators
         @x_offset, @y_offset, @viewport_width, @viewport_height = values.map {|value| value.to_f}
 
         if @viewport_width > 0 && @viewport_height > 0
-          # If neither the width nor height was specified, use the entire space available
+          # If neither the width nor height was specified, use the entire width and the viewbox ratio
+          # to determine the height.
           if @output_width.nil? && @output_height.nil?
             @output_width = container_width
-            @output_height = container_height
           end
 
           # If one of the output dimensions is missing, calculate it from the other one
