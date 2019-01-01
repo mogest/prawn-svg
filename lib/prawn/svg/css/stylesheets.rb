@@ -32,13 +32,14 @@ module Prawn::SVG::CSS
         rule_set.each_declaration { |*data| declarations << data }
 
         rule_set.selectors.each do |selector_text|
-          selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text)
-          xpath = css_selector_to_xpath(selector)
-          specificity = calculate_specificity(selector)
-          specificity << order
-          order += 1
+          if selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text)
+            xpath = css_selector_to_xpath(selector)
+            specificity = calculate_specificity(selector)
+            specificity << order
+            order += 1
 
-          xpath_styles << [xpath, declarations, specificity]
+            xpath_styles << [xpath, declarations, specificity]
+          end
         end
       end
 
