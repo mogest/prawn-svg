@@ -63,7 +63,7 @@ module Prawn::SVG::CSS
     end
 
     def css_selector_to_xpath(selector)
-      selector.map do |element|
+      elements = selector.map do |element|
         pseudo_classes = Set.new(element[:pseudo_class])
 
         result = case element[:combinator]
@@ -110,7 +110,10 @@ module Prawn::SVG::CSS
         end
 
         result
-      end.join
+      end
+
+      # necessary for REXML in ruby 2.6.0
+      elements.join.sub(/\A\/\/\[/, '//*[')
     end
 
     def calculate_specificity(selector)
