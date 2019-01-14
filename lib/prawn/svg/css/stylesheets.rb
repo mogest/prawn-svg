@@ -63,7 +63,7 @@ module Prawn::SVG::CSS
     end
 
     def css_selector_to_xpath(selector)
-      elements = selector.map do |element|
+      selector.map do |element|
         pseudo_classes = Set.new(element[:pseudo_class])
 
         result = case element[:combinator]
