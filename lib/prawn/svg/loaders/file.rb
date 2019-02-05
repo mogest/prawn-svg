@@ -85,7 +85,7 @@ module Prawn::SVG::Loaders
     end
 
     def assert_valid_file_uri!(uri)
-      if uri.host
+      unless uri.host.nil? || uri.host.empty?
         raise Prawn::SVG::UrlLoader::Error, "prawn-svg does not suport file: URLs with a host. Your URL probably doesn't start with three slashes, and it should."
       end
     end

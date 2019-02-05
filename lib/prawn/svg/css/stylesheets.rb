@@ -78,7 +78,7 @@ module Prawn::SVG::CSS
                    '//'
                  end
 
-        result << element[:name] if element[:name]
+        result << (element[:name] || '*')
         result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), ' #{name} ')]" }.join)
         result << ((element[:id] || []).map { |name| "[@id='#{name}']" }.join)
 

@@ -56,12 +56,22 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       result = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg)).load
       width_and_styles = result.map { |k, v| [k.attributes["width"].to_i, v] }.sort_by(&:first)
 
-      expect(width_and_styles).to eq [
+      expected = [
         [1, [["fill", "#ff0000", false]]],
         [2, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#220000", false]]],
         [3, [["fill", "#ff0000", false], ["fill", "#00ff00", false]]],
         [4, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]],
-        [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#00ff00", false]]],
+      ]
+
+      # under ruby < 2.6, a bug in REXML causes the /following-sibling selector to
+      # choose one less rect than should be selected
+      if RUBY_VERSION < '2.6.0'
+        expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#00ff00", false]]]
+      else
+        expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]]
+      end
+
+      expected.concat [
         [6, [["fill", "#ff0000", false], ["fill", "#0000ff", false]]],
         [7, [["fill", "#550000", false]]],
         [8, [["fill", "#660000", false]]],
@@ -74,6 +84,8 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         [15, [["fill", "#dd0000", false]]],
         [16, [["fill", "#ee0000", false]]],
       ]
+
+      expect(width_and_styles).to eq(expected)
     end
   end
 
