@@ -6,7 +6,6 @@ Gem::Specification.new do |gem|
   gem.version = Prawn::SVG::VERSION
   gem.summary = "SVG renderer for Prawn PDF library"
   gem.description = "This gem allows you to render SVG directly into a PDF using the 'prawn' gem.  Since PDF is vector-based, you'll get nice scaled graphics if you use SVG instead of an image."
-  gem.has_rdoc = false
   gem.author = "Roger Nesbitt"
   gem.email = "roger@seriousorange.com"
   gem.homepage = "http://github.com/mogest/prawn-svg"

@@ -65,20 +65,48 @@ module Prawn::SVG::CSS
     def css_selector_to_xpath(selector)
       selector.map do |element|
         pseudo_classes = Set.new(element[:pseudo_class])
+        require_function_name = false
 
         result = case element[:combinator]
                  when :child
-                   '/'
+                   "/"
                  when :adjacent
                    pseudo_classes << 'first-child'
-                   '/following-sibling::'
+                   "/following-sibling::"
                  when :siblings
-                   '/following-sibling::'
+                   "/following-sibling::"
                  else
-                   '//'
+                   "//"
                  end
 
-        result << (element[:name] || '*')
+        positions = []
+        pseudo_classes.each do |pc|
+          case pc
+          when "first-child" then positions << '1'
+          when "last-child"  then positions << 'last()'
+          when /^nth-child\((\d+)\)$/ then positions << $1
+          end
+        end
+
+        if !positions.empty?
+          result << "*" unless require_function_name
+          require_function_name = true
+
+          logic = if positions.length == 1
+                    positions.first
+                  else
+                    positions.map { |position| "position()=#{position}" }.join(" and ")
+                  end
+
+          result << "[#{logic}]"
+        end
+
+        if require_function_name
+          result << "[name()=#{xpath_quote element[:name]}]" if element[:name]
+        else
+          result << (element[:name] || '*')
+        end
+
         result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), ' #{name} ')]" }.join)
         result << ((element[:id] || []).map { |name| "[@id='#{name}']" }.join)
 
@@ -98,14 +126,6 @@ module Prawn::SVG::CSS
             result << "[contains(concat(' ',@#{key},' '), #{xpath_quote " #{value} "})]"
           when "|="
             result << "[contains(concat('-',@#{key},'-'), #{xpath_quote "-#{value}-"})]"
-          end
-        end
-
-        pseudo_classes.each do |pc|
-          case pc
-          when "first-child" then result << "[1]"
-          when "last-child"  then result << "[last()]"
-          when /^nth-child\((\d+)\)$/ then result << "[#{$1}]"
           end
         end
 

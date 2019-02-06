@@ -11,6 +11,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
           rect { fill: #ff0000; }
           rect ~ rect { fill: #330000; }
           rect + rect { fill: #440000; }
+          rect:first-child:last-child { fill: #441234; }
 
           circle:first-child { fill: #550000; }
           circle:nth-child(2) { fill: #660000; }
@@ -37,9 +38,13 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
             <rect width="6" height="6" />
           </g>
 
-          <circle width="7" />
-          <circle width="8" />
-          <circle width="9" />
+          <circle width="100" />
+
+          <g id="circles">
+            <circle width="7" />
+            <circle width="8" />
+            <circle width="9" />
+          </g>
         </g>
 
         <square width="10" chocolate="hi there" />
@@ -63,16 +68,28 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         [4, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]],
       ]
 
-      # under ruby < 2.6, a bug in REXML causes the /following-sibling selector to
-      # choose one less rect than should be selected
-      if RUBY_VERSION < '2.6.0'
+      #
+      # Under ruby < 2.6, a bug in REXML causes the /following-sibling selector to
+      # only pick the first matching sibling.  This means the + CSS combinator behaves
+      # incorrectly in the following example:
+      #
+      # <a>
+      #   <b a="1" />
+      #   <b a="2" />
+      #   <b a="3" />
+      # </a>
+      #
+      # The css selector `a b + b` will only pick the second <b>, whereas it should
+      # pick both the second and third <b> elements.
+      #
+      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.6.0')
         expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#00ff00", false]]]
       else
         expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]]
       end
 
       expected.concat [
-        [6, [["fill", "#ff0000", false], ["fill", "#0000ff", false]]],
+        [6, [["fill", "#ff0000", false], ["fill", "#441234", false], ["fill", "#0000ff", false]]],
         [7, [["fill", "#550000", false]]],
         [8, [["fill", "#660000", false]]],
         [9, [["fill", "#770000", false]]],

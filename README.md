@@ -107,6 +107,10 @@ In CSS selectors you can use element names, IDs, classes, attributes (existence,
 and all combinators (` `, `>`, `+`, `~`).
 The pseudo-classes `:first-child`, `:last-child` and `:nth-child(n)` (where n is a number) also work.
 
+Warning: Ruby versions less than 2.6.0 have a bug in the REXML XPath implementation which means under some
+conditions the `+` combinator will not pick up all matching elements.  See `stylesheets_spec.rb` for an
+explanation if you're stuck on an old version of Ruby.
+
 Pseudo-elements and the other pseudo-classes are not supported.  Specificity ordering is
 implemented, but `!important` is not.
 
