@@ -2,7 +2,7 @@ require 'base64'
 
 module Prawn::SVG::Loaders
   class Data
-    REGEXP = %r[\A(?i:data):image/(png|jpeg);base64(;[a-z0-9]+)*,]
+    REGEXP = %r[\Adata:image/(png|jpeg);base64(;[a-z0-9]+)*,]i
 
     def from_url(url)
       return if url[0..4].downcase != "data:"

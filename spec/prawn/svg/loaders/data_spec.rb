@@ -29,6 +29,14 @@ RSpec.describe Prawn::SVG::Loaders::Data do
     end
   end
 
+  context "with a data URL that's uppercase" do
+    let(:url) { "DATA:IMAGE/PNG;BASE64;METADATA;HERE,aGVsbG8=" }
+
+    it "loads the data" do
+      expect(subject).to eq "hello"
+    end
+  end
+
   context "with a URL that's not a data scheme" do
     let(:url) { "http://some.host" }
 
