@@ -16,6 +16,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     require_attributes 'd'
 
     @commands = []
+    @last_point = nil
 
     data = attributes["d"].gsub(/#{OUTSIDE_SPACE_REGEXP}$/, '')
 

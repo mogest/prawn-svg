@@ -1,3 +1,5 @@
+require 'addressable/uri'
+
 #
 # Load a file from disk.
 #
@@ -56,7 +58,7 @@ module Prawn::SVG::Loaders
     private
 
     def load_file(path)
-      path = URI.decode(path)
+      path = Addressable::URI.unencode(path)
       path = build_absolute_and_expand_path(path)
       assert_valid_path!(path)
       assert_file_exists!(path)
