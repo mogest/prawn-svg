@@ -135,5 +135,6 @@ Mac OS X and Debian Linux users.  You can add to the font path:
 
 In your Gemfile, put `gem 'prawn-svg'` before `gem 'prawn-rails'` so that prawn-rails can see the prawn-svg extension.
 
---
-Copyright Roger Nesbitt <roger@seriousorange.com>.  MIT licence.
+## Licence
+
+MIT licence.  Copyright Roger Nesbitt.
