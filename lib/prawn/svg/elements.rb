@@ -13,6 +13,7 @@ module Prawn::SVG::Elements
     g: Prawn::SVG::Elements::Container,
     symbol: Prawn::SVG::Elements::Container,
     defs: Prawn::SVG::Elements::Container,
+    a: Prawn::SVG::Elements::Container,
     clipPath: Prawn::SVG::Elements::ClipPath,
     switch: Prawn::SVG::Elements::Container,
     svg: Prawn::SVG::Elements::Viewport,
