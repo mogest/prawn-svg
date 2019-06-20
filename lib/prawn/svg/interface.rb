@@ -148,6 +148,19 @@ module Prawn
 
           width = prawn.width_of(text, options.merge(kerning: true))
 
+          if stretch_to_width = options.delete(:stretch_to_width)
+            factor = stretch_to_width.to_f * 100 / width.to_f
+            prawn.add_content "#{factor} Tz"
+            width = stretch_to_width.to_f
+          end
+
+          if pad_to_width = options.delete(:pad_to_width)
+            padding_required = pad_to_width.to_f - width.to_f
+            padding_per_character = padding_required / text.length.to_f
+            prawn.add_content "#{padding_per_character} Tc"
+            width = pad_to_width.to_f
+          end
+
           case options.delete(:text_anchor)
           when 'middle'
             at[0] -= width / 2

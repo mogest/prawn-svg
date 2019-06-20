@@ -2,7 +2,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   attr_reader :commands
 
   Printable = Struct.new(:element, :text, :leading_space?, :trailing_space?)
-  TextState = Struct.new(:parent, :x, :y, :dx, :dy, :rotation, :spacing, :mode)
+  TextState = Struct.new(:parent, :x, :y, :dx, :dy, :rotation, :spacing, :mode, :text_length, :length_adjust)
 
   def parse
     if state.inside_clip_path
@@ -14,6 +14,8 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
     state.text.dy = (attributes['dy'] || "").split(COMMA_WSP_REGEXP).collect { |n| y_pixels(n) }
     state.text.rotation = (attributes['rotate'] || "").split(COMMA_WSP_REGEXP).collect(&:to_f)
+    state.text.text_length  = attributes['textLength']
+    state.text.length_adjust = attributes['lengthAdjust']
     state.text.spacing = calculate_character_spacing
     state.text.mode = calculate_text_rendering_mode
 
@@ -131,6 +133,14 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
         opts[:rotate] = -rotate
       else
         opts.delete(:rotate)
+      end
+
+      if state.text.text_length
+        if state.text.length_adjust == 'spacingAndGlyphs'
+          opts[:stretch_to_width] = state.text.text_length
+        else
+          opts[:pad_to_width] = state.text.text_length
+        end
       end
 
       if remaining
