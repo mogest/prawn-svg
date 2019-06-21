@@ -14,7 +14,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
     state.text.dy = (attributes['dy'] || "").split(COMMA_WSP_REGEXP).collect { |n| y_pixels(n) }
     state.text.rotation = (attributes['rotate'] || "").split(COMMA_WSP_REGEXP).collect(&:to_f)
-    state.text.text_length  = attributes['textLength']
+    state.text.text_length = normalize_length(attributes['textLength'])
     state.text.length_adjust = attributes['lengthAdjust']
     state.text.spacing = calculate_character_spacing
     state.text.mode = calculate_text_rendering_mode
@@ -231,5 +231,9 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
   # overridden, we don't want to call fill/stroke as draw_text does this for us
   def apply_drawing_call
+  end
+
+  def normalize_length(length)
+    x_pixels(length) if length && length.match(/\d/)
   end
 end
