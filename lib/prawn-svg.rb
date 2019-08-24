@@ -10,6 +10,7 @@ require 'prawn/svg/calculators/arc_to_bezier_curve'
 require 'prawn/svg/calculators/aspect_ratio'
 require 'prawn/svg/calculators/document_sizing'
 require 'prawn/svg/calculators/pixels'
+require 'prawn/svg/transform_parser'
 require 'prawn/svg/url_loader'
 require 'prawn/svg/loaders/data'
 require 'prawn/svg/loaders/file'
@@ -28,6 +29,9 @@ require 'prawn/svg/ttf'
 require 'prawn/svg/font'
 require 'prawn/svg/document'
 require 'prawn/svg/state'
+
+require 'prawn/svg/extensions/additional_gradient_transforms'
+Prawn::Document.prepend Prawn::SVG::Extensions::AdditionalGradientTransforms
 
 module Prawn
   Svg = SVG # backwards compatibility

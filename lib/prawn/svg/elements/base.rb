@@ -11,6 +11,8 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::Stroke
   include Prawn::SVG::Attributes::Space
 
+  include Prawn::SVG::TransformParser
+
   PAINT_TYPES = %w(fill stroke)
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
   SVG_NAMESPACE = "http://www.w3.org/2000/svg"

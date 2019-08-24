@@ -25,14 +25,14 @@ describe Prawn::SVG::Elements::Base do
     describe "applying calls from the standard attributes" do
       let(:svg) do
         <<-SVG
-          <something transform="rotate(90)" fill-opacity="0.5" fill="red" stroke="blue" stroke-width="5"/>
+          <something transform="scale(2)" fill-opacity="0.5" fill="red" stroke="blue" stroke-width="5"/>
         SVG
       end
 
       it "appends the relevant calls" do
         element.process
         expect(element.base_calls).to eq [
-          ["rotate", [-90.0, {origin: [0, 600.0]}], [
+          ["transformation_matrix", [2, 0, 0, 2, 0, 0], [
             ["transparent", [0.5, 1], [
               ["fill_color", ["ff0000"], []],
               ["stroke_color", ["0000ff"], []],

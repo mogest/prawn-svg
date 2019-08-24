@@ -32,7 +32,11 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       to   = [@x2, @y2]
     end
 
-    {from: from, to: to, stops: @stops}
+    # Passing in a transformation matrix to the apply_transformations option is supported
+    # by a monkey patch installed by prawn-svg.  Prawn only sees this as a truthy variable.
+    #
+    # See Prawn::SVG::Extensions::AdditionalGradientTransforms for details.
+    {from: from, to: to, stops: @stops, apply_transformations: @transform_matrix || true}
   end
 
   private
@@ -51,10 +55,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     @units = attributes["gradientUnits"] == 'userSpaceOnUse' ? :user_space : :bounding_box
 
     if transform = attributes["gradientTransform"]
-      matrix = transform.split(COMMA_WSP_REGEXP).map(&:to_f)
-      if matrix != [1, 0, 0, 1, 0, 0]
-        raise SkipElementError, "prawn-svg does not yet support gradients with a non-identity gradientTransform attribute"
-      end
+      @transform_matrix = parse_transform_attribute(transform)
     end
 
     if (spread_method = attributes['spreadMethod']) && spread_method != "pad"

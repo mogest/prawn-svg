@@ -76,7 +76,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - `<marker>`
 
- - `<linearGradient>` is implemented with Prawn 2.2.0+ (gradientTransform, spreadMethod and stop-opacity are unimplemented.)
+ - `<linearGradient>` is implemented on Prawn 2.2.0+ with attributes `gradientUnits` and `gradientTransform` (spreadMethod and stop-opacity are unimplemented.)
 
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
@@ -91,7 +91,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - the <tt>preserveAspectRatio</tt> attribute on <tt>&lt;svg&gt;</tt>, <tt>&lt;image&gt;</tt> and `<marker>` elements
 
- - transform methods: <tt>translate()</tt>, <tt>rotate()</tt>, <tt>scale()</tt>, <tt>matrix()</tt>
+ - transform methods: `translate`, `translateX`, `translateY`, `rotate`, `scale`, `skewX`, `skewY`, `matrix`
 
  - colors: HTML standard names, <tt>#xxx</tt>, <tt>#xxxxxx</tt>, <tt>rgb(1, 2, 3)</tt>, <tt>rgb(1%, 2%, 3%)</tt>
 
