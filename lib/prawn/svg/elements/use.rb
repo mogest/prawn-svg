@@ -1,5 +1,6 @@
 class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
-  attr_reader :referenced_element
+  attr_reader :referenced_element_class
+  attr_reader :referenced_element_source
 
   def parse
     require_attributes 'xlink:href'
@@ -11,9 +12,23 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     end
 
     id = href[1..-1]
-    @referenced_element = @document.elements_by_id[id]
+    referenced_element = @document.elements_by_id[id]
 
-    if referenced_element.nil?
+    if referenced_element
+      @referenced_element_class = referenced_element.class
+      @referenced_element_source = referenced_element.source
+    else
+      # Perhaps the element is defined further down in the document.  This is not recommended but still valid SVG,
+      # so we'll support it with an exception case that's not particularly performant.
+      raw_element = REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
+
+      if raw_element
+        @referenced_element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]
+        @referenced_element_source = raw_element
+      end
+    end
+
+    if referenced_element_class.nil?
       raise SkipElementError, "no tag with ID '#{id}' was found, referenced by use tag"
     end
 
@@ -36,7 +51,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   def process_child_elements
     add_call "save"
 
-    child = referenced_element.class.new(referenced_element.document, referenced_element.source, calls, state.dup)
+    child = referenced_element_class.new(document, referenced_element_source, calls, state.dup)
     child.process
 
     add_call "restore"
