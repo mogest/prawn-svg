@@ -15,9 +15,9 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
     raise SkipElementQuietly if state.computed_properties.display == "none"
 
-    @url = attributes['xlink:href'] || attributes['href']
+    @url = href_attribute
     if @url.nil?
-      raise SkipElementError, "image tag must have an xlink:href"
+      raise SkipElementError, "image tag must have an href or xlink:href"
     end
 
     x = x(attributes['x'] || 0)

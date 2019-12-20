@@ -267,4 +267,8 @@ class Prawn::SVG::Elements::Base
     element = document.elements_by_id[matches[1]] if matches
     element if element && (expected_type.nil? || element.name == expected_type)
   end
+
+  def href_attribute
+    attributes['xlink:href'] || attributes['href']
+  end
 end

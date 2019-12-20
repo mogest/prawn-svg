@@ -183,7 +183,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   def find_referenced_element
-    href = attributes['xlink:href']
+    href = href_attribute
 
     if href && href[0..0] == '#'
       element = document.elements_by_id[href[1..-1]]

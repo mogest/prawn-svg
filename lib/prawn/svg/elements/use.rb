@@ -3,9 +3,10 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   attr_reader :referenced_element_source
 
   def parse
-    require_attributes 'xlink:href'
-
-    href = attributes['xlink:href']
+    href = href_attribute
+    if href.nil?
+      raise SkipElementError, "use tag must have an href or xlink:href"
+    end
 
     if href[0..0] != '#'
       raise SkipElementError, "use tag has an href that is not a reference to an id; this is not supported"
