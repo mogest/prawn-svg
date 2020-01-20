@@ -19,14 +19,14 @@ describe Prawn::SVG::Elements::Path do
         path.parse
 
         calls.should == [
-          ["A", [12.34, -56.78, 89]],
-          ["B", [4, 5, 12, -34, -0.5, 0.7, 3, 2.3e3, 4e4, 4e4]],
-          ["c", [31, -2e-5]],
-          ["C", [6, 7]],
-          ["T", []],
-          ["Q", []],
-          ["X", [0]],
-          ["Z", []]
+          ["A", [12.34, -56.78, 89], "12.34 -56.78 89"],
+          ["B", [4, 5, 12, -34, -0.5, 0.7, 3, 2.3e3, 4e4, 4e4], "4 5 12-34 -.5.7+3 2.3e3 4e4 4e+4"],
+          ["c", [31, -2e-5], "31,-2e-5"],
+          ["C", [6, 7], "6,7"],
+          ["T", [], ""],
+          ["Q", [], ""],
+          ["X", [0], "0"],
+          ["Z", [], ""]
         ]
       end
     end
@@ -36,9 +36,9 @@ describe Prawn::SVG::Elements::Path do
 
       it "treats subsequent points to m/M command as relative/absolute depending on command" do
         [
-          ["M", [1,2,3,4]],
+          ["M", [1,2,3,4], "1,2 3,4"],
           ["L", [3,4]],
-          ["m", [5,6,7,8]],
+          ["m", [5,6,7,8], "5,6 7,8"],
           ["l", [7,8]]
         ].each do |args|
           path.should_receive(:parse_path_command).with(*args).and_call_original
@@ -72,6 +72,22 @@ describe Prawn::SVG::Elements::Path do
         expect { path.parse }.to raise_error(Prawn::SVG::Elements::Base::SkipElementError)
       end
     end
+    
+    context "with no space between the sweep-flag and x parameters in an A path" do
+      let(:d) { "M100,100a50 50 0 100 100" }
+      
+      it "correctly parses" do
+        [
+          ["M", [100, 100], "100,100"],
+          ["a", [50, 50, 0, 100, 100], "50 50 0 100 100"]
+        ].each do |args|
+          path.should_receive(:parse_path_command).with(*args).and_call_original
+        end
+        
+        path.parse
+      end
+      
+    end  
   end
 
   context "when given an M path" do
@@ -291,6 +307,18 @@ describe Prawn::SVG::Elements::Path do
           Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
         ]
       end
+    end
+    
+    context "with overly-compressed flags" do
+      let(:d) { "M100,100a50 50 0 100 100" }
+      
+      it "correctly parses them" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 100.0]),
+          Prawn::SVG::Elements::Path::Curve.new([50.0, 150.0], [72.57081148225681, 100.0], [50.0, 122.57081148225681]),
+          Prawn::SVG::Elements::Path::Curve.new([99.99999999999999, 200.0], [50.0, 177.42918851774317], [72.5708114822568, 200.0])
+        ]
+      end      
     end
   end
 end

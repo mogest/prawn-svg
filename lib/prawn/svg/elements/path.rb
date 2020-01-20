@@ -7,6 +7,10 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
   INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?)/
   VALUES_REGEXP = /^#{INSIDE_REGEXP}/
   COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
+  
+  # special-case handling for ‘A’ path commands to deal with overly-aggressive SVG optimisation
+  FLAG_REGEXP = /#{INSIDE_SPACE_REGEXP}([01])/
+  PATH_A_CMD_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{FLAG_REGEXP}#{FLAG_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
 
   FLOAT_ERROR_DELTA = 1e-10
 
@@ -29,7 +33,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         matched_values = match_all(matched_command[2], VALUES_REGEXP)
         raise "should be impossible to have invalid inside data, but we ended up here" if matched_values.nil?
         values = matched_values.collect {|value| value[1].to_f}
-        parse_path_command(command, values)
+        parse_path_command(command, values, matched_command[2].strip)
       end
     end
   end
@@ -43,7 +47,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
   protected
 
-  def parse_path_command(command, values)
+  def parse_path_command(command, values, raw_values = "")
     upcase_command = command.upcase
     relative = command != upcase_command
 
@@ -173,11 +177,15 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'A'
       return unless @last_point
+      
+      # reparse values, because some SVG compressors are a little too aggressive with whitespace removal
+      segments = match_all( raw_values, PATH_A_CMD_REGEXP )
+      
+      # check for trailing stuff
+      throw :invalid_command if segments.nil? or !segments.last.post_match.empty?
 
-      while values.any?
-        rx, ry, phi, fa, fs, x2, y2 = values.shift(7)
-        throw :invalid_command unless y2
-
+      segments.each do |segment|
+        _, rx, ry, phi, fa, fs, x2, y2 = segment.to_a.map{ |s| s.to_f }
         x1, y1 = @last_point
 
         return if rx.zero? && ry.zero?
