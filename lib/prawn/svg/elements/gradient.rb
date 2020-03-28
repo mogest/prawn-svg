@@ -1,4 +1,7 @@
 class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
+  attr_reader :parent_gradient
+  attr_reader :x1, :y1, :x2, :y2, :cx, :cy, :fx, :fy, :radius, :units, :stops, :transform_matrix
+
   TAG_NAME_TO_TYPE = {
     "linearGradient" => :linear,
     "radialGradient" => :radial
@@ -7,6 +10,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   def parse
     # A gradient tag without an ID is inaccessible and can never be used
     raise SkipElementQuietly if attributes['id'].nil?
+
+    @parent_gradient = document.gradients[href_attribute[1..-1]] if href_attribute && href_attribute[0] == '#'
 
     assert_compatible_prawn_version
     load_gradient_configuration
@@ -23,7 +28,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     # by a monkey patch installed by prawn-svg.  Prawn only sees this as a truthy variable.
     #
     # See Prawn::SVG::Extensions::AdditionalGradientTransforms for details.
-    base_arguments = {stops: @stops, apply_transformations: @transform_matrix || true}
+    base_arguments = {stops: stops, apply_transformations: transform_matrix || true}
 
     arguments = specific_gradient_arguments(element)
     arguments.merge(base_arguments) if arguments
@@ -32,27 +37,27 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   private
 
   def specific_gradient_arguments(element)
-    if @units == :bounding_box
-      x1, y1, x2, y2 = element.bounding_box
-      return if y2.nil?
+    if units == :bounding_box
+      bounding_x1, bounding_y1, bounding_x2, bounding_y2 = element.bounding_box
+      return if bounding_y2.nil?
 
-      width = x2 - x1
-      height = y1 - y2
+      width = bounding_x2 - bounding_x1
+      height = bounding_y1 - bounding_y2
     end
 
-    case [type, @units]
+    case [type, units]
     when [:linear, :bounding_box]
-      from = [x1 + width * @x1, y1 - height * @y1]
-      to   = [x1 + width * @x2, y1 - height * @y2]
+      from = [bounding_x1 + width * x1, bounding_y1 - height * y1]
+      to   = [bounding_x1 + width * x2, bounding_y1 - height * y2]
 
       {from: from, to: to}
 
     when [:linear, :user_space]
-      {from: [@x1, @y1], to: [@x2, @y2]}
+      {from: [x1, y1], to: [x2, y2]}
 
     when [:radial, :bounding_box]
-      center = [x1 + width * @cx, y1 - height * @cy]
-      focus  = [x1 + width * @fx, y1 - height * @fy]
+      center = [bounding_x1 + width * cx, bounding_y1 - height * cy]
+      focus  = [bounding_x1 + width * fx, bounding_y1 - height * fy]
 
       # Note: Chrome, at least, implements radial bounding box radiuses as
       # having separate X and Y components, so in bounding box mode their
@@ -60,10 +65,10 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       # doesn't have the option to do this, and it's confusing why the
       # Chrome user space gradients don't apply the same logic anyway.
       hypot = Math.sqrt(width * width + height * height)
-      {from: focus, r1: 0, to: center, r2: @radius * hypot}
+      {from: focus, r1: 0, to: center, r2: radius * hypot}
 
     when [:radial, :user_space]
-      {from: [@fx, @fy], r1: 0, to: [@cx, @cy], r2: @radius}
+      {from: [fx, fy], r1: 0, to: [cx, cy], r2: radius}
 
     else
       raise "unexpected type/unit system"
@@ -93,7 +98,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def load_coordinates
-    case [type, @units]
+    case [type, units]
     when [:linear, :bounding_box]
       @x1 = parse_zero_to_one(attributes["x1"], 0)
       @y1 = parse_zero_to_one(attributes["y1"], 0)
@@ -109,8 +114,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     when [:radial, :bounding_box]
       @cx = parse_zero_to_one(attributes["cx"], 0.5)
       @cy = parse_zero_to_one(attributes["cy"], 0.5)
-      @fx = parse_zero_to_one(attributes["fx"], @cx)
-      @fy = parse_zero_to_one(attributes["fy"], @cy)
+      @fx = parse_zero_to_one(attributes["fx"], cx)
+      @fy = parse_zero_to_one(attributes["fy"], cy)
       @radius = parse_zero_to_one(attributes["r"], 0.5)
 
     when [:radial, :user_space]
@@ -147,10 +152,16 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       end
     end
 
-    raise SkipElementError, "gradient does not have any valid stops" if @stops.empty?
+    if stops.empty?
+      if parent_gradient.nil? || parent_gradient.stops.empty?
+        raise SkipElementError, "gradient does not have any valid stops"
+      end
 
-    @stops.unshift([0, @stops.first.last]) if @stops.first.first > 0
-    @stops.push([1, @stops.last.last])     if @stops.last.first  < 1
+      @stops = parent_gradient.stops
+    else
+      stops.unshift([0, stops.first.last]) if stops.first.first > 0
+      stops.push([1, stops.last.last])     if stops.last.first  < 1
+    end
   end
 
   def parse_zero_to_one(string, default = 0)
