@@ -1,5 +1,8 @@
 class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
-  TAG_NAME_TO_TYPE = {"linearGradient" => :linear}
+  TAG_NAME_TO_TYPE = {
+    "linearGradient" => :linear,
+    "radialGradient" => :radial
+  }
 
   def parse
     # A gradient tag without an ID is inaccessible and can never be used
@@ -16,30 +19,56 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def gradient_arguments(element)
-    case @units
-    when :bounding_box
+    # Passing in a transformation matrix to the apply_transformations option is supported
+    # by a monkey patch installed by prawn-svg.  Prawn only sees this as a truthy variable.
+    #
+    # See Prawn::SVG::Extensions::AdditionalGradientTransforms for details.
+    base_arguments = {stops: @stops, apply_transformations: @transform_matrix || true}
+
+    arguments = specific_gradient_arguments(element)
+    arguments.merge(base_arguments) if arguments
+  end
+
+  private
+
+  def specific_gradient_arguments(element)
+    if @units == :bounding_box
       x1, y1, x2, y2 = element.bounding_box
       return if y2.nil?
 
       width = x2 - x1
       height = y1 - y2
+    end
 
+    case [type, @units]
+    when [:linear, :bounding_box]
       from = [x1 + width * @x1, y1 - height * @y1]
       to   = [x1 + width * @x2, y1 - height * @y2]
 
-    when :user_space
-      from = [@x1, @y1]
-      to   = [@x2, @y2]
+      {from: from, to: to}
+
+    when [:linear, :user_space]
+      {from: [@x1, @y1], to: [@x2, @y2]}
+
+    when [:radial, :bounding_box]
+      center = [x1 + width * @cx, y1 - height * @cy]
+      focus  = [x1 + width * @fx, y1 - height * @fy]
+
+      # Note: Chrome, at least, implements radial bounding box radiuses as
+      # having separate X and Y components, so in bounding box mode their
+      # gradients come out as ovals instead of circles.  PDF radial shading
+      # doesn't have the option to do this, and it's confusing why the
+      # Chrome user space gradients don't apply the same logic anyway.
+      hypot = Math.sqrt(width * width + height * height)
+      {from: focus, r1: 0, to: center, r2: @radius * hypot}
+
+    when [:radial, :user_space]
+      {from: [@fx, @fy], r1: 0, to: [@cx, @cy], r2: @radius}
+
+    else
+      raise "unexpected type/unit system"
     end
-
-    # Passing in a transformation matrix to the apply_transformations option is supported
-    # by a monkey patch installed by prawn-svg.  Prawn only sees this as a truthy variable.
-    #
-    # See Prawn::SVG::Extensions::AdditionalGradientTransforms for details.
-    {from: from, to: to, stops: @stops, apply_transformations: @transform_matrix || true}
   end
-
-  private
 
   def type
     TAG_NAME_TO_TYPE.fetch(name)
@@ -64,18 +93,35 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def load_coordinates
-    case @units
-    when :bounding_box
+    case [type, @units]
+    when [:linear, :bounding_box]
       @x1 = parse_zero_to_one(attributes["x1"], 0)
       @y1 = parse_zero_to_one(attributes["y1"], 0)
       @x2 = parse_zero_to_one(attributes["x2"], 1)
       @y2 = parse_zero_to_one(attributes["y2"], 0)
 
-    when :user_space
+    when [:linear, :user_space]
       @x1 = x(attributes["x1"])
       @y1 = y(attributes["y1"])
       @x2 = x(attributes["x2"])
       @y2 = y(attributes["y2"])
+
+    when [:radial, :bounding_box]
+      @cx = parse_zero_to_one(attributes["cx"], 0.5)
+      @cy = parse_zero_to_one(attributes["cy"], 0.5)
+      @fx = parse_zero_to_one(attributes["fx"], @cx)
+      @fy = parse_zero_to_one(attributes["fy"], @cy)
+      @radius = parse_zero_to_one(attributes["r"], 0.5)
+
+    when [:radial, :user_space]
+      @cx = x(attributes["cx"] || '50%')
+      @cy = y(attributes["cy"] || '50%')
+      @fx = x(attributes["fx"] || attributes["cx"])
+      @fy = y(attributes["fy"] || attributes["cy"])
+      @radius = pixels(attributes["r"] || '50%')
+
+    else
+      raise "unexpected type/unit system"
     end
   end
 

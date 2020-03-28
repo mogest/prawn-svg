@@ -76,7 +76,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - `<marker>`
 
- - `<linearGradient>` is implemented on Prawn 2.2.0+ with attributes `gradientUnits` and `gradientTransform` (spreadMethod and stop-opacity are unimplemented.)
+ - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and `gradientTransform` (spreadMethod and stop-opacity are unimplemented.)
 
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
@@ -116,7 +116,7 @@ implemented, but `!important` is not.
 
 ## Not supported
 
-prawn-svg does not support radial gradients, patterns or filters.
+prawn-svg does not support hyperlinks, patterns or filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 

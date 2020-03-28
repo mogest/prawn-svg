@@ -28,6 +28,7 @@ module Prawn::SVG::Elements
     use: Prawn::SVG::Elements::Use,
     image: Prawn::SVG::Elements::Image,
     linearGradient: Prawn::SVG::Elements::Gradient,
+    radialGradient: Prawn::SVG::Elements::Gradient,
     marker: Prawn::SVG::Elements::Marker,
     style: Prawn::SVG::Elements::Ignored, # because it is pre-parsed by Document
     title: Prawn::SVG::Elements::Ignored,
