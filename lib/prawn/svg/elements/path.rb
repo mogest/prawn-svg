@@ -4,9 +4,30 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
   INSIDE_SPACE_REGEXP = /[ \t\r\n,]*/
   OUTSIDE_SPACE_REGEXP = /[ \t\r\n]*/
-  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?)/
-  VALUES_REGEXP = /^#{INSIDE_REGEXP}/
+  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}(?>([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?))/
+  FLAG_REGEXP = /#{INSIDE_SPACE_REGEXP}([01])/
   COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
+
+  A_PARAMETERS_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{FLAG_REGEXP}#{FLAG_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
+  ONE_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}/
+  TWO_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
+  FOUR_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
+  SIX_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
+
+  COMMAND_MATCH_MAP = {
+    'A' => A_PARAMETERS_REGEXP,
+    'C' => SIX_PARAMETER_REGEXP,
+    'H' => ONE_PARAMETER_REGEXP,
+    'L' => TWO_PARAMETER_REGEXP,
+    'M' => TWO_PARAMETER_REGEXP,
+    'Q' => FOUR_PARAMETER_REGEXP,
+    'S' => FOUR_PARAMETER_REGEXP,
+    'T' => TWO_PARAMETER_REGEXP,
+    'V' => ONE_PARAMETER_REGEXP,
+    'Z' => //,
+  }
+
+  PARAMETERLESS_COMMANDS = COMMAND_MATCH_MAP.select { |_, v| v == // }.map(&:first)
 
   FLOAT_ERROR_DELTA = 1e-10
 
@@ -23,14 +44,13 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     matched_commands = match_all(data, COMMAND_REGEXP)
     raise SkipElementError, "Invalid/unsupported syntax for SVG path data" if matched_commands.nil?
 
-    catch :invalid_command do
-      matched_commands.each do |matched_command|
-        command = matched_command[1]
-        matched_values = match_all(matched_command[2], VALUES_REGEXP)
-        raise "should be impossible to have invalid inside data, but we ended up here" if matched_values.nil?
-        values = matched_values.collect {|value| value[1].to_f}
-        parse_path_command(command, values)
-      end
+    matched_commands.each do |(command, parameters)|
+      regexp = COMMAND_MATCH_MAP[command.upcase] or break
+      matched_values = match_all(parameters, regexp) or break
+      values = matched_values.map { |value| value.map(&:to_f) }
+      break if values.empty? && !PARAMETERLESS_COMMANDS.include?(command.upcase)
+
+      parse_path_command(command, values)
     end
   end
 
@@ -49,8 +69,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     case upcase_command
     when 'M' # moveto
-      x = values.shift or throw :invalid_command
-      y = values.shift or throw :invalid_command
+      x, y = values.shift
 
       if relative && @last_point
         x += @last_point.first
@@ -69,8 +88,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'L' # lineto
       while values.any?
-        x = values.shift
-        y = values.shift or throw :invalid_command
+        x, y = values.shift
         if relative && @last_point
           x += @last_point.first
           y += @last_point.last
@@ -81,22 +99,21 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'H' # horizontal lineto
       while values.any?
-        x = values.shift
+        x = values.shift.first
         x += @last_point.first if relative && @last_point
         push_command Prawn::SVG::Pathable::Line.new([x, @last_point.last])
       end
 
     when 'V' # vertical lineto
       while values.any?
-        y = values.shift
+        y = values.shift.first
         y += @last_point.last if relative && @last_point
         push_command Prawn::SVG::Pathable::Line.new([@last_point.first, y])
       end
 
     when 'C' # curveto
       while values.any?
-        x1, y1, x2, y2, x, y = values.shift(6)
-        throw :invalid_command unless y
+        x1, y1, x2, y2, x, y = values.shift
 
         if relative && @last_point
           x += @last_point.first
@@ -113,8 +130,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'S' # shorthand/smooth curveto
       while values.any?
-        x2, y2, x, y = values.shift(4)
-        throw :invalid_command unless y
+        x2, y2, x, y = values.shift
 
         if relative && @last_point
           x += @last_point.first
@@ -137,12 +153,10 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     when 'Q', 'T' # quadratic curveto
       while values.any?
         if shorthand = upcase_command == 'T'
-          x, y = values.shift(2)
+          x, y = values.shift
         else
-          x1, y1, x, y = values.shift(4)
+          x1, y1, x, y = values.shift
         end
-
-        throw :invalid_command unless y
 
         if relative && @last_point
           x += @last_point.first
@@ -175,8 +189,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       return unless @last_point
 
       while values.any?
-        rx, ry, phi, fa, fs, x2, y2 = values.shift(7)
-        throw :invalid_command unless y2
+        rx, ry, phi, fa, fs, x2, y2 = values.shift
 
         x1, y1 = @last_point
 
@@ -277,9 +290,8 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
   def match_all(string, regexp) # regexp must start with ^
     result = []
     while string != ""
-      matches = string.match(regexp)
-      result << matches
-      return if matches.nil?
+      matches = string.match(regexp) or return
+      result << matches.captures
       string = matches.post_match
     end
     result

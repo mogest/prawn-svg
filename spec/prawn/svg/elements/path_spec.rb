@@ -11,22 +11,22 @@ describe Prawn::SVG::Elements::Path do
 
   describe "command parsing" do
     context "with a valid path" do
-      let(:d) { "A12.34 -56.78 89B4 5 12-34 -.5.7+3 2.3e3 4e4 4e+4 c31,-2e-5C  6,7 T QX 0 Z" }
+      let(:d) { "m12.34 -56.78 1 2M4 5 12-34 -.5.7+3 2.3e3 4e4 4e+4 L31,-2e-5L  6,7 Z ZZa50 50 0 100 100" }
 
       it "correctly parses" do
         calls = []
-        path.stub(:parse_path_command) {|*args| calls << args}
+        allow(path).to receive(:parse_path_command) {|*args| calls << args}
         path.parse
 
-        calls.should == [
-          ["A", [12.34, -56.78, 89]],
-          ["B", [4, 5, 12, -34, -0.5, 0.7, 3, 2.3e3, 4e4, 4e4]],
-          ["c", [31, -2e-5]],
-          ["C", [6, 7]],
-          ["T", []],
-          ["Q", []],
-          ["X", [0]],
-          ["Z", []]
+        expect(calls).to eq [
+          ["m", [[12.34, -56.78], [1, 2]]],
+          ["M", [[4, 5], [12, -34], [-0.5, 0.7], [3, 2.3e3], [4e4, 4e4]]],
+          ["L", [[31, -2e-5]]],
+          ["L", [[6, 7]]],
+          ["Z", []],
+          ["Z", []],
+          ["Z", []],
+          ["a", [[50, 50, 0, 1, 0, 0, 100]]],
         ]
       end
     end
@@ -36,12 +36,12 @@ describe Prawn::SVG::Elements::Path do
 
       it "treats subsequent points to m/M command as relative/absolute depending on command" do
         [
-          ["M", [1,2,3,4]],
-          ["L", [3,4]],
-          ["m", [5,6,7,8]],
-          ["l", [7,8]]
+          ["M", [[1,2],[3,4]]],
+          ["L", [[3,4]]],
+          ["m", [[5,6],[7,8]]],
+          ["l", [[7,8]]]
         ].each do |args|
-          path.should_receive(:parse_path_command).with(*args).and_call_original
+          expect(path).to receive(:parse_path_command).with(*args).and_call_original
         end
 
         path.parse
@@ -52,7 +52,7 @@ describe Prawn::SVG::Elements::Path do
       let(:d) { "" }
 
       it "correctly parses" do
-        path.should_not_receive(:run_path_command)
+        expect(path).not_to receive(:run_path_command)
         path.parse
       end
     end
@@ -289,6 +289,18 @@ describe Prawn::SVG::Elements::Path do
       it "bails out" do
         expect(subject).to eq [
           Prawn::SVG::Elements::Path::Move.new([100.0, 200.0])
+        ]
+      end
+    end
+
+    context "with highly-compressed flags" do
+      let(:d) { "M100,100a50 50 0 100 100" }
+
+      it "correctly parses them" do
+        expect(subject).to eq [
+          Prawn::SVG::Elements::Path::Move.new([100.0, 100.0]),
+          Prawn::SVG::Elements::Path::Curve.new([50.0, 150.0], [72.57081148225681, 100.0], [50.0, 122.57081148225681]),
+          Prawn::SVG::Elements::Path::Curve.new([99.99999999999999, 200.0], [50.0, 177.42918851774317], [72.5708114822568, 200.0])
         ]
       end
     end
