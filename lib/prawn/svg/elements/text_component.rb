@@ -46,8 +46,10 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     opts = {
       size:        computed_properties.numerical_font_size,
       style:       font && font.subfamily,
-      text_anchor: computed_properties.text_anchor
+      text_anchor: computed_properties.text_anchor,
     }
+
+    opts[:decoration] = computed_properties.text_decoration unless computed_properties.text_decoration == 'none'
 
     if state.text.parent
       add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing == state.text.parent.spacing

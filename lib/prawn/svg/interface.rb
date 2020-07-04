@@ -172,6 +172,15 @@ module Prawn
             @cursor = [at[0] + width, at[1]]
           end
 
+          decoration = options.delete(:decoration)
+          if decoration == 'underline'
+            prawn.save_graphics_state do
+              prawn.line_width 1
+              prawn.line [at[0], at[1] - 1.25], [at[0] + width, at[1] - 1.25]
+              prawn.stroke
+            end
+          end
+
         when 'transformation_matrix'
           left = prawn.bounds.absolute_left
           top = prawn.bounds.absolute_top

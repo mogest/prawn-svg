@@ -88,6 +88,21 @@ Even more
     end
   end
 
+  describe "underline" do
+    let(:svg) { '<text text-decoration="underline">underlined</text>' }
+
+    it "marks the element to be underlined" do
+      element.process
+
+      expect(element.base_calls).to eq [
+        ["text_group", [], [
+          ["font", ["Helvetica", {:style=>:normal}], []],
+          ["draw_text", ["underlined", default_style.merge(decoration: 'underline')], []]
+        ]]
+      ]
+    end
+  end
+
   describe "fill/stroke modes" do
     context "with a stroke and no fill" do
       let(:svg) { '<text stroke="red" fill="none">stroked</text>' }

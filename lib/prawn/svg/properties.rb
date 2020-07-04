@@ -37,6 +37,7 @@ class Prawn::SVG::Properties
     "stroke-opacity"   => Config.new("1", true),
     "stroke-width"     => Config.new("1", true),
     "text-anchor"      => Config.new("start", true, %w(inherit start middle end), true),
+    'text-decoration'  => Config.new('none', true, %w(inherit none underline), true),
   }.freeze
 
   PROPERTIES.each do |name, value|
