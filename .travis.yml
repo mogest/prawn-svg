@@ -6,3 +6,5 @@ rvm:
   - 2.5.8
   - 2.6.6
   - 2.7.1
+env:
+  - RUBYOPT=--enable-frozen-string-literal

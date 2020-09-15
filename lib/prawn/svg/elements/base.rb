@@ -237,16 +237,15 @@ class Prawn::SVG::Elements::Base
 
   def parse_css_declarations(declarations)
     # copied from css_parser
-    declarations.gsub!(/(^[\s]*)|([\s]*$)/, '')
-
-    output = {}
-    declarations.split(/[\;$]+/m).each do |decs|
-      if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
-        property, value, _ = matches.captures
-        output[property.downcase] = value
+    declarations
+      .gsub(/(^[\s]*)|([\s]*$)/, '')
+      .split(/[\;$]+/m)
+      .each_with_object({}) do |decs, output|
+        if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
+          property, value, _ = matches.captures
+          output[property.downcase] = value
+        end
       end
-    end
-    output
   end
 
   def require_attributes(*names)

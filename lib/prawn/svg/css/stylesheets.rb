@@ -69,14 +69,14 @@ module Prawn::SVG::CSS
 
         result = case element[:combinator]
                  when :child
-                   "/"
+                   +"/"
                  when :adjacent
                    pseudo_classes << 'first-child'
-                   "/following-sibling::"
+                   +"/following-sibling::"
                  when :siblings
-                   "/following-sibling::"
+                   +"/following-sibling::"
                  else
-                   "//"
+                   +"//"
                  end
 
         positions = []

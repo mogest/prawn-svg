@@ -10,7 +10,7 @@ module Prawn::SVG::CSS
         case token
         when Modifier
           part = token.type
-          result.last[part] ||= part == :name ? "" : []
+          result.last[part] ||= part == :name ? +"" : []
         when Identifier
           return unless part
           result.last[part] << token.name
@@ -48,7 +48,7 @@ module Prawn::SVG::CSS
           case attribute
           when :pre_key
             if VALID_CSS_IDENTIFIER_CHAR.match(char)
-              result.last.key = char
+              result.last.key = String.new(char)
               attribute = :key
             elsif char != " " && char != "\t"
               return
@@ -60,7 +60,7 @@ module Prawn::SVG::CSS
             elsif char == "]"
               attribute = nil
             elsif "=*~^|$".include?(char)
-              result.last.operator = char
+              result.last.operator = String.new(char)
               attribute = :operator
             elsif char == " " || char == "\t"
               attribute = :pre_operator
@@ -70,7 +70,7 @@ module Prawn::SVG::CSS
 
           when :pre_operator
             if "=*~^|$".include?(char)
-              result.last.operator = char
+              result.last.operator = String.new(char)
               attribute = :operator
             elsif char != " " && char != "\t"
               return
@@ -82,25 +82,25 @@ module Prawn::SVG::CSS
             elsif char == " " || char == "\t"
               attribute = :pre_value
             elsif char == '"' || char == "'"
-              result.last.value = ''
-              attribute = char
+              result.last.value = +''
+              attribute = String.new(char)
             else
-              result.last.value = char
+              result.last.value = String.new(char)
               attribute = :value
             end
 
           when :pre_value
             if char == '"' || char == "'"
-              result.last.value = ''
-              attribute = char
+              result.last.value = +''
+              attribute = String.new(char)
             elsif char != " " && char != "\t"
-              result.last.value = char
+              result.last.value = String.new(char)
               attribute = :value
             end
 
           when :value
             if char == "]"
-              result.last.value = result.last.value.rstrip
+              result.last.value = String.new(result.last.value.rstrip)
               attribute = nil
             else
               result.last.value << char
