@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency "prawn", ">= 0.11.1", "< 3"
   gem.add_runtime_dependency "css_parser", "~> 1.6"
+  gem.add_runtime_dependency "rexml", "~> 3.2"
   gem.add_development_dependency "rspec", "~> 3.0"
   gem.add_development_dependency "rake", "~> 13.0"
 end
