@@ -32,12 +32,12 @@ describe Prawn::SVG::Elements::Base do
       it "appends the relevant calls" do
         element.process
         expect(element.base_calls).to eq [
-          ["transformation_matrix", [2, 0, 0, 2, 0, 0], [
-            ["transparent", [0.5, 1], [
-              ["fill_color", ["ff0000"], []],
-              ["stroke_color", ["0000ff"], []],
-              ["line_width", [5.0], []],
-              ["fill_and_stroke", [], []]
+          ["transformation_matrix", [2, 0, 0, 2, 0, 0], {}, [
+            ["transparent", [0.5, 1], {}, [
+              ["fill_color", ["ff0000"], {}, []],
+              ["stroke_color", ["0000ff"], {}, []],
+              ["line_width", [5.0], {}, []],
+              ["fill_and_stroke", [], {}, []]
             ]]
           ]]
         ]
@@ -50,37 +50,37 @@ describe Prawn::SVG::Elements::Base do
 
       context "with neither fill nor stroke" do
         let(:svg) { '<rect style="fill: none;"></rect>' }
-        it        { is_expected.to eq ['end_path', [], []] }
+        it        { is_expected.to eq ['end_path', [], {}, []] }
       end
 
       context "with a fill only" do
         let(:svg) { '<rect style="fill: black;"></rect>' }
-        it        { is_expected.to eq ['fill', [], []] }
+        it        { is_expected.to eq ['fill', [], {}, []] }
       end
 
       context "with a stroke only" do
         let(:svg) { '<rect style="fill: none; stroke: black;"></rect>' }
-        it        { is_expected.to eq ['stroke', [], []] }
+        it        { is_expected.to eq ['stroke', [], {}, []] }
       end
 
       context "with fill and stroke" do
         let(:svg) { '<rect style="fill: black; stroke: black;"></rect>' }
-        it        { is_expected.to eq ['fill_and_stroke', [], []] }
+        it        { is_expected.to eq ['fill_and_stroke', [], {}, []] }
       end
 
       context "with fill with evenodd fill rule" do
         let(:svg) { '<rect style="fill: black; fill-rule: evenodd;"></rect>' }
-        it        { is_expected.to eq ['fill', [{fill_rule: :even_odd}], []] }
+        it        { is_expected.to eq ['fill', [], {fill_rule: :even_odd}, []] }
       end
     end
 
     it "appends calls to the parent element" do
       expect(element).to receive(:apply) do
-        element.send :add_call, "test", "argument"
+        element.send :add_call, "test", "argument", kw: 'argument'
       end
 
       element.process
-      expect(element.parent_calls).to eq [["fill", [], [["test", ["argument"], []]]]]
+      expect(element.parent_calls).to eq [["fill", [], {}, [["test", ["argument"], {kw: 'argument'}, []]]]]
     end
 
     it "quietly absorbs a SkipElementQuietly exception" do
@@ -149,8 +149,8 @@ describe Prawn::SVG::Elements::Base do
       it "uses the parent's color element if 'currentColor' fill attribute provided" do
         element.process
 
-        expect(flattened_calls).to include ['fill_color', ['ff0000']]
-        expect(flattened_calls).not_to include ['fill_color', ['00ff00']]
+        expect(flattened_calls).to include ['fill_color', ['ff0000'], {}]
+        expect(flattened_calls).not_to include ['fill_color', ['00ff00'], {}]
       end
     end
 

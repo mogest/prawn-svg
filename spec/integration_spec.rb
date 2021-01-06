@@ -28,34 +28,34 @@ describe "Integration test" do
       element.process
 
       expect(element.calls).to eq [
-        ["fill_color", ["000000"], []],
-        ["transformation_matrix", [1, 0, 0, 1, 0, 0], []],
-        ["transformation_matrix", [1, 0, 0, 1, 0, 0], []],
-        ["save", [], []], ["restore", [], []],
-        ["save", [], []],
-        ["fill_color", ["0000ff"], []],
-        ["fill", [], [
-          ["rectangle", [[0.0, 200.0], 10.0, 10.0], []]
+        ["fill_color", ["000000"], {}, []],
+        ["transformation_matrix", [1, 0, 0, 1, 0, 0], {}, []],
+        ["transformation_matrix", [1, 0, 0, 1, 0, 0], {}, []],
+        ["save", [], {}, []], ["restore", [], {}, []],
+        ["save", [], {}, []],
+        ["fill_color", ["0000ff"], {}, []],
+        ["fill", [], {}, [
+          ["rectangle", [[0.0, 200.0], 10.0, 10.0], {}, []]
         ]],
-        ["restore", [], []],
-        ["save", [], []],
-        ["fill_color", ["008000"], []],
-        ["fill", [], [
-          ["rectangle", [[10.0, 200.0], 10.0, 10.0], []]
+        ["restore", [], {}, []],
+        ["save", [], {}, []],
+        ["fill_color", ["008000"], {}, []],
+        ["fill", [], {}, [
+          ["rectangle", [[10.0, 200.0], 10.0, 10.0], {}, []]
         ]],
-        ["restore", [], []],
-        ["save", [], []],
-        ["fill_color", ["ff0000"], []],
-        ["fill", [], [
-          ["rectangle", [[20.0, 200.0], 10.0, 10.0], []]
+        ["restore", [], {}, []],
+        ["save", [], {}, []],
+        ["fill_color", ["ff0000"], {}, []],
+        ["fill", [], {}, [
+          ["rectangle", [[20.0, 200.0], 10.0, 10.0], {}, []]
         ]],
-        ["restore", [], []],
-        ["save", [], []],
-        ["fill_color", ["ffff00"], []],
-        ["fill", [], [
-          ["rectangle", [[30.0, 200.0], 10.0, 10.0], []]
+        ["restore", [], {}, []],
+        ["save", [], {}, []],
+        ["fill_color", ["ffff00"], {}, []],
+        ["fill", [], {}, [
+          ["rectangle", [[30.0, 200.0], 10.0, 10.0], {}, []]
         ]],
-        ["restore", [], []]
+        ["restore", [], {}, []]
       ]
     end
   end

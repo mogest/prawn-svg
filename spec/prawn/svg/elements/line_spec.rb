@@ -13,10 +13,10 @@ RSpec.describe Prawn::SVG::Elements::Line do
     it "renders the line" do
       subject.process
       expect(subject.base_calls).to eq [
-        ["stroke_color", ["000000"], []],
-        ["stroke", [], [
-          ["move_to", [[5.0, 590.0]], []],
-          ["line_to", [[15.0, 580.0]], []]]
+        ["stroke_color", ["000000"], {}, []],
+        ["stroke", [], {}, [
+          ["move_to", [[5.0, 590.0]], {}, []],
+          ["line_to", [[15.0, 580.0]], {}, []]]
         ]
       ]
     end
@@ -28,9 +28,9 @@ RSpec.describe Prawn::SVG::Elements::Line do
     it "outlines a path from 0,0 to 0,0" do
       subject.process
       expect(subject.base_calls).to eq [
-        ["end_path", [], [
-          ["move_to", [[0, 600]], []],
-          ["line_to", [[0, 600]], []]]
+        ["end_path", [], {}, [
+          ["move_to", [[0, 600]], {}, []],
+          ["line_to", [[0, 600]], {}, []]]
         ]
       ]
     end
@@ -43,11 +43,11 @@ RSpec.describe Prawn::SVG::Elements::Line do
       subject.process
 
       expect(subject.base_calls).to eq [
-        ["fill_color", ["0000ff"], []],
-        ["stroke_color", ["ff0000"], []],
-        ["stroke", [], [
-          ["move_to", [[0, 600]], []],
-          ["line_to", [[15.0, 580.0]], []]]
+        ["fill_color", ["0000ff"], {}, []],
+        ["stroke_color", ["ff0000"], {}, []],
+        ["stroke", [], {}, [
+          ["move_to", [[0, 600]], {}, []],
+          ["line_to", [[15.0, 580.0]], {}, []]]
         ]
       ]
     end

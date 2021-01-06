@@ -13,11 +13,11 @@ RSpec.describe Prawn::SVG::Elements::Polygon do
     it "renders the polygon" do
       subject.process
       expect(subject.base_calls).to eq [
-        ["fill", [], [
-          ["move_to", [[10.0, 590.0]], []],
-          ["line_to", [[20.0, 580.0]], []],
-          ["line_to", [[30.0, 570.0]], []],
-          ["close_path", [], []]]
+        ["fill", [], {}, [
+          ["move_to", [[10.0, 590.0]], {}, []],
+          ["line_to", [[20.0, 580.0]], {}, []],
+          ["line_to", [[30.0, 570.0]], {}, []],
+          ["close_path", [], {}, []]]
         ]
       ]
     end
@@ -29,10 +29,10 @@ RSpec.describe Prawn::SVG::Elements::Polygon do
     it "ignores the last one" do
       subject.process
       expect(subject.base_calls).to eq [
-        ["fill", [], [
-          ["move_to", [[10.0, 590.0]], []],
-          ["line_to", [[20.0, 580.0]], []],
-          ["close_path", [], []]]
+        ["fill", [], {}, [
+          ["move_to", [[10.0, 590.0]], {}, []],
+          ["line_to", [[20.0, 580.0]], {}, []],
+          ["close_path", [], {}, []]]
         ]
       ]
     end
