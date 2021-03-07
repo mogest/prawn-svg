@@ -1,7 +1,7 @@
 # prawn-svg
 
 [![Gem Version](https://badge.fury.io/rb/prawn-svg.svg)](https://badge.fury.io/rb/prawn-svg)
-[![Build Status](https://travis-ci.org/mogest/prawn-svg.svg?branch=master)](https://travis-ci.org/mogest/prawn-svg)
+![Build Status](https://github.com/mogest/prawn-svg/actions/workflows/test.yml/badge.svg?branch=master)
 
 An SVG renderer for the Prawn PDF library.
 
