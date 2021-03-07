@@ -12,7 +12,7 @@ module Prawn::SVG::Elements::CallDuplicator
   end
 
   def duplicate_call(call)
-    [call[0], duplicate_array(call[1]), duplicate_calls(call[2])]
+    [call[0], duplicate_array(call[1]), duplicate_hash(call[2]), duplicate_calls(call[3])]
   end
 
   def duplicate_array(array)

@@ -146,10 +146,10 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
       end
 
       if remaining
-        add_call 'draw_text', text[0..0], opts.dup
+        add_call 'draw_text', text[0..0], **opts.dup
         text = text[1..-1]
       else
-        add_call 'draw_text', text, opts.dup
+        add_call 'draw_text', text, **opts.dup
 
         # we can get to this path with rotations still pending
         # solve this by shifting them out by the number of

@@ -54,41 +54,41 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       # in section 11.6.3.
 
       expect(line_element.base_calls).to eq [
-        ["stroke_color", ["000000"], []],
-        ["line_width", [100.0], []],
-        ["stroke", [], [
-            ["move_to", [[0.0, 600.0]], []],
-            ["line_to", [[10.0, 590.0]], []]
+        ["stroke_color", ["000000"], {}, []],
+        ["line_width", [100.0], {}, []],
+        ["stroke", [], {}, [
+            ["move_to", [[0.0, 600.0]], {}, []],
+            ["line_to", [[10.0, 590.0]], {}, []]
           ]
         ],
-        ["save", [], []],
-        ["transformation_matrix", [1, 0, 0, 1, 10, -10], []],
-        ["rotate", [-45, {origin: [0, 600.0]}], [
-            ["transformation_matrix", [100.0, 0, 0, 100.0, 0, 0], []],
-            ["transformation_matrix", [1, 0, 0, 1, -0.0, 1.5], []],
-            ["rectangle", [[-0.5, 600.0], 4.0, 3.0], []],
-            ["clip", [], []],
-            ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], []],
-            ["transparent", [1.0, 1.0], [
-                ["stroke_color", ["000000"], []],
-                ["line_width", [100.0], []],
-                ["cap_style", [:butt], []],
-                ["undash", [], []],
-                ["save", [], []],
-                ["fill", [], [
-                    ["join_style", [:bevel], []],
-                    ["move_to", [[0.0, 600.0]], []],
-                    ["line_to", [[10.0, 595.0]], []],
-                    ["line_to", [[0.0, 590.0]], []],
-                    ["close_path", [], []]
+        ["save", [], {}, []],
+        ["transformation_matrix", [1, 0, 0, 1, 10, -10], {}, []],
+        ["rotate", [-45], {origin: [0, 600.0]}, [
+            ["transformation_matrix", [100.0, 0, 0, 100.0, 0, 0], {}, []],
+            ["transformation_matrix", [1, 0, 0, 1, -0.0, 1.5], {}, []],
+            ["rectangle", [[-0.5, 600.0], 4.0, 3.0], {}, []],
+            ["clip", [], {}, []],
+            ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], {}, []],
+            ["transparent", [1.0, 1.0], {}, [
+                ["stroke_color", ["000000"], {}, []],
+                ["line_width", [100.0], {}, []],
+                ["cap_style", [:butt], {}, []],
+                ["undash", [], {}, []],
+                ["save", [], {}, []],
+                ["fill", [], {}, [
+                    ["join_style", [:bevel], {}, []],
+                    ["move_to", [[0.0, 600.0]], {}, []],
+                    ["line_to", [[10.0, 595.0]], {}, []],
+                    ["line_to", [[0.0, 590.0]], {}, []],
+                    ["close_path", [], {}, []]
                   ]
                 ],
-                ["restore", [], []],
+                ["restore", [], {}, []],
               ]
             ]
           ]
         ],
-        ["restore", [], []]
+        ["restore", [], {}, []]
       ]
     end
   end
