@@ -1,12 +1,12 @@
 name: test
 on: [push, pull_request]
 jobs:
-  rake:
+  rake_new:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.3, 2.4, 2.5, 2.6, 2.7, '3.0']
+        ruby: [2.6, 2.7, '3.0']
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
@@ -18,3 +18,18 @@ jobs:
       run:  bundle exec rake
       env:
         RUBYOPT: "--enable-frozen-string-literal"
+  rake_old:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [2.3, 2.4, 2.5]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+        ruby-version: ${{ matrix.ruby }}
+    - name: Run tests
+      run:  bundle exec rake
