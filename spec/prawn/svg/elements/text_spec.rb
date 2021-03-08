@@ -15,7 +15,7 @@ describe Prawn::SVG::Elements::Text do
       it "converts newlines and tabs to spaces, and preserves spaces" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some    text"], {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]
       end
     end
 
@@ -25,7 +25,7 @@ describe Prawn::SVG::Elements::Text do
       it "strips space" do
         element.process
 
-        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text", {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]]
+        expect(flatten_calls(element.calls)).to include ["draw_text", ["some text"], {:size=>16, :style=>:normal, :text_anchor=>'start', :at=>[:relative, :relative], :offset=>[0,0]}]
       end
     end
   end
@@ -78,10 +78,10 @@ Even more
       element.process
 
       expect(element.base_calls).to eq [
-        ["text_group", [], [
-          ["font", ["Helvetica", {style: :normal}], []],
-          ["character_spacing", [5.0], [
-            ["draw_text", ["spaced", default_style], []]
+        ["text_group", [], {}, [
+          ["font", ["Helvetica"], {style: :normal}, []],
+          ["character_spacing", [5.0], {}, [
+            ["draw_text", ["spaced"], default_style, []]
           ]]
         ]]
       ]
@@ -95,9 +95,9 @@ Even more
       element.process
 
       expect(element.base_calls).to eq [
-        ["text_group", [], [
-          ["font", ["Helvetica", {:style=>:normal}], []],
-          ["draw_text", ["underlined", default_style.merge(decoration: 'underline')], []]
+        ["text_group", [], {},[
+          ["font", ["Helvetica"], {:style=>:normal}, []],
+          ["draw_text", ["underlined"], default_style.merge(decoration: 'underline'), []]
         ]]
       ]
     end
@@ -111,11 +111,11 @@ Even more
         element.process
 
         expect(element.base_calls).to eq [
-          ["text_group", [], [
-            ["stroke_color", ["ff0000"], []],
-            ["font", ["Helvetica", {style: :normal}], []],
-            ["text_rendering_mode", [:stroke], [
-              ["draw_text", ["stroked", default_style], []]
+          ["text_group", [], {}, [
+            ["stroke_color", ["ff0000"], {}, []],
+            ["font", ["Helvetica"], {style: :normal}, []],
+            ["text_rendering_mode", [:stroke], {}, [
+              ["draw_text", ["stroked"], default_style, []]
             ]]
           ]]
         ]
@@ -129,24 +129,24 @@ Even more
         element.process
 
         expect(element.base_calls).to eq [
-          ["text_group", [], [
-            ["stroke_color", ["ff0000"], []],
-            ["font", ["Helvetica", {style: :normal}], []],
-            ["text_rendering_mode", [:stroke], [
-              ["draw_text", ["stroked ", default_style], []],
-              ["save", [], []],
-              ["fill_color", ["000000"], []],
-              ["font", ["Helvetica", {style: :normal}], []],
-              ["text_rendering_mode", [:fill_stroke], [
-                ["draw_text", ["both", default_style], []]
+          ["text_group", [], {}, [
+            ["stroke_color", ["ff0000"], {}, []],
+            ["font", ["Helvetica"], {style: :normal}, []],
+            ["text_rendering_mode", [:stroke], {}, [
+              ["draw_text", ["stroked "], default_style, []],
+              ["save", [], {}, []],
+              ["fill_color", ["000000"], {}, []],
+              ["font", ["Helvetica"], {style: :normal}, []],
+              ["text_rendering_mode", [:fill_stroke], {}, [
+                ["draw_text", ["both"], default_style, []]
               ]],
-              ["restore", [], []],
-              ["save", [], []],
-              ["font", ["Helvetica", {style: :normal}], []],
-              ["text_rendering_mode", [:invisible], [
-                ["draw_text", ["neither", default_style], []]
+              ["restore", [], {}, []],
+              ["save", [], {}, []],
+              ["font", ["Helvetica"], {style: :normal}, []],
+              ["text_rendering_mode", [:invisible], {}, [
+                ["draw_text", ["neither"], default_style, []]
               ]],
-              ["restore", [], []],
+              ["restore", [], {}, []],
             ]]
           ]]
         ]
@@ -160,7 +160,7 @@ Even more
 
       it "finds the font and uses it" do
         element.process
-        expect(flatten_calls(element.base_calls)).to include ['font', ['Courier', {style: :normal}]]
+        expect(flatten_calls(element.base_calls)).to include ['font', ['Courier'], {style: :normal}]
       end
     end
 
@@ -169,7 +169,7 @@ Even more
 
       it "uses the fallback font" do
         element.process
-        expect(flatten_calls(element.base_calls)).to include ['font', ['Times-Roman', {style: :normal}]]
+        expect(flatten_calls(element.base_calls)).to include ['font', ['Times-Roman'], {style: :normal}]
       end
 
       context "when there is no fallback font" do
@@ -191,9 +191,9 @@ Even more
     it "references the text" do
       element.process
       expect(flatten_calls(element.base_calls)[9..11]).to eq [
-        ["fill_color", ["ff0000"]],
-        ["font", ["Helvetica", {:style=>:normal}]],
-        ["draw_text", ["my reference text", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[0,0]}]],
+        ["fill_color", ["ff0000"], {}],
+        ["font", ["Helvetica"], {:style=>:normal}],
+        ["draw_text", ["my reference text"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[0,0]}],
       ]
     end
   end
@@ -205,11 +205,11 @@ Even more
       element.process
 
       expect(flatten_calls(element.base_calls)).to eq [
-        ["text_group", []],
-        ["font", ["Helvetica", {:style=>:normal}]],
-        ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[30.0, 2.0]}]],
-        ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[20.0, :relative], :offset=>[50.0, 0]}]],
-        ["draw_text", [" there, this is a good test", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[80.0, 0]}]]
+        ["text_group", [], {}],
+        ["font", ["Helvetica"], {:style=>:normal}],
+        ["draw_text", ["H"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[10.0, :relative], :offset=>[30.0, 2.0]}],
+        ["draw_text", ["i"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[20.0, :relative], :offset=>[50.0, 0]}],
+        ["draw_text", [" there, this is a good test"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[80.0, 0]}]
       ]
     end
   end
@@ -221,19 +221,19 @@ Even more
       element.process
 
       expect(flatten_calls(element.base_calls)).to eq [
-        ["text_group", []],
-        ["font", ["Helvetica", {:style=>:normal}]],
-        ["draw_text", ["H", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-10.0}]],
-        ["draw_text", ["i", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-20.0}]],
-        ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-30.0}]],
-        ["save", []],
-        ["font", ["Helvetica", {:style=>:normal}]],
-        ["draw_text", ["this", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0]}]],
-        ["restore", []],
-        ["draw_text", [" ", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-80.0}]],
-        ["draw_text", ["o", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-90.0}]],
-        ["draw_text", ["k", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}]],
-        ["draw_text", ["!", {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}]]
+        ["text_group", [], {}],
+        ["font", ["Helvetica"], {:style=>:normal}],
+        ["draw_text", ["H"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-10.0}],
+        ["draw_text", ["i"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-20.0}],
+        ["draw_text", [" "], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-30.0}],
+        ["save", [], {}],
+        ["font", ["Helvetica"], {:style=>:normal}],
+        ["draw_text", ["this"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0]}],
+        ["restore", [], {}],
+        ["draw_text", [" "], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-80.0}],
+        ["draw_text", ["o"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-90.0}],
+        ["draw_text", ["k"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}],
+        ["draw_text", ["!"], {:size=>16, :style=>:normal, :text_anchor=>"start", :at=>[:relative, :relative], :offset=>[0, 0], :rotate=>-100.0}]
       ]
     end
   end

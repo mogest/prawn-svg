@@ -68,25 +68,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         [4, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]],
       ]
 
-      #
-      # Under ruby < 2.6, a bug in REXML causes the /following-sibling selector to
-      # only pick the first matching sibling.  This means the + CSS combinator behaves
-      # incorrectly in the following example:
-      #
-      # <a>
-      #   <b a="1" />
-      #   <b a="2" />
-      #   <b a="3" />
-      # </a>
-      #
-      # The css selector `a b + b` will only pick the second <b>, whereas it should
-      # pick both the second and third <b> elements.
-      #
-      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.6.0')
-        expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#00ff00", false]]]
-      else
-        expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]]
-      end
+      expected << [5, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#00ff00", false]]]
 
       expected.concat [
         [6, [["fill", "#ff0000", false], ["fill", "#441234", false], ["fill", "#0000ff", false]]],

@@ -40,10 +40,10 @@ RSpec.describe Prawn::SVG::Pathable do
       subject.apply_commands
 
       expect(subject.base_calls).to eq [
-        ["move_to", [[10.0, 590.0]], []],
-        ["line_to", [[20.0, 580.0]], []],
-        ["curve_to", [[30.0, 570.0], {bounds: [[25.0, 580.0], [25.0, 575.0]]}], []],
-        ["close_path", [], []]
+        ["move_to", [[10.0, 590.0]], {}, []],
+        ["line_to", [[20.0, 580.0]], {}, []],
+        ["curve_to", [[30.0, 570.0]], {bounds: [[25.0, 580.0], [25.0, 575.0]]}, []],
+        ["close_path", [], {}, []]
       ]
     end
   end

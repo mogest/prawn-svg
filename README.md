@@ -1,7 +1,7 @@
 # prawn-svg
 
 [![Gem Version](https://badge.fury.io/rb/prawn-svg.svg)](https://badge.fury.io/rb/prawn-svg)
-[![Build Status](https://travis-ci.org/mogest/prawn-svg.svg?branch=master)](https://travis-ci.org/mogest/prawn-svg)
+![Build Status](https://github.com/mogest/prawn-svg/actions/workflows/test.yml/badge.svg?branch=master)
 
 An SVG renderer for the Prawn PDF library.
 
@@ -10,7 +10,7 @@ This will take an SVG document as input and render it into your PDF.  Find out m
   http://github.com/prawnpdf/prawn
 
 prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
-The minimum Ruby version required is 2.1.0.
+The minimum Ruby version required is 2.3.0.
 
 ## Using prawn-svg
 

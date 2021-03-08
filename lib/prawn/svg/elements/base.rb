@@ -91,12 +91,12 @@ class Prawn::SVG::Elements::Base
     parse_xml_space_attribute
   end
 
-  def add_call(name, *arguments)
-    @calls << [name.to_s, arguments, []]
+  def add_call(name, *arguments, **kwarguments)
+    @calls << [name.to_s, arguments, kwarguments, []]
   end
 
-  def add_call_and_enter(name, *arguments)
-    @calls << [name.to_s, arguments, []]
+  def add_call_and_enter(name, *arguments, **kwarguments)
+    @calls << [name.to_s, arguments, kwarguments, []]
     @calls = @calls.last.last
   end
 
@@ -168,7 +168,7 @@ class Prawn::SVG::Elements::Base
       command = stroke ? 'fill_and_stroke' : 'fill'
 
       if computed_properties.fill_rule == 'evenodd'
-        add_call_and_enter(command, {fill_rule: :even_odd})
+        add_call_and_enter(command, fill_rule: :even_odd)
       else
         add_call_and_enter(command)
       end

@@ -109,32 +109,40 @@ module Prawn
       end
 
       def issue_prawn_command(prawn, calls)
-        calls.each do |call, arguments, children|
+        calls.each do |call, arguments, kwarguments, children|
           skip = false
 
-          rewrite_call_arguments(prawn, call, arguments) do
+          rewrite_call_arguments(prawn, call, arguments, kwarguments) do
             issue_prawn_command(prawn, children) if children.any?
             skip = true
           end
 
           if skip
             # the call has been overridden
-          elsif children.empty?
-            prawn.send(call, *arguments)
+          elsif children.empty? && call != 'transparent' # some prawn calls complain if they aren't supplied a block
+            if RUBY_VERSION >= '2.7' || !kwarguments.empty?
+              prawn.send(call, *arguments, **kwarguments)
+            else
+              prawn.send(call, *arguments)
+            end
           else
-            prawn.send(call, *arguments, &proc_creator(prawn, children))
+            if RUBY_VERSION >= '2.7' || !kwarguments.empty?
+              prawn.send(call, *arguments, **kwarguments, &proc_creator(prawn, children))
+            else
+              prawn.send(call, *arguments, &proc_creator(prawn, children))
+            end
           end
         end
       end
 
-      def rewrite_call_arguments(prawn, call, arguments)
+      def rewrite_call_arguments(prawn, call, arguments, kwarguments)
         case call
         when 'text_group'
           @cursor = [0, document.sizing.output_height]
           yield
 
         when 'draw_text'
-          text, options = arguments
+          text, options = arguments.first, kwarguments
 
           at = options.fetch(:at)
 
@@ -208,7 +216,7 @@ module Prawn
           # prawn (as at 2.0.1 anyway) uses 'b' for its fill_and_stroke.  'b' is 'h' (closepath) + 'B', and we
           # never want closepath to be automatically run as it stuffs up many drawing operations, such as dashes
           # and line caps, and makes paths close that we didn't ask to be closed when fill is specified.
-          even_odd = arguments[0].is_a?(Hash) && arguments[0][:fill_rule] == :even_odd
+          even_odd = kwarguments[:fill_rule] == :even_odd
           content  = even_odd ? 'B*' : 'B'
           prawn.add_content content
 

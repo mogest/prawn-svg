@@ -10,8 +10,8 @@ module Support
     [].tap do |flattened_calls|
       add = -> (local_calls) do
         local_calls.each do |call|
-          flattened_calls << call[0..1]
-          add.call call[2]
+          flattened_calls << call[0..2]
+          add.call call[3]
         end
       end
 
