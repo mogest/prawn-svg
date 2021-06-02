@@ -237,4 +237,31 @@ Even more
       ]
     end
   end
+
+  describe "when there's a comment inside the text element" do
+    let(:svg) { '<text>Hi <!-- comment --> there</text>' }
+
+    it "ignores the comment" do
+      element.process
+
+      expect(flatten_calls(element.calls)).to eq [
+        ["text_group", [], {}],
+        ["font", ["Helvetica"], {:style=>:normal}],
+        ["draw_text",
+          ["Hi "],
+          {:size=>16,
+            :style=>:normal,
+            :text_anchor=>"start",
+            :at=>[:relative, :relative],
+            :offset=>[0, 0]}],
+        ["draw_text",
+          ["there"],
+          {:size=>16,
+            :style=>:normal,
+            :text_anchor=>"start",
+            :at=>[:relative, :relative],
+            :offset=>[0, 0]}]
+      ]
+    end
+  end
 end
