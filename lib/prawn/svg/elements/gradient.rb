@@ -147,8 +147,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         offset = result.last.first
       end
 
-      if color_hex = Prawn::SVG::Color.color_to_hex(child.properties.stop_color)
-        result << [offset, color_hex]
+      if color = Prawn::SVG::Color.css_color_to_prawn_color(child.properties.stop_color)
+        result << [offset, color]
       end
     end
 

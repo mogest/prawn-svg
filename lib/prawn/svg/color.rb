@@ -1,17 +1,8 @@
 class Prawn::SVG::Color
-  class Hex
-    attr_reader :value
+  RGB = Struct.new(:value)
+  CMYK = Struct.new(:value)
 
-    def initialize(value)
-      @value = value
-    end
-
-    def ==(other)
-      value == other.value
-    end
-  end
-
-  DEFAULT_COLOR = Hex.new("000000")
+  DEFAULT_COLOR = RGB.new("000000")
 
   HTML_COLORS = {
     'aliceblue' => 'f0f8ff',
@@ -163,8 +154,9 @@ class Prawn::SVG::Color
     'yellowgreen' => '9acd32'
   }.freeze
 
-  RGB_VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
-  RGB_REGEXP = /\Argb\(#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP},#{RGB_VALUE_REGEXP}\)\z/i
+  VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
+  RGB_REGEXP = /\Argb\(#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP}\)\z/i
+  CMYK_REGEXP = /\Adevice-cmyk\(#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP}\)\z/i
   URL_REGEXP = /\Aurl\(([^)]*)\)\z/i
 
   def self.parse(color_string, gradients = nil)
@@ -174,13 +166,13 @@ class Prawn::SVG::Color
 
     result = components.map do |color, *_|
       if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
-        Hex.new("#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}")
+        RGB.new("#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}")
 
       elsif color.match(/\A#[0-9a-f]{6}\z/i)
-        Hex.new(color[1..6])
+        RGB.new(color[1..6])
 
       elsif hex = HTML_COLORS[color.downcase]
-        Hex.new(hex)
+        RGB.new(hex)
 
       elsif m = color.match(RGB_REGEXP)
         hex = (1..3).collect do |n|
@@ -189,7 +181,16 @@ class Prawn::SVG::Color
           "%02x" % clamp(value.round, 0, 255)
         end.join
 
-        Hex.new(hex)
+        RGB.new(hex)
+
+      elsif m = color.match(CMYK_REGEXP)
+        cmyk = (1..4).collect do |n|
+          value = m[n].to_f
+          value *= 100 unless m[n][-1..-1] == '%'
+          clamp(value, 0, 100)
+        end
+
+        CMYK.new(cmyk)
 
       elsif matches = color.match(URL_REGEXP)
         url_specified = true
@@ -208,8 +209,8 @@ class Prawn::SVG::Color
     result.compact
   end
 
-  def self.color_to_hex(color)
-    result = parse(color).detect {|result| result.is_a?(Hex)}
+  def self.css_color_to_prawn_color(color)
+    result = parse(color).detect {|result| result.is_a?(RGB) || result.is_a?(CMYK)}
     result.value if result
   end
 

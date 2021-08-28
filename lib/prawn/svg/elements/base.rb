@@ -193,7 +193,7 @@ class Prawn::SVG::Elements::Base
 
       success = results.detect do |result|
         case result
-        when Prawn::SVG::Color::Hex
+        when Prawn::SVG::Color::RGB, Prawn::SVG::Color::CMYK
           add_call "#{type}_color", result.value
           true
         when Prawn::SVG::Elements::Gradient
