@@ -1,4 +1,6 @@
 class Prawn::SVG::Color
+  COLOR_MODE = 'rgb'.freeze
+
   RGB = Struct.new(:value)
   CMYK = Struct.new(:value)
 

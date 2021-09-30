@@ -9,7 +9,7 @@ class Prawn::SVG::Elements::Root < Prawn::SVG::Elements::Base
 
   def apply
     if [nil, 'inherit', 'none', 'currentColor'].include?(properties.fill)
-      add_call 'fill_color', '000000'
+      add_call 'fill_color', Prawn::SVG::Color::COLOR_MODE == 'rgb' ? '000000' : [0, 0, 0, 100]
     end
 
     add_call 'transformation_matrix', @document.sizing.x_scale, 0, 0, @document.sizing.y_scale, 0, 0
