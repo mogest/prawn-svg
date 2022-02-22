@@ -13,7 +13,8 @@ class Prawn::SVG::Document
     :font_registry,
     :url_loader,
     :elements_by_id, :gradients,
-    :element_styles
+    :element_styles,
+    :color_mode
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new)
     @root = REXML::Document.new(data).root
@@ -32,6 +33,7 @@ class Prawn::SVG::Document
     @gradients = Prawn::SVG::Gradients.new(self)
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
+    @color_mode = load_color_mode
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],
@@ -51,5 +53,16 @@ class Prawn::SVG::Document
     sizing.requested_width = requested_width
     sizing.requested_height = requested_height
     sizing.calculate
+  end
+
+  private
+
+  def load_color_mode
+    case @options[:color_mode]
+    when nil, :rgb then :rgb
+    when :cmyk then :cmyk
+    else
+      raise ArgumentError, ":color_mode must be set to :rgb (default) or :cmyk"
+    end
   end
 end

@@ -189,7 +189,7 @@ class Prawn::SVG::Elements::Base
         color = computed_properties.color
       end
 
-      results = Prawn::SVG::Color.parse(color, document.gradients)
+      results = Prawn::SVG::Color.parse(color, document.gradients, document.color_mode)
 
       success = results.detect do |result|
         case result

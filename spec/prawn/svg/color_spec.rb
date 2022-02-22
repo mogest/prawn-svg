@@ -47,7 +47,7 @@ describe Prawn::SVG::Color do
     let(:drob_gradient) { double }
 
     it "returns a list of all colors parsed, ignoring impossible or non-existent colors" do
-      results = Prawn::SVG::Color.parse("url(#nope) url(#flan) blurble green #123", gradients)
+      results = Prawn::SVG::Color.parse("url(#nope) url(#flan) blurble green #123", gradients, :rgb)
       expect(results).to eq [
         flan_gradient,
         Prawn::SVG::Color::RGB.new("008000"),
@@ -56,10 +56,18 @@ describe Prawn::SVG::Color do
     end
 
     it "appends black to the list if there aren't any url() references" do
-      results = Prawn::SVG::Color.parse("blurble green", gradients)
+      results = Prawn::SVG::Color.parse("blurble green", gradients, :rgb)
       expect(results).to eq [
         Prawn::SVG::Color::RGB.new("008000"),
         Prawn::SVG::Color::RGB.new("000000")
+      ]
+    end
+
+    it "works in CMYK color mode" do
+      results = Prawn::SVG::Color.parse("blurble green", gradients, :cmyk)
+      expect(results).to eq [
+        Prawn::SVG::Color::CMYK.new([100, 0, 100, 50]),
+        Prawn::SVG::Color::CMYK.new([0, 0, 0, 100])
       ]
     end
   end

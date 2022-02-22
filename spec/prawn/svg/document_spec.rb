@@ -5,6 +5,23 @@ describe Prawn::SVG::Document do
   let(:options) { {} }
 
   describe "#initialize" do
+    context "with a well-formed document" do
+      let(:svg) { "<svg></svg>" }
+      let(:options) { {color_mode: :cmyk} }
+
+      it "parses the XML and yields itself to its block" do
+        yielded = nil
+
+        document = Prawn::SVG::Document.new(svg, bounds, options) do |doc|
+          yielded = doc
+        end
+
+        expect(yielded).to eq document
+        expect(document.color_mode).to eq :cmyk
+        expect(document.root.name).to eq 'svg'
+      end
+    end
+
     context "when unparsable XML is provided" do
       let(:svg) { "this isn't SVG data" }
 

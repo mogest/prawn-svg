@@ -2,7 +2,8 @@ class Prawn::SVG::Color
   RGB = Struct.new(:value)
   CMYK = Struct.new(:value)
 
-  DEFAULT_COLOR = RGB.new("000000")
+  RGB_DEFAULT_COLOR = RGB.new("000000")
+  CMYK_DEFAULT_COLOR = CMYK.new([0, 0, 0, 100])
 
   HTML_COLORS = {
     'aliceblue' => 'f0f8ff',
@@ -159,7 +160,7 @@ class Prawn::SVG::Color
   CMYK_REGEXP = /\Adevice-cmyk\(#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP}\)\z/i
   URL_REGEXP = /\Aurl\(([^)]*)\)\z/i
 
-  def self.parse(color_string, gradients = nil)
+  def self.parse(color_string, gradients = nil, color_mode = :rgb)
     url_specified = false
 
     components = color_string.to_s.strip.scan(/([^(\s]+(\([^)]*\))?)/)
@@ -172,7 +173,7 @@ class Prawn::SVG::Color
         RGB.new(color[1..6])
 
       elsif hex = HTML_COLORS[color.downcase]
-        RGB.new(hex)
+        hex_color(hex, color_mode)
 
       elsif m = color.match(RGB_REGEXP)
         hex = (1..3).collect do |n|
@@ -204,7 +205,7 @@ class Prawn::SVG::Color
     # Generally, we default to black if the colour was unparseable.
     # http://www.w3.org/TR/SVG/painting.html section 11.2 says if a URL was
     # supplied without a fallback, that's an error.
-    result << DEFAULT_COLOR unless url_specified
+    result << default_color(color_mode) unless url_specified
 
     result.compact
   end
@@ -215,7 +216,29 @@ class Prawn::SVG::Color
   end
 
   protected
+
   def self.clamp(value, min_value, max_value)
     [[value, min_value].max, max_value].min
+  end
+
+  def self.default_color(color_mode)
+    color_mode == :cmyk ? CMYK_DEFAULT_COLOR : RGB_DEFAULT_COLOR
+  end
+
+  def self.hex_color(hex, color_mode)
+    if color_mode == :cmyk
+      r, g, b = [hex[0..1], hex[2..3], hex[4..5]].map { |h| h.to_i(16) / 255.0 }
+      k = 1 - [r, g, b].max
+      if k == 1
+        CMYK.new([0, 0, 0, 100])
+      else
+        c = (1 - r - k) / (1 - k)
+        m = (1 - g - k) / (1 - k)
+        y = (1 - b - k) / (1 - k)
+        CMYK.new([c, m, y, k].map { |v| (v * 100).round })
+      end
+    else
+      RGB.new(hex)
+    end
   end
 end

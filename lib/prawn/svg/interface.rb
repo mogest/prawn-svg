@@ -5,7 +5,7 @@
 module Prawn
   module SVG
     class Interface
-      VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :enable_web_requests, :enable_file_requests_with_root, :fallback_font_name]
+      VALID_OPTIONS = [:at, :position, :vposition, :width, :height, :cache_images, :enable_web_requests, :enable_file_requests_with_root, :fallback_font_name, :color_mode]
 
       attr_reader :data, :prawn, :document, :options
 

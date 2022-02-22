@@ -34,6 +34,7 @@ Option      | Data type | Description
 :enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs from your local disk if the file is located under the specified directory. It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
+:color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 
 ## Examples
 
