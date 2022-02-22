@@ -27,6 +27,7 @@ require 'prawn/svg/css/selector_parser'
 require 'prawn/svg/css/stylesheets'
 require 'prawn/svg/ttf'
 require 'prawn/svg/font'
+require 'prawn/svg/gradients'
 require 'prawn/svg/document'
 require 'prawn/svg/state'
 

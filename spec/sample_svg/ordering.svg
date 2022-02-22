@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="177.649" height="244.929" version="1.1" viewBox="0 0 177.649 244.929" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g transform="translate(-21.1667 -31.75)">
+    <rect x="21.1667" y="31.75" width="177.649" height="244.929" fill="url(#linearGradient18)" stroke-width=".264583"/>
+  </g>
+  <defs>
+    <linearGradient id="linearGradient18" x1="109.032" x2="109.74" y1="34.6919" y2="273.287" gradientUnits="userSpaceOnUse">
+      <stop stop-color="orange" offset="0"/>
+      <stop stop-color="blue" offset="1"/>
+    </linearGradient>
+  </defs>
+</svg>

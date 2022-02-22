@@ -29,7 +29,7 @@ class Prawn::SVG::Document
     @warnings = []
     @options = options
     @elements_by_id = {}
-    @gradients = {}
+    @gradients = Prawn::SVG::Gradients.new(self)
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
 
