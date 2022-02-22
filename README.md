@@ -118,7 +118,7 @@ implemented, but `!important` is not.
 
 ## Not supported
 
-prawn-svg does not support hyperlinks, patterns or filters.
+prawn-svg does not support hyperlinks, patterns, masks or filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 
