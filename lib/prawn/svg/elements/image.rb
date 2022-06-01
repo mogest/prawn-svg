@@ -67,15 +67,14 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   protected
 
   def image_dimensions(data)
-    handler = if data[0, 3].unpack("C*") == [255, 216, 255]
-      Prawn::Images::JPG
-    elsif data[0, 8].unpack("C*") == [137, 80, 78, 71, 13, 10, 26, 10]
-      Prawn::Images::PNG
-    else
-      raise SkipElementError, "Unsupported image type supplied to image tag; Prawn only supports JPG and PNG"
+    unless (handler = find_image_handler(data))
+      raise SkipElementError, 'Unsupported image type supplied to image tag'
     end
-
     image = handler.new(data)
     [image.width.to_f, image.height.to_f]
+  end
+
+  def find_image_handler(data)
+    Prawn.image_handler.find(data) rescue nil
   end
 end
