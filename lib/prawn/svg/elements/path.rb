@@ -55,8 +55,6 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
   end
 
   def apply
-    add_call 'join_style', :bevel
-
     apply_commands
     apply_markers
   end
