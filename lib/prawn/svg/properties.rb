@@ -34,6 +34,7 @@ class Prawn::SVG::Properties
     "stroke"           => Config.new("none", true, %w(inherit none currentColor)),
     "stroke-dasharray" => Config.new("none", true, %w(inherit none)),
     "stroke-linecap"   => Config.new("butt", true, %w(inherit butt round square), true),
+    "stroke-linejoin"  => Config.new("miter", true, %w(inherit miter round bevel), true),
     "stroke-opacity"   => Config.new("1", true),
     "stroke-width"     => Config.new("1", true),
     "text-anchor"      => Config.new("start", true, %w(inherit start middle end), true),
