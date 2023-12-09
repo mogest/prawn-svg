@@ -41,12 +41,13 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     font = select_font
     apply_font(font) if font
 
-    # text_anchor isn't a Prawn option; we have to do some math to support it
-    # and so we handle this in Prawn::SVG::Interface#rewrite_call_arguments
+    # text_anchor and dominant_baseline aren't Prawn options; we have to do some math to support them
+    # and so we handle them in Prawn::SVG::Interface#rewrite_call_arguments
     opts = {
       size:        computed_properties.numerical_font_size,
       style:       font && font.subfamily,
       text_anchor: computed_properties.text_anchor,
+      dominant_baseline: computed_properties.dominant_baseline,
     }
 
     opts[:decoration] = computed_properties.text_decoration unless computed_properties.text_decoration == 'none'

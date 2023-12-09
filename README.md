@@ -62,7 +62,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
    implementation of elliptical arc is a bit rough at the moment.
 
  - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, 'textLength', 'lengthAdjust', and with extra properties
-   `text-anchor`, `text-decoration` (underline only), `font-size`, `font-family`, `font-weight`, `font-style`, `letter-spacing`
+   `text-anchor`, `text-decoration` (underline only), `font-size`, `font-family`, `font-weight`, `font-style`, `letter-spacing`, `dominant-baseline` (middle only)
 
  - <tt>&lt;svg&gt;</tt>, <tt>&lt;g&gt;</tt> and <tt>&lt;symbol&gt;</tt>
 

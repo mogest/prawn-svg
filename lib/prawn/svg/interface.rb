@@ -149,6 +149,13 @@ module Prawn
           at[0] = @cursor[0] if at[0] == :relative
           at[1] = @cursor[1] if at[1] == :relative
 
+          case options.delete(:dominant_baseline)
+          when 'middle'
+            height = prawn.font.height
+            at[1] -= height / 2.0
+            @cursor = [at[0], at[1]]
+          end
+
           if offset = options.delete(:offset)
             at[0] += offset[0]
             at[1] -= offset[1]
