@@ -47,9 +47,9 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
       size:        computed_properties.numerical_font_size,
       style:       font && font.subfamily,
       text_anchor: computed_properties.text_anchor,
-      dominant_baseline: computed_properties.dominant_baseline,
     }
 
+    opts[:dominant_baseline] = computed_properties.dominant_baseline unless computed_properties.dominant_baseline == 'auto'
     opts[:decoration] = computed_properties.text_decoration unless computed_properties.text_decoration == 'none'
 
     if state.text.parent
