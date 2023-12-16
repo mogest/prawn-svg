@@ -39,11 +39,19 @@ describe Prawn::SVG::Interface do
       end
 
       context "when fill_and_stroke is issued" do
+        def expect_rectangle
+          if RUBY_VERSION.start_with?("2.7.")
+            expect(prawn).to receive(:rectangle)
+          else
+            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10)
+          end
+        end
+
         context "and fill rule is not set" do
           let(:interface) { Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red"></rect></svg>', prawn, {}) }
 
           it "adds content 'B'" do
-            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10)
+            expect_rectangle
             expect(prawn).to receive(:add_content).with("W n")
             expect(prawn).to receive(:add_content).with("B")
             interface.draw
@@ -54,7 +62,7 @@ describe Prawn::SVG::Interface do
           let(:interface) { Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, {}) }
 
           it "adds content 'B*'" do
-            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10)
+            expect_rectangle
             expect(prawn).to receive(:add_content).with("W n")
             expect(prawn).to receive(:add_content).with("B*")
             interface.draw
