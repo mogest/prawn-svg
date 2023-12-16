@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   gem.require_paths = ['lib']
 
-  gem.required_ruby_version = '>= 2.3.0'
+  gem.required_ruby_version = '>= 2.5.0'
 
   gem.add_runtime_dependency 'css_parser', '~> 1.6'
   gem.add_runtime_dependency 'matrix', '~> 0.4.2'
