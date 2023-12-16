@@ -73,10 +73,10 @@ RSpec.describe Prawn::SVG::Elements::Marker do
                 ["stroke_color", ["000000"], {}, []],
                 ["line_width", [100.0], {}, []],
                 ["cap_style", [:butt], {}, []],
+                ["join_style", [:miter], {}, []],
                 ["undash", [], {}, []],
                 ["save", [], {}, []],
                 ["fill", [], {}, [
-                    ["join_style", [:bevel], {}, []],
                     ["move_to", [[0.0, 600.0]], {}, []],
                     ["line_to", [[10.0, 595.0]], {}, []],
                     ["line_to", [[0.0, 590.0]], {}, []],
