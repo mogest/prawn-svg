@@ -1,15 +1,12 @@
 class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
-  attr_reader :referenced_element_class
-  attr_reader :referenced_element_source
+  attr_reader :referenced_element_class, :referenced_element_source
 
   def parse
     href = href_attribute
-    if href.nil?
-      raise SkipElementError, "use tag must have an href or xlink:href"
-    end
+    raise SkipElementError, 'use tag must have an href or xlink:href' if href.nil?
 
     if href[0..0] != '#'
-      raise SkipElementError, "use tag has an href that is not a reference to an id; this is not supported"
+      raise SkipElementError, 'use tag has an href that is not a reference to an id; this is not supported'
     end
 
     id = href[1..-1]
@@ -29,14 +26,18 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       end
     end
 
-    if referenced_element_class.nil?
-      raise SkipElementError, "no tag with ID '#{id}' was found, referenced by use tag"
+    raise SkipElementError, "no tag with ID '#{id}' was found, referenced by use tag" if referenced_element_class.nil?
+
+    if referenced_element_source.name == 'symbol'
+      @referenced_element_class = Prawn::SVG::Elements::Viewport
     end
 
     state.inside_use = true
 
     @x = attributes['x']
     @y = attributes['y']
+    @width = attributes['width']
+    @height = attributes['height']
   end
 
   def container?
@@ -45,16 +46,23 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def apply
     if @x || @y
-      add_call_and_enter "translate", x_pixels(@x || 0), -y_pixels(@y || 0)
+      add_call_and_enter 'translate', x_pixels(@x || 0), -y_pixels(@y || 0)
     end
   end
 
   def process_child_elements
-    add_call "save"
+    add_call 'save'
 
-    child = referenced_element_class.new(document, referenced_element_source, calls, state.dup)
+    source = referenced_element_source.dup
+
+    if referenced_element_class == Prawn::SVG::Elements::Viewport
+      source.attributes['width'] = @width || '100%'
+      source.attributes['height'] = @height || '100%'
+    end
+
+    child = referenced_element_class.new(document, source, calls, state.dup)
     child.process
 
-    add_call "restore"
+    add_call 'restore'
   end
 end
