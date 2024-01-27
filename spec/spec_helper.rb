@@ -3,12 +3,12 @@ Bundler.require(:default, :development)
 
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 module Support
-  def flatten_calls(calls)
+  def flatten_calls(_calls)
     [].tap do |flattened_calls|
-      add = -> (local_calls) do
+      add = lambda do |local_calls|
         local_calls.each do |call|
           flattened_calls << call[0..2]
           add.call call[3]
@@ -28,12 +28,36 @@ end
 
 RSpec.configure do |config|
   config.mock_with :rspec do |c|
-    c.syntax = [:should, :expect]
+    c.syntax = %i[should expect]
   end
 
   config.expect_with :rspec do |c|
-    c.syntax = [:should, :expect]
+    c.syntax = %i[should expect]
   end
 
   config.include Support
+
+  config.before(:suite) do
+    # calculate the MD5 of all files in spec/sample_output and store in a hash
+    $hashes = {}
+
+    Dir["#{File.dirname(__FILE__)}/sample_output/*.pdf"].each do |file|
+      hash = Digest::MD5.file(file).hexdigest
+      $hashes[file] = hash
+    end
+  end
+
+  config.after(:suite) do
+    # print out the PDFs that have changed
+    changed = $hashes.select do |file, hash|
+      new_hash = Digest::MD5.file(file).hexdigest
+      new_hash != hash
+    end
+
+    if changed.any?
+      puts "\nThese PDFs have changed since the last test run:"
+      cwd = "#{Dir.pwd}/"
+      changed.each { |file, _| puts "  #{file.sub(cwd, '')}" }
+    end
+  end
 end
