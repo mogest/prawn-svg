@@ -9,6 +9,10 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
       raise SkipElementError, "<text> elements are not supported in clip paths"
     end
 
+    if state.text.nil?
+      raise SkipElementError, "attempted to <use> an component inside a text element, this is not supported"
+    end
+
     state.text.x = (attributes['x'] || "").split(COMMA_WSP_REGEXP).collect { |n| x(n) }
     state.text.y = (attributes['y'] || "").split(COMMA_WSP_REGEXP).collect { |n| y(n) }
     state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
