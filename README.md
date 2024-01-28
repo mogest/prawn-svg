@@ -70,8 +70,9 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - <tt>&lt;style&gt;</tt> (see CSS section below)
 
- - `<image>` referencing a JPEG or PNG image,  with `http:`, `https:`, `data:image/jpeg;base64`, `data:image/png;base64` and `file:` schemes
-   (`file:` is disabled by default for security reasons, see Options section above)
+ - `<image>` referencing a JPEG, PNG, or SVG image,  with `http:`, `https:`, `data:image/jpeg;base64`,
+   `data:image/png;base64`, `data:image/svg+xml;base64` and `file:` schemes (`file:` is disabled by default for
+   security reasons, see Options section above)
 
  - <tt>&lt;clipPath&gt;</tt>
 

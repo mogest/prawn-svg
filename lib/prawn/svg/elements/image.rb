@@ -3,29 +3,32 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     def initialize(data)
       @data = data
     end
+
     def read
       @data
     end
-    def rewind
-    end
+
+    def rewind; end
   end
+
+  ImageData = Struct.new(:dimensions, :document)
 
   def parse
     require_attributes 'width', 'height'
 
-    raise SkipElementQuietly if state.computed_properties.display == "none"
+    raise SkipElementQuietly if state.computed_properties.display == 'none'
 
     @url = href_attribute
-    if @url.nil?
-      raise SkipElementError, "image tag must have an href or xlink:href"
-    end
+    raise SkipElementError, 'image tag must have an href or xlink:href' if @url.nil?
 
     x = x(attributes['x'] || 0)
     y = y(attributes['y'] || 0)
     width = x_pixels(attributes['width'])
     height = y_pixels(attributes['height'])
+    preserveAspectRatio = attributes['preserveAspectRatio']
 
     raise SkipElementQuietly if width.zero? || height.zero?
+
     require_positive_value width, height
 
     @image = begin
@@ -34,7 +37,9 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
     end
 
-    @aspect = Prawn::SVG::Calculators::AspectRatio.new(attributes['preserveAspectRatio'], [width, height], image_dimensions(@image))
+    @image_data = process_image(@image, width, height, preserveAspectRatio)
+
+    @aspect = Prawn::SVG::Calculators::AspectRatio.new(preserveAspectRatio, [width, height], @image_data.dimensions)
 
     @clip_x = x
     @clip_y = y
@@ -49,15 +54,21 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   def apply
     if @aspect.slice?
-      add_call "save"
-      add_call "rectangle", [@clip_x, @clip_y], @clip_width, @clip_height
-      add_call "clip"
+      add_call 'save'
+      add_call 'rectangle', [@clip_x, @clip_y], @clip_width, @clip_height
+      add_call 'clip'
     end
 
-    options = {:width => @width, :height => @height, :at => [@x, @y]}
+    if (document = @image_data.document)
+      add_call_and_enter 'translate', @x, @y
+      add_call 'svg:render_sub_document', document
+    else
+      options = { width: @width, height: @height, at: [@x, @y] }
 
-    add_call "image", FakeIO.new(@image), options
-    add_call "restore" if @aspect.slice?
+      add_call 'image', FakeIO.new(@image), options
+    end
+
+    add_call 'restore' if @aspect.slice?
   end
 
   def bounding_box
@@ -66,15 +77,38 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   protected
 
-  def image_dimensions(data)
-    unless (handler = find_image_handler(data))
-      raise SkipElementError, 'Unsupported image type supplied to image tag'
+  def process_image(data, width, height, preserveAspectRatio)
+    if (handler = find_image_handler(data))
+      image = handler.new(data)
+      ImageData.new([image.width.to_f, image.height.to_f], nil)
+
+    elsif potentially_svg?(data)
+      document = Prawn::SVG::Document.new(
+        data, [width, height], { width: width, height: height },
+        attribute_overrides: { 'preserveAspectRatio' => preserveAspectRatio }
+      )
+
+      dimensions = [document.sizing.output_width, document.sizing.output_height]
+      ImageData.new(dimensions, document)
+
+    else
+      raise_invalid_image_type
     end
-    image = handler.new(data)
-    [image.width.to_f, image.height.to_f]
+  rescue Prawn::SVG::Document::InvalidSVGData
+    raise_invalid_image_type
   end
 
   def find_image_handler(data)
-    Prawn.image_handler.find(data) rescue nil
+    Prawn.image_handler.find(data)
+  rescue StandardError
+    nil
+  end
+
+  def potentially_svg?(data)
+    data.include?('<svg')
+  end
+
+  def raise_invalid_image_type
+    raise SkipElementError, 'Unsupported image type supplied to image tag'
   end
 end

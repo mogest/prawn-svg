@@ -1,0 +1,9 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+    <rect x="20" y="20" width="960" height="460" stroke="black" fill="white" />
+    <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjExMDAiIGhlaWdodD0iNDAwIj4KICA8cmVjdCB4PSIxMDAiIHk9IjEwMCIgd2lkdGg9IjkwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmx1ZSIgc3Ryb2tlLXdpZHRoPSIyIiAvPgoKICA8cGF0aCBkPSJNMjAwIDIwMCBMODAwIDMwMCBMODAwIDIwMCIgc3Ryb2tlPSJncmVlbiIgc3Ryb2tlLXdpZHRoPSIxMCIgZmlsbD0icmVkIiAvPgo8L3N2Zz4K" x="100" y="200" width="200" height="200" />
+    <image xlink:href="sample_images/image_svg_embed.svg" x="400" y="200" width="200" height="200" />
+    <image xlink:href="sample_images/image_svg_embed.svg" x="650" y="200" width="100" height="200" />
+    <image xlink:href="sample_images/image_svg_embed.svg" x="800" y="200" width="100" height="200" preserveAspectRatio="none" />
+</svg>

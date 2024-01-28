@@ -16,7 +16,7 @@ class Prawn::SVG::Document
     :element_styles,
     :color_mode
 
-  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new)
+  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {})
     @root = REXML::Document.new(data).root
 
     if @root.nil?
@@ -41,7 +41,10 @@ class Prawn::SVG::Document
       enable_file_with_root: options[:enable_file_requests_with_root]
     )
 
-    @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, @root.attributes)
+    attributes = @root.attributes.dup
+    attribute_overrides.each { |key, value| attributes.add(REXML::Attribute.new(key, value)) }
+
+    @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
     @element_styles = Prawn::SVG::CSS::Stylesheets.new(css_parser, root).load
