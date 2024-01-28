@@ -10,7 +10,7 @@ This will take an SVG document as input and render it into your PDF.  Find out m
   http://github.com/prawnpdf/prawn
 
 prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
-The minimum Ruby version required is 2.3.0.
+The minimum Ruby version required is 2.5.0.
 
 ## Using prawn-svg
 
@@ -33,7 +33,7 @@ Option      | Data type | Description
 :enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images.  Defaults to true.
 :enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs from your local disk if the file is located under the specified directory. It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
-:fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to <tt>nil</tt>, prawn-svg will ignore a request for an unknown font and log a warning.
+:fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 
 ## Examples
@@ -54,31 +54,33 @@ Option      | Data type | Description
 
 prawn-svg supports most but not all of the full SVG 1.1 specification.  It currently supports:
 
- - <tt>&lt;line&gt;</tt>, <tt>&lt;polyline&gt;</tt>, <tt>&lt;polygon&gt;</tt>, <tt>&lt;circle&gt;</tt> and <tt>&lt;ellipse&gt;</tt>
+ - `<line>`, `<polyline>`, `<polygon>`, `<circle>` and `<ellipse>`
 
- - <tt>&lt;rect&gt;</tt>.  Rounded rects are supported, but only one radius is applied to all corners.
+ - `<rect>`.  Rounded rects are supported, but only one radius is applied to all corners.
 
- - <tt>&lt;path&gt;</tt> supports all commands defined in SVG 1.1, although the
+ - `<path>` supports all commands defined in SVG 1.1, although the
    implementation of elliptical arc is a bit rough at the moment.
 
- - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, 'textLength', 'lengthAdjust', and with extra properties
-   `text-anchor`, `text-decoration` (underline only), `font-size`, `font-family`, `font-weight`, `font-style`, `letter-spacing`, `dominant-baseline` (middle only)
+ - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`, `lengthAdjust`,
+   and with extra properties `text-anchor`, `text-decoration` (underline only), `font-size`, `font-family`,
+   `font-weight`, `font-style`, `letter-spacing`, `dominant-baseline` (middle only)
 
- - <tt>&lt;svg&gt;</tt>, <tt>&lt;g&gt;</tt> and <tt>&lt;symbol&gt;</tt>
+ - `<svg>`, `<g>` and `<symbol>`
 
- - <tt>&lt;use&gt;</tt>
+ - `<use>`
 
- - <tt>&lt;style&gt;</tt> (see CSS section below)
+ - `<style>` (see CSS section below)
 
  - `<image>` referencing a JPEG, PNG, or SVG image,  with `http:`, `https:`, `data:image/jpeg;base64`,
    `data:image/png;base64`, `data:image/svg+xml;base64` and `file:` schemes (`file:` is disabled by default for
    security reasons, see Options section above)
 
- - <tt>&lt;clipPath&gt;</tt>
+ - `<clipPath>`
 
  - `<marker>`
 
- - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and `gradientTransform` (spreadMethod and stop-opacity are unimplemented.)
+ - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and
+   `gradientTransform` (`spreadMethod` and `stop-opacity` are unimplemented.)
 
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
@@ -90,18 +92,19 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - attributes on all elements: `class`, `id`, `style`, `transform`, `xml:space`
 
- - the <tt>viewBox</tt> attribute on <tt>&lt;svg&gt;</tt> and `<marker>` elements
+ - the `viewBox` attribute on `<svg>` and `<marker>` elements
 
- - the <tt>preserveAspectRatio</tt> attribute on <tt>&lt;svg&gt;</tt>, <tt>&lt;image&gt;</tt> and `<marker>` elements
+ - the `preserveAspectRatio` attribute on `<svg>`, `<image>` and `<marker>` elements
 
  - transform methods: `translate`, `translateX`, `translateY`, `rotate`, `scale`, `skewX`, `skewY`, `matrix`
 
- - colors: HTML standard names, <tt>#xxx</tt>, <tt>#xxxxxx</tt>, <tt>rgb(1, 2, 3)</tt>, <tt>rgb(1%, 2%, 3%)</tt>,
-   and also the non-standard `device-cmyk(1, 2, 3, 4)` for CMYK colors
+ - colors: HTML standard names, `#xxx`, `#xxxxxx`, `rgb(1, 2, 3)`, `rgb(1%, 2%, 3%)`, and also the non-standard
+   `device-cmyk(1, 2, 3, 4)` for CMYK colors
 
- - measurements specified in <tt>pt</tt>, <tt>cm</tt>, <tt>dm</tt>, <tt>ft</tt>, <tt>in</tt>, <tt>m</tt>, <tt>mm</tt>, <tt>yd</tt>, <tt>pc</tt>, <tt>%</tt>
+ - measurements specified in `pt`, `cm`, `dm`, `ft`, `in`, `m`, `mm`, `yd`, `pc`, `%`
 
- - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path, specified in any of the measurements above plus `em` or `rem`
+ - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path, specified in any of the
+   measurements above plus `em` or `rem`
 
 ## CSS
 
@@ -128,8 +131,9 @@ It does not support text in the clip area, but you can clip shapes and text by a
 
 ### Fonts
 
-By default, prawn-svg has a fonts path of <tt>["/Library/Fonts", "/System/Library/Fonts", "#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]</tt> to catch
-Mac OS X and Debian Linux users.  You can add to the font path:
+By default, prawn-svg has a fonts path of `["/Library/Fonts", "/System/Library/Fonts",
+"#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]` to catch MacOS and Debian Linux users.  You can add
+to the font path:
 
 ```ruby
   Prawn::SVG::FontRegistry.font_path << "/my/font/directory"
@@ -141,4 +145,4 @@ In your Gemfile, put `gem 'prawn-svg'` before `gem 'prawn-rails'` so that prawn-
 
 ## Licence
 
-MIT licence.  Copyright Roger Nesbitt.
+MIT licence.  Copyright Mog Nesbitt.
