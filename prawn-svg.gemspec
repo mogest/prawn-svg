@@ -19,7 +19,6 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>= 2.5.0'
 
-  gem.add_runtime_dependency 'base64', '~> 0.1.0'
   gem.add_runtime_dependency 'css_parser', '~> 1.6'
   gem.add_runtime_dependency 'matrix', '~> 0.4.2'
   gem.add_runtime_dependency 'prawn', '>= 0.11.1', '< 3'
