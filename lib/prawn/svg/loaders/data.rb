@@ -1,5 +1,3 @@
-require 'base64'
-
 module Prawn::SVG::Loaders
   class Data
     REGEXP = %r{\Adata:image/(png|jpeg|svg\+xml);base64(;[a-z0-9]+)*,}i
@@ -13,7 +11,7 @@ module Prawn::SVG::Loaders
               'prawn-svg only supports base64-encoded image/png, image/jpeg, and image/svg+xml data URLs'
       end
 
-      Base64.decode64(matches.post_match)
+      matches.post_match.unpack1('m')
     end
   end
 end
