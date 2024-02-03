@@ -25,6 +25,7 @@ class Prawn::SVG::Properties
     "font-variant"     => Config.new("normal", true, %w(inherit normal small-caps), true),
     "font-weight"      => Config.new("normal", true, %w(inherit normal bold 100 200 300 400 500 600 700 800 900), true), # bolder/lighter not supported
     "letter-spacing"   => Config.new("normal", true, %w(inherit normal)),
+    "mask"             => Config.new("none", false, %w(inherit none)),
     "marker-end"       => Config.new("none", true, %w(inherit none)),
     "marker-mid"       => Config.new("none", true, %w(inherit none)),
     "marker-start"     => Config.new("none", true, %w(inherit none)),

@@ -1,4 +1,6 @@
 class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
+  include Prawn::SVG::Calculators::UnitInterval
+
   attr_reader :parent_gradient
   attr_reader :x1, :y1, :x2, :y2, :cx, :cy, :fx, :fy, :radius, :units, :stops, :transform_matrix
 
@@ -100,10 +102,10 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   def load_coordinates
     case [type, units]
     when [:linear, :bounding_box]
-      @x1 = parse_zero_to_one(attributes["x1"], 0)
-      @y1 = parse_zero_to_one(attributes["y1"], 0)
-      @x2 = parse_zero_to_one(attributes["x2"], 1)
-      @y2 = parse_zero_to_one(attributes["y2"], 0)
+      @x1 = to_unit_interval(attributes["x1"], 0)
+      @y1 = to_unit_interval(attributes["y1"], 0)
+      @x2 = to_unit_interval(attributes["x2"], 1)
+      @y2 = to_unit_interval(attributes["y2"], 0)
 
     when [:linear, :user_space]
       @x1 = x(attributes["x1"])
@@ -112,11 +114,11 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       @y2 = y(attributes["y2"])
 
     when [:radial, :bounding_box]
-      @cx = parse_zero_to_one(attributes["cx"], 0.5)
-      @cy = parse_zero_to_one(attributes["cy"], 0.5)
-      @fx = parse_zero_to_one(attributes["fx"], cx)
-      @fy = parse_zero_to_one(attributes["fy"], cy)
-      @radius = parse_zero_to_one(attributes["r"], 0.5)
+      @cx = to_unit_interval(attributes["cx"], 0.5)
+      @cy = to_unit_interval(attributes["cy"], 0.5)
+      @fx = to_unit_interval(attributes["fx"], cx)
+      @fy = to_unit_interval(attributes["fy"], cy)
+      @radius = to_unit_interval(attributes["r"], 0.5)
 
     when [:radial, :user_space]
       @cx = x(attributes["cx"] || '50%')
@@ -140,7 +142,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     end
 
     @stops = stop_elements.each.with_object([]) do |child, result|
-      offset = parse_zero_to_one(child.attributes["offset"])
+      offset = to_unit_interval(child.attributes["offset"])
 
       # Offsets must be strictly increasing (SVG 13.2.4)
       if result.last && result.last.first > offset
@@ -162,14 +164,5 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       stops.unshift([0, stops.first.last]) if stops.first.first > 0
       stops.push([1, stops.last.last])     if stops.last.first  < 1
     end
-  end
-
-  def parse_zero_to_one(string, default = 0)
-    string = string.to_s.strip
-    return default if string == ""
-
-    value = string.to_f
-    value /= 100.0 if string[-1..-1] == '%'
-    [0.0, value, 1.0].sort[1]
   end
 end

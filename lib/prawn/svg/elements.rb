@@ -4,7 +4,7 @@ end
 
 require 'prawn/svg/elements/call_duplicator'
 
-%w(base depth_first_base root container clip_path viewport text text_component line polyline polygon circle ellipse rect path use image gradient marker ignored).each do |filename|
+%w(base depth_first_base root container clip_path viewport text text_component line polyline polygon circle ellipse rect path use image gradient marker mask ignored).each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
 
@@ -37,6 +37,6 @@ module Prawn::SVG::Elements
     foreignObject: Prawn::SVG::Elements::Ignored,
     :"font-face" => Prawn::SVG::Elements::Ignored,
     filter: Prawn::SVG::Elements::Ignored, # unsupported
-    mask: Prawn::SVG::Elements::Ignored, # unsupported
+    mask: Prawn::SVG::Elements::Mask,
   }
 end

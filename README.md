@@ -85,7 +85,9 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
 
- - properties: `clip-path`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `opacity`, `overflow`,
+ - `<mask>`, except `maskContentUnits="objectBoundingBox"` is not supported.
+
+ - properties: `clip-path`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `mask`, `opacity`, `overflow`,
    `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-linejoin`, `stroke-opacity`, `stroke-width`
 
  - properties on lines, polylines, polygons and paths: `marker-end`, `marker-mid`, `marker-start`
@@ -123,7 +125,7 @@ implemented, but `!important` is not.
 
 ## Not supported
 
-prawn-svg does not support hyperlinks, patterns, masks or filters.
+prawn-svg does not support hyperlinks, patterns or filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 

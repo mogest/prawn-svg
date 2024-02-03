@@ -50,6 +50,15 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     end
   end
 
+  def bounding_box
+    x1 = x_pixels(@x || 0)
+    y1 = y_pixels(@y || 0)
+    x2 = x1 + x_pixels(@width || '100%')
+    y2 = y1 - y_pixels(@height || '100%')
+
+    [x1, y1, x2, y2]
+  end
+
   def process_child_elements
     add_call 'save'
 
