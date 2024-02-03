@@ -36,6 +36,7 @@ module Prawn::SVG
     end
 
     def gradient_element?(raw_element)
+      return false if raw_element.nil? || raw_element.name.nil?
       Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym] == Elements::Gradient
     end
 
