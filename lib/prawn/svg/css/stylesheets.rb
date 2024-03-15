@@ -1,5 +1,7 @@
 module Prawn::SVG::CSS
   class Stylesheets
+    USER_AGENT_STYLESHEET = 'svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }'.freeze
+
     attr_reader :css_parser, :root, :media
 
     def initialize(css_parser, root, media = :all)
@@ -9,12 +11,17 @@ module Prawn::SVG::CSS
     end
 
     def load
+      load_user_agent_stylesheet
       load_style_elements
       xpath_styles = gather_xpath_styles
       associate_xpath_styles_with_elements(xpath_styles)
     end
 
     private
+
+    def load_user_agent_stylesheet
+      css_parser.add_block!(USER_AGENT_STYLESHEET)
+    end
 
     def load_style_elements
       REXML::XPath.match(root, '//style').each do |source|

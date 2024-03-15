@@ -46,8 +46,7 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       element.add_call 'transformation_matrix', 1, 0, 0, 1, -ref_x * sizing.x_scale, ref_y * sizing.y_scale
 
-      # `overflow: visible` must be on the <marker> element
-      if properties.overflow != 'visible'
+      if overflow_hidden?
         point = [sizing.x_offset * sizing.x_scale, y(sizing.y_offset * sizing.y_scale)]
         element.add_call "rectangle", point, sizing.output_width, sizing.output_height
         element.add_call "clip"

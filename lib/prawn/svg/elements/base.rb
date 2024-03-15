@@ -270,4 +270,14 @@ class Prawn::SVG::Elements::Base
   def href_attribute
     attributes['xlink:href'] || attributes['href']
   end
+
+  def overflow_hidden?
+    ['hidden', 'scroll'].include?(computed_properties.overflow)
+  end
+
+  def clone_element_source(source)
+    new_source = source.dup
+    document.element_styles[new_source] = document.element_styles[source]
+    new_source
+  end
 end

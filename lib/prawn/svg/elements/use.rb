@@ -53,7 +53,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   def process_child_elements
     add_call 'save'
 
-    source = referenced_element_source.dup
+    source = clone_element_source(referenced_element_source)
 
     if referenced_element_class == Prawn::SVG::Elements::Viewport
       source.attributes['width'] = @width || '100%'

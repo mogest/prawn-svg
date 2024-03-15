@@ -18,18 +18,19 @@ RSpec.describe Prawn::SVG::Elements::Marker do
   end
 
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {width: 800, height: 600}) }
-  let(:state) { Prawn::SVG::State.new }
+
+  def new_state
+    state = Prawn::SVG::State.new
+    state.viewport_sizing = document.sizing
+    state
+  end
 
   let(:line_element) do
-    Prawn::SVG::Elements::Line.new(document, document.root.elements[2], [], state)
+    Prawn::SVG::Elements::Line.new(document, document.root.elements[2], [], new_state)
   end
 
   subject do
-    Prawn::SVG::Elements::Marker.new(document, document.root.elements[1], [], state)
-  end
-
-  before do
-    state.viewport_sizing = document.sizing
+    Prawn::SVG::Elements::Marker.new(document, document.root.elements[1], [], new_state)
   end
 
   describe "#parse" do
@@ -70,8 +71,8 @@ RSpec.describe Prawn::SVG::Elements::Marker do
             ["clip", [], {}, []],
             ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], {}, []],
             ["transparent", [1.0, 1.0], {}, [
-                ["stroke_color", ["000000"], {}, []],
-                ["line_width", [100.0], {}, []],
+                ["fill_color", ["000000"], {}, []],
+                ["line_width", [1.0], {}, []],
                 ["cap_style", [:butt], {}, []],
                 ["join_style", [:miter], {}, []],
                 ["undash", [], {}, []],

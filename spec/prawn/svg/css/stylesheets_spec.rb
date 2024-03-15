@@ -62,6 +62,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       width_and_styles = result.map { |k, v| [k.attributes["width"].to_i, v] }.sort_by(&:first)
 
       expected = [
+        [0, [["overflow", "hidden", false]]],
         [1, [["fill", "#ff0000", false]]],
         [2, [["fill", "#ff0000", false], ["fill", "#330000", false], ["fill", "#440000", false], ["fill", "#220000", false]]],
         [3, [["fill", "#ff0000", false], ["fill", "#00ff00", false]]],
@@ -114,6 +115,7 @@ z</style>
     it "scans the document for style tags and adds the style information to the css parser" do
       css_parser = instance_double(CssParser::Parser)
 
+      expect(css_parser).to receive(:add_block!).with("svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }")
       expect(css_parser).to receive(:add_block!).with("a\n  before>\n  x  y\n  inside <>&gt;\n  k  j\n  after\nz")
       expect(css_parser).to receive(:add_block!).with("hello")
       allow(css_parser).to receive(:each_rule_set)
