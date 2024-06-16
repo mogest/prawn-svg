@@ -36,7 +36,7 @@ module Prawn::SVG::CSS
         in_escape = false
         current = ''
 
-        rest.chars.each.with_index do |char, index|
+        rest.each_char.with_index do |char, index|
           if in_escape
             current << char
             in_escape = false

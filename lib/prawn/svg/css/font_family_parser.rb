@@ -6,7 +6,7 @@ module Prawn::SVG::CSS
       current = nil
       fonts = []
 
-      string.chars.each do |char|
+      string.each_char do |char|
         if in_escape
           in_escape = false
           if current.nil?
