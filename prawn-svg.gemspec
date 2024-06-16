@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.metadata      = { "rubygems_mfa_required" => "true" }
 
-  gem.required_ruby_version = '>= 2.5.0'
+  gem.required_ruby_version = '>= 2.7.0'
 
   gem.add_runtime_dependency 'css_parser', '~> 1.6'
   gem.add_runtime_dependency 'matrix', '~> 0.4.2'
