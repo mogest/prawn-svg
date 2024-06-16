@@ -261,10 +261,16 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def extract_element_from_url_id_reference(value, expected_type = nil)
-    matches = value.strip.match(/\Aurl\(\s*#(\S+)\s*\)\z/i) if value
-    element = document.elements_by_id[matches[1]] if matches
-    element if element && (expected_type.nil? || element.name == expected_type)
+  def extract_element_from_url_id_reference(values, expected_type = nil)
+    Prawn::SVG::CSS::ValuesParser.parse(values).detect do |value|
+      case value
+      in ['url', [url]]
+        element = document.elements_by_id[url[1..]] if url.start_with?('#')
+        break element if element && (expected_type.nil? || element.name == expected_type)
+      else
+        nil
+      end
+    end
   end
 
   def href_attribute

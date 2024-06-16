@@ -2,7 +2,7 @@ class Prawn::SVG::Color
   RGB = Struct.new(:value)
   CMYK = Struct.new(:value)
 
-  RGB_DEFAULT_COLOR = RGB.new("000000")
+  RGB_DEFAULT_COLOR = RGB.new('000000')
   CMYK_DEFAULT_COLOR = CMYK.new([0, 0, 0, 100])
 
   HTML_COLORS = {
@@ -155,90 +155,91 @@ class Prawn::SVG::Color
     'yellowgreen' => '9acd32'
   }.freeze
 
-  VALUE_REGEXP = "\s*(-?[0-9.]+%?)\s*"
-  RGB_REGEXP = /\Argb\(#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP}\)\z/i
-  CMYK_REGEXP = /\Adevice-cmyk\(#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP},#{VALUE_REGEXP}\)\z/i
-  URL_REGEXP = /\Aurl\(([^)]*)\)\z/i
+  class << self
+    def parse(color_string, gradients = nil, color_mode = :rgb)
+      url_specified = false
 
-  def self.parse(color_string, gradients = nil, color_mode = :rgb)
-    url_specified = false
+      values = ::Prawn::SVG::CSS::ValuesParser.parse(color_string)
 
-    components = color_string.to_s.strip.scan(/([^(\s]+(\([^)]*\))?)/)
+      result = values.map do |value|
+        case value
+        in ['rgb', args]
+          hex = (0..2).collect do |n|
+            number = args[n].to_f
+            number *= 2.55 if args[n][-1..] == '%'
+            format('%02x', clamp(number.round, 0, 255))
+          end.join
 
-    result = components.map do |color, *_|
-      if m = color.match(/\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i)
-        RGB.new("#{m[1] * 2}#{m[2] * 2}#{m[3] * 2}")
+          RGB.new(hex)
 
-      elsif color.match(/\A#[0-9a-f]{6}\z/i)
-        RGB.new(color[1..6])
+        in ['device-cmyk', args]
+          cmyk = (0..3).collect do |n|
+            number = args[n].to_f
+            number *= 100 unless args[n][-1..] == '%'
+            clamp(number, 0, 100)
+          end
 
-      elsif hex = HTML_COLORS[color.downcase]
-        hex_color(hex, color_mode)
+          CMYK.new(cmyk)
 
-      elsif m = color.match(RGB_REGEXP)
-        hex = (1..3).collect do |n|
-          value = m[n].to_f
-          value *= 2.55 if m[n][-1..-1] == '%'
-          "%02x" % clamp(value.round, 0, 255)
-        end.join
+        in ['url', [url]]
+          url_specified = true
+          if url[0] == '#' && gradients && (gradient = gradients[url[1..]])
+            gradient
+          end
 
-        RGB.new(hex)
+        in /\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i
+          RGB.new("#{$1 * 2}#{$2 * 2}#{$3 * 2}")
 
-      elsif m = color.match(CMYK_REGEXP)
-        cmyk = (1..4).collect do |n|
-          value = m[n].to_f
-          value *= 100 unless m[n][-1..-1] == '%'
-          clamp(value, 0, 100)
-        end
+        in /\A#[0-9a-f]{6}\z/i
+          RGB.new(value[1..])
 
-        CMYK.new(cmyk)
+        in String => color
+          if (hex = HTML_COLORS[color.downcase])
+            hex_color(hex, color_mode)
+          end
 
-      elsif matches = color.match(URL_REGEXP)
-        url_specified = true
-        url = matches[1]
-        if url[0] == "#" && gradients && gradient = gradients[url[1..-1]]
-          gradient
+        else
+          nil
         end
       end
+
+      # Generally, we default to black if the colour was unparseable.
+      # http://www.w3.org/TR/SVG/painting.html section 11.2 says if a URL was
+      # supplied without a fallback, that's an error.
+      result << default_color(color_mode) unless url_specified
+
+      result.compact
     end
 
-    # Generally, we default to black if the colour was unparseable.
-    # http://www.w3.org/TR/SVG/painting.html section 11.2 says if a URL was
-    # supplied without a fallback, that's an error.
-    result << default_color(color_mode) unless url_specified
+    def css_color_to_prawn_color(color)
+      parse(color).detect { |value| value.is_a?(RGB) || value.is_a?(CMYK) }&.value
+    end
 
-    result.compact
-  end
+    def default_color(color_mode)
+      color_mode == :cmyk ? CMYK_DEFAULT_COLOR : RGB_DEFAULT_COLOR
+    end
 
-  def self.css_color_to_prawn_color(color)
-    result = parse(color).detect {|result| result.is_a?(RGB) || result.is_a?(CMYK)}
-    result.value if result
-  end
+    private
 
-  protected
+    def clamp(value, min_value, max_value)
+      [[value, min_value].max, max_value].min
+    end
 
-  def self.clamp(value, min_value, max_value)
-    [[value, min_value].max, max_value].min
-  end
-
-  def self.default_color(color_mode)
-    color_mode == :cmyk ? CMYK_DEFAULT_COLOR : RGB_DEFAULT_COLOR
-  end
-
-  def self.hex_color(hex, color_mode)
-    if color_mode == :cmyk
-      r, g, b = [hex[0..1], hex[2..3], hex[4..5]].map { |h| h.to_i(16) / 255.0 }
-      k = 1 - [r, g, b].max
-      if k == 1
-        CMYK.new([0, 0, 0, 100])
+    def hex_color(hex, color_mode)
+      if color_mode == :cmyk
+        r, g, b = [hex[0..1], hex[2..3], hex[4..5]].map { |h| h.to_i(16) / 255.0 }
+        k = 1 - [r, g, b].max
+        if k == 1
+          CMYK.new([0, 0, 0, 100])
+        else
+          c = (1 - r - k) / (1 - k)
+          m = (1 - g - k) / (1 - k)
+          y = (1 - b - k) / (1 - k)
+          CMYK.new([c, m, y, k].map { |v| (v * 100).round })
+        end
       else
-        c = (1 - r - k) / (1 - k)
-        m = (1 - g - k) / (1 - k)
-        y = (1 - b - k) / (1 - k)
-        CMYK.new([c, m, y, k].map { |v| (v * 100).round })
+        RGB.new(hex)
       end
-    else
-      RGB.new(hex)
     end
   end
 end
