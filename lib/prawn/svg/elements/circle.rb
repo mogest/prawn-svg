@@ -4,8 +4,8 @@ class Prawn::SVG::Elements::Circle < Prawn::SVG::Elements::Base
   def parse
     require_attributes 'r'
 
-    @x = x(attributes['cx'] || "0")
-    @y = y(attributes['cy'] || "0")
+    @x = x(attributes['cx'] || '0')
+    @y = y(attributes['cy'] || '0')
     @r = pixels(attributes['r'])
 
     require_positive_value @r
@@ -13,9 +13,9 @@ class Prawn::SVG::Elements::Circle < Prawn::SVG::Elements::Base
 
   def apply
     if USE_NEW_CIRCLE_CALL
-      add_call "circle", [@x, @y], @r
+      add_call 'circle', [@x, @y], @r
     else
-      add_call "circle_at", [@x, @y], radius: @r
+      add_call 'circle_at', [@x, @y], radius: @r
     end
   end
 

@@ -9,7 +9,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       raise SkipElementError, 'use tag has an href that is not a reference to an id; this is not supported'
     end
 
-    id = href[1..-1]
+    id = href[1..]
     referenced_element = @document.elements_by_id[id]
 
     if referenced_element
@@ -28,9 +28,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
     raise SkipElementError, "no tag with ID '#{id}' was found, referenced by use tag" if referenced_element_class.nil?
 
-    if referenced_element_source.name == 'symbol'
-      @referenced_element_class = Prawn::SVG::Elements::Viewport
-    end
+    @referenced_element_class = Prawn::SVG::Elements::Viewport if referenced_element_source.name == 'symbol'
 
     state.inside_use = true
 
@@ -45,9 +43,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   end
 
   def apply
-    if @x || @y
-      add_call_and_enter 'translate', x_pixels(@x || 0), -y_pixels(@y || 0)
-    end
+    add_call_and_enter 'translate', x_pixels(@x || 0), -y_pixels(@y || 0) if @x || @y
   end
 
   def process_child_elements

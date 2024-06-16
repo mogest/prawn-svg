@@ -17,7 +17,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     SVG
   end
 
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {width: 800, height: 600}) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600 }) }
 
   def new_state
     state = Prawn::SVG::State.new
@@ -33,15 +33,15 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     Prawn::SVG::Elements::Marker.new(document, document.root.elements[1], [], new_state)
   end
 
-  describe "#parse" do
-    it "forces display none" do
+  describe '#parse' do
+    it 'forces display none' do
       subject.parse
       expect(subject.properties.display).to eq 'none'
     end
   end
 
-  describe "#apply_marker" do
-    it "adds the line and its marker to the call stack" do
+  describe '#apply_marker' do
+    it 'adds the line and its marker to the call stack' do
       subject.process
       line_element.process
 
@@ -55,41 +55,37 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       # in section 11.6.3.
 
       expect(line_element.base_calls).to eq [
-        ["stroke_color", ["000000"], {}, []],
-        ["line_width", [100.0], {}, []],
-        ["stroke", [], {}, [
-            ["move_to", [[0.0, 600.0]], {}, []],
-            ["line_to", [[10.0, 590.0]], {}, []]
-          ]
-        ],
-        ["save", [], {}, []],
-        ["transformation_matrix", [1, 0, 0, 1, 10, -10], {}, []],
-        ["rotate", [-45], {origin: [0, 600.0]}, [
-            ["transformation_matrix", [100.0, 0, 0, 100.0, 0, 0], {}, []],
-            ["transformation_matrix", [1, 0, 0, 1, -0.0, 1.5], {}, []],
-            ["rectangle", [[-0.5, 600.0], 4.0, 3.0], {}, []],
-            ["clip", [], {}, []],
-            ["transformation_matrix", [0.3, 0, 0, 0.3, 0, 0], {}, []],
-            ["transparent", [1.0, 1.0], {}, [
-                ["fill_color", ["000000"], {}, []],
-                ["line_width", [1.0], {}, []],
-                ["cap_style", [:butt], {}, []],
-                ["join_style", [:miter], {}, []],
-                ["undash", [], {}, []],
-                ["save", [], {}, []],
-                ["fill", [], {}, [
-                    ["move_to", [[0.0, 600.0]], {}, []],
-                    ["line_to", [[10.0, 595.0]], {}, []],
-                    ["line_to", [[0.0, 590.0]], {}, []],
-                    ["close_path", [], {}, []]
-                  ]
-                ],
-                ["restore", [], {}, []],
-              ]
-            ]
-          ]
-        ],
-        ["restore", [], {}, []]
+        ['stroke_color', ['000000'], {}, []],
+        ['line_width', [100.0], {}, []],
+        ['stroke', [], {}, [
+          ['move_to', [[0.0, 600.0]], {}, []],
+          ['line_to', [[10.0, 590.0]], {}, []]
+        ]],
+        ['save', [], {}, []],
+        ['transformation_matrix', [1, 0, 0, 1, 10, -10], {}, []],
+        ['rotate', [-45], { origin: [0, 600.0] }, [
+          ['transformation_matrix', [100.0, 0, 0, 100.0, 0, 0], {}, []],
+          ['transformation_matrix', [1, 0, 0, 1, -0.0, 1.5], {}, []],
+          ['rectangle', [[-0.5, 600.0], 4.0, 3.0], {}, []],
+          ['clip', [], {}, []],
+          ['transformation_matrix', [0.3, 0, 0, 0.3, 0, 0], {}, []],
+          ['transparent', [1.0, 1.0], {}, [
+            ['fill_color', ['000000'], {}, []],
+            ['line_width', [1.0], {}, []],
+            ['cap_style', [:butt], {}, []],
+            ['join_style', [:miter], {}, []],
+            ['undash', [], {}, []],
+            ['save', [], {}, []],
+            ['fill', [], {}, [
+              ['move_to', [[0.0, 600.0]], {}, []],
+              ['line_to', [[10.0, 595.0]], {}, []],
+              ['line_to', [[0.0, 590.0]], {}, []],
+              ['close_path', [], {}, []]
+            ]],
+            ['restore', [], {}, []]
+          ]]
+        ]],
+        ['restore', [], {}, []]
       ]
     end
   end

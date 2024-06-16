@@ -1,11 +1,11 @@
 class Prawn::SVG::FontRegistry
   DEFAULT_FONT_PATHS = [
-    "/Library/Fonts",
-    "/System/Library/Fonts",
-    "#{ENV["HOME"]}/Library/Fonts",
-    "/usr/share/fonts/truetype",
-    "/mnt/c/Windows/Fonts", # Bash on Ubuntu on Windows
-  ]
+    '/Library/Fonts',
+    '/System/Library/Fonts',
+    "#{Dir.home}/Library/Fonts",
+    '/usr/share/fonts/truetype',
+    '/mnt/c/Windows/Fonts' # Bash on Ubuntu on Windows
+  ].freeze
 
   @font_path = DEFAULT_FONT_PATHS.select { |path| Dir.exist?(path) }
 
@@ -37,8 +37,8 @@ class Prawn::SVG::FontRegistry
   def merge_external_fonts
     if @font_case_mapping.nil?
       self.class.load_external_fonts unless self.class.external_font_families
-      @font_families.merge!(self.class.external_font_families) do |key, v1, v2|
-       v1
+      @font_families.merge!(self.class.external_font_families) do |_key, v1, _v2|
+        v1
       end
       @font_case_mapping = @font_families.keys.each.with_object({}) do |key, result|
         result[key.downcase] = key
@@ -54,11 +54,11 @@ class Prawn::SVG::FontRegistry
 
       external_font_paths.each do |filename|
         ttf = Prawn::SVG::TTF.new(filename)
-        if ttf.family
-          subfamily = (ttf.subfamily || "normal").gsub(/\s+/, "_").downcase.to_sym
-          subfamily = :normal if subfamily == :regular
-          (external_font_families[ttf.family] ||= {})[subfamily] ||= filename
-        end
+        next unless ttf.family
+
+        subfamily = (ttf.subfamily || 'normal').gsub(/\s+/, '_').downcase.to_sym
+        subfamily = :normal if subfamily == :regular
+        (external_font_families[ttf.family] ||= {})[subfamily] ||= filename
       end
     end
 

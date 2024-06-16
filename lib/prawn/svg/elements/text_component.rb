@@ -5,19 +5,17 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   TextState = Struct.new(:parent, :x, :y, :dx, :dy, :rotation, :spacing, :mode, :text_length, :length_adjust)
 
   def parse
-    if state.inside_clip_path
-      raise SkipElementError, "<text> elements are not supported in clip paths"
-    end
+    raise SkipElementError, '<text> elements are not supported in clip paths' if state.inside_clip_path
 
     if state.text.nil?
-      raise SkipElementError, "attempted to <use> an component inside a text element, this is not supported"
+      raise SkipElementError, 'attempted to <use> an component inside a text element, this is not supported'
     end
 
-    state.text.x = (attributes['x'] || "").split(COMMA_WSP_REGEXP).collect { |n| x(n) }
-    state.text.y = (attributes['y'] || "").split(COMMA_WSP_REGEXP).collect { |n| y(n) }
-    state.text.dx = (attributes['dx'] || "").split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
-    state.text.dy = (attributes['dy'] || "").split(COMMA_WSP_REGEXP).collect { |n| y_pixels(n) }
-    state.text.rotation = (attributes['rotate'] || "").split(COMMA_WSP_REGEXP).collect(&:to_f)
+    state.text.x = (attributes['x'] || '').split(COMMA_WSP_REGEXP).collect { |n| x(n) }
+    state.text.y = (attributes['y'] || '').split(COMMA_WSP_REGEXP).collect { |n| y(n) }
+    state.text.dx = (attributes['dx'] || '').split(COMMA_WSP_REGEXP).collect { |n| x_pixels(n) }
+    state.text.dy = (attributes['dy'] || '').split(COMMA_WSP_REGEXP).collect { |n| y_pixels(n) }
+    state.text.rotation = (attributes['rotate'] || '').split(COMMA_WSP_REGEXP).collect(&:to_f)
     state.text.text_length = normalize_length(attributes['textLength'])
     state.text.length_adjust = attributes['lengthAdjust']
     state.text.spacing = calculate_character_spacing
@@ -40,7 +38,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   def apply
-    raise SkipElementQuietly if computed_properties.display == "none"
+    raise SkipElementQuietly if computed_properties.display == 'none'
 
     font = select_font
     apply_font(font) if font
@@ -49,18 +47,21 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     # and so we handle them in Prawn::SVG::Interface#rewrite_call_arguments
     opts = {
       size:        computed_properties.numerical_font_size,
-      style:       font && font.subfamily,
-      text_anchor: computed_properties.text_anchor,
+      style:       font&.subfamily,
+      text_anchor: computed_properties.text_anchor
     }
 
-    opts[:dominant_baseline] = computed_properties.dominant_baseline unless computed_properties.dominant_baseline == 'auto'
+    unless computed_properties.dominant_baseline == 'auto'
+      opts[:dominant_baseline] =
+        computed_properties.dominant_baseline
+    end
     opts[:decoration] = computed_properties.text_decoration unless computed_properties.text_decoration == 'none'
 
     if state.text.parent
       add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing == state.text.parent.spacing
       add_call_and_enter 'text_rendering_mode', state.text.mode unless state.text.mode == state.text.parent.mode
     else
-      add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing == 0
+      add_call_and_enter 'character_spacing', state.text.spacing unless state.text.spacing.zero?
       add_call_and_enter 'text_rendering_mode', state.text.mode unless state.text.mode == :fill
     end
 
@@ -107,7 +108,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   def apply_text(text, opts)
-    while text != ""
+    while text != ''
       x = y = dx = dy = rotate = nil
       remaining = rotation_remaining = false
 
@@ -152,7 +153,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
 
       if remaining
         add_call 'draw_text', text[0..0], **opts.dup
-        text = text[1..-1]
+        text = text[1..]
       else
         add_call 'draw_text', text, **opts.dup
 
@@ -160,11 +161,11 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
         # solve this by shifting them out by the number of
         # characters we've just drawn
         shift = text.length - 1
-        if rotation_remaining && shift > 0
+        if rotation_remaining && shift.positive?
           list = state.text
           while list
             count = [shift, list.rotation.length - 1].min
-            list.rotation.shift(count) if count > 0
+            list.rotation.shift(count) if count.positive?
             list = list.parent
           end
         end
@@ -197,7 +198,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     href = href_attribute
 
     if href && href[0..0] == '#'
-      element = document.elements_by_id[href[1..-1]]
+      element = document.elements_by_id[href[1..]]
       element if element.name == 'text'
     end
   end
@@ -241,10 +242,9 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   # overridden, we don't want to call fill/stroke as draw_text does this for us
-  def apply_drawing_call
-  end
+  def apply_drawing_call; end
 
   def normalize_length(length)
-    x_pixels(length) if length && length.match(/\d/)
+    x_pixels(length) if length&.match(/\d/)
   end
 end

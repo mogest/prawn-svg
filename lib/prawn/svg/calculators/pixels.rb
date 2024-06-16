@@ -4,7 +4,7 @@ module Prawn::SVG::Calculators::Pixels
 
     def self.to_pixels(value, axis_length = nil, font_size: Prawn::SVG::Properties::EM)
       if value.is_a?(String)
-        if match = value.match(/\d(em|ex|pc|cm|mm|in)$/)
+        if (match = value.match(/\d(em|ex|pc|cm|mm|in)$/))
           case match[1]
           when 'em'
             value.to_f * font_size
@@ -15,7 +15,7 @@ module Prawn::SVG::Calculators::Pixels
           else
             send("#{match[1]}2pt", value.to_f)
           end
-        elsif value[-1..-1] == "%"
+        elsif value[-1..] == '%'
           value.to_f * axis_length / 100.0
         else
           value.to_f
@@ -39,14 +39,17 @@ module Prawn::SVG::Calculators::Pixels
   end
 
   def pixels(value)
-    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_diagonal, font_size: computed_properties.numerical_font_size)
+    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_diagonal,
+      font_size: computed_properties.numerical_font_size)
   end
 
   def x_pixels(value)
-    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_width, font_size: computed_properties.numerical_font_size)
+    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_width,
+      font_size: computed_properties.numerical_font_size)
   end
 
   def y_pixels(value)
-    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_height, font_size: computed_properties.numerical_font_size)
+    value && Measurement.to_pixels(value, state.viewport_sizing.viewport_height,
+      font_size: computed_properties.numerical_font_size)
   end
 end

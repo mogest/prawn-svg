@@ -8,12 +8,12 @@ module Prawn
       VALID_OPTIONS = %i[
         at position vposition width height cache_images enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode
-      ]
+      ].freeze
 
       INHERITABLE_OPTIONS = %i[
         enable_web_requests enable_file_requests_with_root
         cache_images fallback_font_name color_mode
-      ]
+      ].freeze
 
       attr_reader :data, :prawn, :document, :options
 
@@ -60,7 +60,8 @@ module Prawn
         @renderer.position
       end
 
-      def self.font_path # backwards support for when the font_path used to be stored on this class
+      # backwards support for when the font_path used to be stored on this class
+      def self.font_path
         Prawn::SVG::FontRegistry.font_path
       end
     end

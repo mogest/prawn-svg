@@ -19,7 +19,7 @@ module Prawn::SVG::CSS
           current = nil
         elsif char == in_quote
           in_quote = nil
-        elsif in_quote.nil? && (char == '"' || char == "'")
+        elsif in_quote.nil? && ['"', "'"].include?(char)
           in_quote = char
         elsif char == '\\'
           in_escape = true

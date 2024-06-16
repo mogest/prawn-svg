@@ -13,7 +13,7 @@ class Prawn::SVG::Elements::DepthFirstBase < Prawn::SVG::Elements::Base
   end
 
   def parse_and_apply
-    raise "unsupported"
+    raise 'unsupported'
   end
 
   protected
@@ -36,11 +36,11 @@ class Prawn::SVG::Elements::DepthFirstBase < Prawn::SVG::Elements::Base
     return unless source
 
     svg_child_elements.each do |elem|
-      if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
-        child = element_class.new(@document, elem, @calls, state.dup)
-        child.parse_step
-        @children << child
-      end
+      next unless (element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym])
+
+      child = element_class.new(@document, elem, @calls, state.dup)
+      child.parse_step
+      @children << child
     end
   end
 

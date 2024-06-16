@@ -10,12 +10,12 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
   def apply_marker(element, point: nil, angle: 0)
     sizing = Prawn::SVG::Calculators::DocumentSizing.new([0, 0], attributes)
-    sizing.document_width = attributes["markerWidth"] || 3
-    sizing.document_height = attributes["markerHeight"] || 3
+    sizing.document_width = attributes['markerWidth'] || 3
+    sizing.document_height = attributes['markerHeight'] || 3
     sizing.calculate
 
     if sizing.invalid?
-      document.warnings << "<marker> cannot be rendered due to invalid sizing information"
+      document.warnings << '<marker> cannot be rendered due to invalid sizing information'
       return
     end
 
@@ -48,8 +48,8 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       if overflow_hidden?
         point = [sizing.x_offset * sizing.x_scale, y(sizing.y_offset * sizing.y_scale)]
-        element.add_call "rectangle", point, sizing.output_width, sizing.output_height
-        element.add_call "clip"
+        element.add_call 'rectangle', point, sizing.output_width, sizing.output_height
+        element.add_call 'clip'
       end
 
       element.add_call 'transformation_matrix', sizing.x_scale, 0, 0, sizing.y_scale, 0, 0

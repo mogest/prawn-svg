@@ -17,7 +17,7 @@ module Prawn::SVG::TransformParser
         matrix *= Matrix[[1, 0, 0], [0, 1, -y_pixels(y.to_f)], [0, 0, 1]]
 
       when 'rotate'
-        angle, x, y = arguments.collect { |a| a.to_f }
+        angle, x, y = arguments.collect(&:to_f)
         angle = angle * Math::PI / 180.0
 
         case arguments.length
@@ -45,11 +45,11 @@ module Prawn::SVG::TransformParser
         matrix *= Matrix[[1, 0, 0], [-Math.tan(angle), 1, 0], [0, 0, 1]]
 
       when 'matrix'
-        if arguments.length != 6
-          warnings << "transform 'matrix' must have six arguments"
-        else
-          a, b, c, d, e, f = arguments.collect { |argument| argument.to_f }
+        if arguments.length == 6
+          a, b, c, d, e, f = arguments.collect(&:to_f)
           matrix *= Matrix[[a, -c, e], [-b, d, -f], [0, 0, 1]]
+        else
+          warnings << "transform 'matrix' must have six arguments"
         end
 
       else

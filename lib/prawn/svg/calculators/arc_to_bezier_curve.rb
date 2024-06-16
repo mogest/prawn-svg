@@ -7,15 +7,15 @@ module Prawn::SVG::Calculators
     def calculate_bezier_curve_points_for_arc(cx, cy, a, b, lambda_1, lambda_2, theta)
       e = lambda do |eta|
         [
-          cx + a * Math.cos(theta) * Math.cos(eta) - b * Math.sin(theta) * Math.sin(eta),
-          cy + a * Math.sin(theta) * Math.cos(eta) + b * Math.cos(theta) * Math.sin(eta)
+          cx + (a * Math.cos(theta) * Math.cos(eta)) - (b * Math.sin(theta) * Math.sin(eta)),
+          cy + (a * Math.sin(theta) * Math.cos(eta)) + (b * Math.cos(theta) * Math.sin(eta))
         ]
       end
 
       ep = lambda do |eta|
         [
-          -a * Math.cos(theta) * Math.sin(eta) - b * Math.sin(theta) * Math.cos(eta),
-          -a * Math.sin(theta) * Math.sin(eta) + b * Math.cos(theta) * Math.cos(eta)
+          (-a * Math.cos(theta) * Math.sin(eta)) - (b * Math.sin(theta) * Math.cos(eta)),
+          (-a * Math.sin(theta) * Math.sin(eta)) + (b * Math.cos(theta) * Math.cos(eta))
         ]
       end
 
@@ -28,28 +28,30 @@ module Prawn::SVG::Calculators
           # puts "error = #{calculate_curve_approximation_error(a, b, eta1, eta1 + d_eta)}"
           break
         end
+
         iterations *= 2
         d_lambda = (lambda_2 - lambda_1) / iterations
       end
 
       (0...iterations).collect do |iteration|
-        eta_a, eta_b = calculate_eta_from_lambda(a, b, lambda_1+iteration*d_lambda, lambda_1+(iteration+1)*d_lambda)
+        eta_a, eta_b = calculate_eta_from_lambda(a, b, lambda_1 + (iteration * d_lambda),
+          lambda_1 + ((iteration + 1) * d_lambda))
         d_eta = eta_b - eta_a
 
-        alpha = Math.sin(d_eta) * ((Math.sqrt(4 + 3 * Math.tan(d_eta / 2) ** 2) - 1) / 3)
+        alpha = Math.sin(d_eta) * ((Math.sqrt(4 + (3 * (Math.tan(d_eta / 2)**2))) - 1) / 3)
 
         x1, y1 = e[eta_a]
         x2, y2 = e[eta_b]
 
         ep_eta1_x, ep_eta1_y = ep[eta_a]
-        q1_x = x1 + alpha * ep_eta1_x
-        q1_y = y1 + alpha * ep_eta1_y
+        q1_x = x1 + (alpha * ep_eta1_x)
+        q1_y = y1 + (alpha * ep_eta1_y)
 
         ep_eta2_x, ep_eta2_y = ep[eta_b]
-        q2_x = x2 - alpha * ep_eta2_x
-        q2_y = y2 - alpha * ep_eta2_y
+        q2_x = x2 - (alpha * ep_eta2_x)
+        q2_y = y2 - (alpha * ep_eta2_y)
 
-        {:p2 => [x2, y2], :q1 => [q1_x, q1_y], :q2 => [q2_x, q2_y]}
+        { p2: [x2, y2], q1: [q1_x, q1_y], q2: [q2_x, q2_y] }
       end
     end
 
@@ -68,7 +70,7 @@ module Prawn::SVG::Calculators
         [-0.0695069, -0.0437594, 0.0120636, 0.0163087],
         [-0.0328856, -0.00926032, -0.00173573, 0.00527385]
       ]
-    ]
+    ].freeze
 
     ERROR_COEFFICIENTS_B = [
       [
@@ -83,7 +85,7 @@ module Prawn::SVG::Calculators
         [0.0156192, -0.017535, 0.00326508, -0.228157],
         [-0.0236752, 0.0405821, -0.0173086, 0.176187]
       ]
-    ]
+    ].freeze
 
     def calculate_curve_approximation_error(a, b, eta1, eta2)
       b_over_a = b / a
@@ -92,11 +94,11 @@ module Prawn::SVG::Calculators
       c = lambda do |i|
         (0..3).inject(0) do |accumulator, j|
           coef = coefficents[i][j]
-          accumulator + ((coef[0] * b_over_a**2 + coef[1] * b_over_a + coef[2]) / (b_over_a * coef[3])) * Math.cos(j * (eta1 + eta2))
+          accumulator + ((((coef[0] * (b_over_a**2)) + (coef[1] * b_over_a) + coef[2]) / (b_over_a * coef[3])) * Math.cos(j * (eta1 + eta2)))
         end
       end
 
-      ((0.001 * b_over_a**2 + 4.98 * b_over_a + 0.207) / (b_over_a * 0.0067)) * a * Math.exp(c[0] + c[1] * (eta2 - eta1))
+      (((0.001 * (b_over_a**2)) + (4.98 * b_over_a) + 0.207) / (b_over_a * 0.0067)) * a * Math.exp(c[0] + (c[1] * (eta2 - eta1)))
     end
 
     def calculate_eta_from_lambda(a, b, lambda_1, lambda_2)

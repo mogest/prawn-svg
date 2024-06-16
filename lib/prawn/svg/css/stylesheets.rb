@@ -39,14 +39,14 @@ module Prawn::SVG::CSS
         rule_set.each_declaration { |*data| declarations << data }
 
         rule_set.selectors.each do |selector_text|
-          if selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text)
-            xpath = css_selector_to_xpath(selector)
-            specificity = calculate_specificity(selector)
-            specificity << order
-            order += 1
+          next unless (selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text))
 
-            xpath_styles << [xpath, declarations, specificity]
-          end
+          xpath = css_selector_to_xpath(selector)
+          specificity = calculate_specificity(selector)
+          specificity << order
+          order += 1
+
+          xpath_styles << [xpath, declarations, specificity]
         end
       end
 
@@ -66,7 +66,7 @@ module Prawn::SVG::CSS
     end
 
     def xpath_quote(value)
-      %{"#{value.gsub('\\', '\\\\').gsub('"', '\\"')}"} if value
+      %("#{value.gsub('\\', '\\\\').gsub('"', '\\"')}") if value
     end
 
     def css_selector_to_xpath(selector)
@@ -76,33 +76,33 @@ module Prawn::SVG::CSS
 
         result = case element[:combinator]
                  when :child
-                   +"/"
+                   +'/'
                  when :adjacent
                    pseudo_classes << 'first-child'
-                   +"/following-sibling::"
+                   +'/following-sibling::'
                  when :siblings
-                   +"/following-sibling::"
+                   +'/following-sibling::'
                  else
-                   +"//"
+                   +'//'
                  end
 
         positions = []
         pseudo_classes.each do |pc|
           case pc
-          when "first-child" then positions << '1'
-          when "last-child"  then positions << 'last()'
+          when 'first-child' then positions << '1'
+          when 'last-child'  then positions << 'last()'
           when /^nth-child\((\d+)\)$/ then positions << $1
           end
         end
 
-        if !positions.empty?
-          result << "*" unless require_function_name
+        unless positions.empty?
+          result << '*' unless require_function_name
           require_function_name = true
 
           logic = if positions.length == 1
                     positions.first
                   else
-                    positions.map { |position| "position()=#{position}" }.join(" and ")
+                    positions.map { |position| "position()=#{position}" }.join(' and ')
                   end
 
           result << "[#{logic}]"
@@ -121,17 +121,17 @@ module Prawn::SVG::CSS
           case operator
           when nil
             result << "[@#{key}]"
-          when "="
+          when '='
             result << "[@#{key}=#{xpath_quote value}]"
-          when "^="
+          when '^='
             result << "[starts-with(@#{key}, #{xpath_quote value})]"
-          when "$="
+          when '$='
             result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_quote value})]"
-          when "*="
+          when '*='
             result << "[contains(@#{key}, #{xpath_quote value})]"
-          when "~="
+          when '~='
             result << "[contains(concat(' ',@#{key},' '), #{xpath_quote " #{value} "})]"
-          when "|="
+          when '|='
             result << "[contains(concat('-',@#{key},'-'), #{xpath_quote "-#{value}-"})]"
           end
         end
@@ -145,7 +145,7 @@ module Prawn::SVG::CSS
         [
           a + (element[:id] || []).length,
           b + (element[:class] || []).length + (element[:attribute] || []).length + (element[:pseudo_class] || []).length,
-          c + (element[:name] && element[:name] != "*" ? 1 : 0)
+          c + (element[:name] && element[:name] != '*' ? 1 : 0)
         ]
       end
     end

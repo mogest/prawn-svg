@@ -10,15 +10,17 @@ module Prawn::SVG::CSS
         case token
         when Modifier
           part = token.type
-          result.last[part] ||= part == :name ? +"" : []
+          result.last[part] ||= part == :name ? +'' : []
         when Identifier
           return unless part
+
           result.last[part] << token.name
         when Attribute
-          return unless ["=", "*=", "~=", "^=", "|=", "$=", nil].include?(token.operator)
+          return unless ['=', '*=', '~=', '^=', '|=', '$=', nil].include?(token.operator)
+
           (result.last[:attribute] ||= []) << [token.key, token.operator, token.value]
         when Combinator
-          result << {combinator: token.type}
+          result << { combinator: token.type }
           part = nil
         end
       end
@@ -26,9 +28,7 @@ module Prawn::SVG::CSS
       result
     end
 
-    private
-
-    VALID_CSS_IDENTIFIER_CHAR = /[a-zA-Z0-9_\u00a0-\uffff-]/
+    VALID_CSS_IDENTIFIER_CHAR = /[a-zA-Z0-9_\u00a0-\uffff-]/.freeze
     Identifier = Struct.new(:name)
     Modifier = Struct.new(:type)
     Combinator = Struct.new(:type)
@@ -50,38 +50,38 @@ module Prawn::SVG::CSS
             if VALID_CSS_IDENTIFIER_CHAR.match(char)
               result.last.key = String.new(char)
               attribute = :key
-            elsif char != " " && char != "\t"
+            elsif char != ' ' && char != "\t"
               return
             end
 
           when :key
             if VALID_CSS_IDENTIFIER_CHAR.match(char)
               result.last.key << char
-            elsif char == "]"
+            elsif char == ']'
               attribute = nil
-            elsif "=*~^|$".include?(char)
+            elsif '=*~^|$'.include?(char)
               result.last.operator = String.new(char)
               attribute = :operator
-            elsif char == " " || char == "\t"
+            elsif [' ', "\t"].include?(char)
               attribute = :pre_operator
             else
               return
             end
 
           when :pre_operator
-            if "=*~^|$".include?(char)
+            if '=*~^|$'.include?(char)
               result.last.operator = String.new(char)
               attribute = :operator
-            elsif char != " " && char != "\t"
+            elsif char != ' ' && char != "\t"
               return
             end
 
           when :operator
-            if "=*~^|$".include?(char)
+            if '=*~^|$'.include?(char)
               result.last.operator << char
-            elsif char == " " || char == "\t"
+            elsif [' ', "\t"].include?(char)
               attribute = :pre_value
-            elsif char == '"' || char == "'"
+            elsif ['"', "'"].include?(char)
               result.last.value = +''
               attribute = String.new(char)
             else
@@ -90,16 +90,16 @@ module Prawn::SVG::CSS
             end
 
           when :pre_value
-            if char == '"' || char == "'"
+            if ['"', "'"].include?(char)
               result.last.value = +''
               attribute = String.new(char)
-            elsif char != " " && char != "\t"
+            elsif char != ' ' && char != "\t"
               result.last.value = String.new(char)
               attribute = :value
             end
 
           when :value
-            if char == "]"
+            if char == ']'
               result.last.value = String.new(result.last.value.rstrip)
               attribute = nil
             else
@@ -107,7 +107,7 @@ module Prawn::SVG::CSS
             end
 
           when '"', "'"
-            if char == "\\" && !quote
+            if char == '\\' && !quote
               quote = true
             elsif char == attribute && !quote
               attribute = :post_string
@@ -117,9 +117,9 @@ module Prawn::SVG::CSS
             end
 
           when :post_string
-            if char == "]"
+            if char == ']'
               attribute = nil
-            elsif char != " " && char != "\t"
+            elsif char != ' ' && char != "\t"
               return
             end
           end
@@ -129,37 +129,41 @@ module Prawn::SVG::CSS
           when Identifier
             result.last.name << char
           else
-            result << Modifier.new(:name) if !result.last.is_a?(Modifier)
+            result << Modifier.new(:name) unless result.last.is_a?(Modifier)
             result << Identifier.new(char)
           end
         else
           case char
-          when "."
+          when '.'
             result << Modifier.new(:class)
-          when "#"
+          when '#'
             result << Modifier.new(:id)
-          when ":"
+          when ':'
             result << Modifier.new(:pseudo_class)
-          when " ", "\t"
+          when ' ', "\t"
             result << Combinator.new(:descendant) unless result.last.is_a?(Combinator)
-          when ">"
+          when '>'
             result.pop if result.last == Combinator.new(:descendant)
             result << Combinator.new(:child)
-          when "+"
+          when '+'
             result.pop if result.last == Combinator.new(:descendant)
             result << Combinator.new(:adjacent)
-          when "~"
+          when '~'
             result.pop if result.last == Combinator.new(:descendant)
             result << Combinator.new(:siblings)
-          when "*"
+          when '*'
             return unless result.empty? || result.last.is_a?(Combinator)
+
             result << Modifier.new(:name)
-            result << Identifier.new("*")
-          when "(" # e.g. :nth-child(3n+4)
-            return unless result.last.is_a?(Identifier) && result[-2] && result[-2].is_a?(Modifier) && result[-2].type == :pseudo_class
-            result.last.name << "("
+            result << Identifier.new('*')
+          when '(' # e.g. :nth-child(3n+4)
+            unless result.last.is_a?(Identifier) && result[-2] && result[-2].is_a?(Modifier) && result[-2].type == :pseudo_class
+              return
+            end
+
+            result.last.name << '('
             brackets = true
-          when "["
+          when '['
             result << Attribute.new
             attribute = :pre_key
           else

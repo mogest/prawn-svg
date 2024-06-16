@@ -16,8 +16,8 @@ class Prawn::SVG::Elements::Polyline < Prawn::SVG::Elements::Base
   def commands
     @commands ||= [
       Prawn::SVG::Pathable::Move.new(@points[0])
-    ] + @points[1..-1].map { |point|
+    ] + @points[1..].map do |point|
       Prawn::SVG::Pathable::Line.new(point)
-    }
+    end
   end
 end

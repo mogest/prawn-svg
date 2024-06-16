@@ -2,7 +2,7 @@ class Prawn::SVG::Document
   Error = Class.new(StandardError)
   InvalidSVGData = Class.new(Error)
 
-  DEFAULT_FALLBACK_FONT_NAME = "Times-Roman"
+  DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
 
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
@@ -20,10 +20,11 @@ class Prawn::SVG::Document
     @root = REXML::Document.new(data).root
 
     if @root.nil?
-      if data.respond_to?(:end_with?) && data.end_with?(".svg")
-        raise InvalidSVGData, "The data supplied is not a valid SVG document.  It looks like you've supplied a filename instead; use IO.read(filename) to get the data before you pass it to prawn-svg."
+      if data.respond_to?(:end_with?) && data.end_with?('.svg')
+        raise InvalidSVGData,
+          "The data supplied is not a valid SVG document.  It looks like you've supplied a filename instead; use IO.read(filename) to get the data before you pass it to prawn-svg."
       else
-        raise InvalidSVGData, "The data supplied is not a valid SVG document."
+        raise InvalidSVGData, 'The data supplied is not a valid SVG document.'
       end
     end
 
@@ -65,7 +66,7 @@ class Prawn::SVG::Document
     when nil, :rgb then :rgb
     when :cmyk then :cmyk
     else
-      raise ArgumentError, ":color_mode must be set to :rgb (default) or :cmyk"
+      raise ArgumentError, ':color_mode must be set to :rgb (default) or :cmyk'
     end
   end
 end

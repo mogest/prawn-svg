@@ -16,7 +16,7 @@ class Prawn::SVG::Elements::Polygon < Prawn::SVG::Elements::Base
   def commands
     @commands ||= [
       Prawn::SVG::Pathable::Move.new(@points[0])
-    ] + @points[1..-1].map { |point|
+    ] + @points[1..].map { |point|
       Prawn::SVG::Pathable::Line.new(point)
     } + [
       Prawn::SVG::Pathable::Close.new(@points[0])

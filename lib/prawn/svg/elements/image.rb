@@ -25,7 +25,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     y = y(attributes['y'] || 0)
     width = x_pixels(attributes['width'])
     height = y_pixels(attributes['height'])
-    preserveAspectRatio = attributes['preserveAspectRatio']
+    preserve_aspect_ratio = attributes['preserveAspectRatio']
 
     raise SkipElementQuietly if width.zero? || height.zero?
 
@@ -37,9 +37,9 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
     end
 
-    @image_data = process_image(@image, width, height, preserveAspectRatio)
+    @image_data = process_image(@image, width, height, preserve_aspect_ratio)
 
-    @aspect = Prawn::SVG::Calculators::AspectRatio.new(preserveAspectRatio, [width, height], @image_data.dimensions)
+    @aspect = Prawn::SVG::Calculators::AspectRatio.new(preserve_aspect_ratio, [width, height], @image_data.dimensions)
 
     @clip_x = x
     @clip_y = y
@@ -77,7 +77,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   protected
 
-  def process_image(data, width, height, preserveAspectRatio)
+  def process_image(data, width, height, preserve_aspect_ratio)
     if (handler = find_image_handler(data))
       image = handler.new(data)
       ImageData.new([image.width.to_f, image.height.to_f], nil)
@@ -85,7 +85,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     elsif potentially_svg?(data)
       document = Prawn::SVG::Document.new(
         data, [width, height], { width: width, height: height },
-        attribute_overrides: { 'preserveAspectRatio' => preserveAspectRatio }
+        attribute_overrides: { 'preserveAspectRatio' => preserve_aspect_ratio }
       )
 
       dimensions = [document.sizing.output_width, document.sizing.output_height]

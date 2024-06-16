@@ -1,11 +1,11 @@
 class Prawn::SVG::Font
   GENERIC_CSS_FONT_MAPPING = {
-    "serif"      => "Times-Roman",
-    "sans-serif" => "Helvetica",
-    "cursive"    => "Times-Roman",
-    "fantasy"    => "Times-Roman",
-    "monospace"  => "Courier"
-  }
+    'serif'      => 'Times-Roman',
+    'sans-serif' => 'Helvetica',
+    'cursive'    => 'Times-Roman',
+    'fantasy'    => 'Times-Roman',
+    'monospace'  => 'Courier'
+  }.freeze
 
   attr_reader :name, :weight, :style
 
@@ -38,7 +38,7 @@ class Prawn::SVG::Font
 
   # Construct a subfamily name, ensuring that the subfamily is a valid one for the font.
   def subfamily
-    if subfamilies = @font_registry.installed_fonts[name]
+    if (subfamilies = @font_registry.installed_fonts[name])
       if subfamilies.key?(subfamily_name)
         subfamily_name
       elsif subfamilies.key?(:normal)

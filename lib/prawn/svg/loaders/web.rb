@@ -5,23 +5,19 @@ module Prawn::SVG::Loaders
     def from_url(url)
       uri = build_uri(url)
 
-      if uri && %w(http https).include?(uri.scheme)
-        perform_request(uri)
-      end
+      perform_request(uri) if uri && %w[http https].include?(uri.scheme)
     end
 
     private
 
     def build_uri(url)
-      begin
-        URI(url)
-      rescue URI::InvalidURIError
-      end
+      URI(url)
+    rescue URI::InvalidURIError
     end
 
     def perform_request(uri)
       Net::HTTP.get(uri)
-    rescue => e
+    rescue StandardError => e
       raise Prawn::SVG::UrlLoader::Error, e.message
     end
   end

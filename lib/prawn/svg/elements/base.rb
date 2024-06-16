@@ -13,9 +13,9 @@ class Prawn::SVG::Elements::Base
 
   include Prawn::SVG::TransformParser
 
-  PAINT_TYPES = %w(fill stroke)
+  PAINT_TYPES = %w[fill stroke].freeze
   COMMA_WSP_REGEXP = Prawn::SVG::Elements::COMMA_WSP_REGEXP
-  SVG_NAMESPACE = "http://www.w3.org/2000/svg"
+  SVG_NAMESPACE = 'http://www.w3.org/2000/svg'.freeze
 
   SkipElementQuietly = Class.new(StandardError)
   SkipElementError = Class.new(StandardError)
@@ -37,7 +37,7 @@ class Prawn::SVG::Elements::Base
     @properties = Prawn::SVG::Properties.new
 
     if source && !state.inside_use
-      id = source.attributes["id"]
+      id = source.attributes['id']
       id = id.strip if id
 
       document.elements_by_id[id] = self if id && id != ''
@@ -65,19 +65,16 @@ class Prawn::SVG::Elements::Base
   end
 
   def name
-    @name ||= source ? source.name : "???"
+    @name ||= source ? source.name : '???'
   end
 
   protected
 
-  def parse
-  end
+  def parse; end
 
-  def apply
-  end
+  def apply; end
 
-  def bounding_box
-  end
+  def bounding_box; end
 
   def container?
     false
@@ -128,13 +125,13 @@ class Prawn::SVG::Elements::Base
     return unless source
 
     svg_child_elements.each do |elem|
-      if element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym]
-        add_call "save"
+      if (element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym])
+        add_call 'save'
 
         child = element_class.new(@document, elem, @calls, state.dup)
         child.process
 
-        add_call "restore"
+        add_call 'restore'
       else
         @document.warnings << "Unknown tag '#{elem.name}'; ignoring"
       end
@@ -185,9 +182,7 @@ class Prawn::SVG::Elements::Base
 
       next if [nil, 'inherit', 'none'].include?(color)
 
-      if color == 'currentColor'
-        color = computed_properties.color
-      end
+      color = computed_properties.color if color == 'currentColor'
 
       results = Prawn::SVG::Color.parse(color, document.gradients, document.color_mode)
 
@@ -207,18 +202,12 @@ class Prawn::SVG::Elements::Base
 
       # If we were unable to find a suitable color candidate,
       # we turn off this type of paint.
-      if success.nil?
-        computed_properties.set(type, 'none')
-      end
+      computed_properties.set(type, 'none') if success.nil?
     end
   end
 
-  def clamp(value, min_value, max_value)
-    [[value, min_value].max, max_value].min
-  end
-
   def extract_attributes_and_properties
-    if styles = document.element_styles[source]
+    if (styles = document.element_styles[source])
       # TODO : implement !important, at the moment it's just ignored
       styles.each do |name, value, _important|
         @properties.set(name, value)
@@ -238,11 +227,11 @@ class Prawn::SVG::Elements::Base
   def parse_css_declarations(declarations)
     # copied from css_parser
     declarations
-      .gsub(/(^[\s]*)|([\s]*$)/, '')
-      .split(/[\;$]+/m)
+      .gsub(/(^\s*)|(\s*$)/, '')
+      .split(/[;$]+/m)
       .each_with_object({}) do |decs, output|
-        if matches = decs.match(/\s*(.[^:]*)\s*\:\s*(.[^;]*)\s*(;|\Z)/i)
-          property, value, _ = matches.captures
+        if (matches = decs.match(/\s*(.[^:]*)\s*:\s*(.[^;]*)\s*(;|\Z)/i))
+          property, value, = matches.captures
           output[property.downcase] = value
         end
       end
@@ -251,12 +240,12 @@ class Prawn::SVG::Elements::Base
   def require_attributes(*names)
     missing_attrs = names - attributes.keys
     if missing_attrs.any?
-      raise MissingAttributesError, "Must have attributes #{missing_attrs.join(", ")} on tag #{name}; skipping tag"
+      raise MissingAttributesError, "Must have attributes #{missing_attrs.join(', ')} on tag #{name}; skipping tag"
     end
   end
 
   def require_positive_value(*args)
-    if args.any? {|arg| arg.nil? || arg <= 0}
+    if args.any? { |arg| arg.nil? || arg <= 0 }
       raise SkipElementError, "Invalid attributes on tag #{name}; skipping tag"
     end
   end

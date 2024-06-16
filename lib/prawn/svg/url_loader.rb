@@ -34,7 +34,7 @@ class Prawn::SVG::UrlLoader
   end
 
   def perform(url)
-    try_each_loader(url) or raise Error, "No handler available for this URL scheme"
+    try_each_loader(url) or raise Error, 'No handler available for this URL scheme'
   end
 
   def try_each_loader(url)

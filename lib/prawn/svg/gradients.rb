@@ -9,9 +9,9 @@ module Prawn::SVG
       id &&= id.strip
       return unless id && id != ''
 
-      if element = @gradients_by_id[id]
+      if (element = @gradients_by_id[id])
         element
-      elsif raw_element = find_raw_gradient_element_by_id(id)
+      elsif (raw_element = find_raw_gradient_element_by_id(id))
         create_gradient_element(raw_element)
       end
     end
@@ -37,6 +37,7 @@ module Prawn::SVG
 
     def gradient_element?(raw_element)
       return false if raw_element.nil? || raw_element.name.nil?
+
       Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym] == Elements::Gradient
     end
 

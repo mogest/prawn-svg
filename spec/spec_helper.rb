@@ -3,7 +3,7 @@ Bundler.require(:default, :development)
 
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 
 module Support
   def flatten_calls(_calls)
@@ -49,15 +49,15 @@ RSpec.configure do |config|
 
   config.after(:suite) do
     # print out the PDFs that have changed
-    changed = $hashes.select do |file, hash|
+    changed = $hashes.reject do |file, hash|
       new_hash = Digest::MD5.file(file).hexdigest
-      new_hash != hash
+      new_hash == hash
     end
 
     if changed.any?
       puts "\nThese PDFs have changed since the last test run:"
       cwd = "#{Dir.pwd}/"
-      changed.each { |file, _| puts "  #{file.sub(cwd, '')}" }
+      changed.each_key { |file| puts "  #{file.sub(cwd, '')}" }
     end
   end
 end

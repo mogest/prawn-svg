@@ -9,4 +9,3 @@ class Prawn::SVG::Elements::ClipPath < Prawn::SVG::Elements::Base
     true
   end
 end
-

@@ -12,7 +12,7 @@ class Prawn::SVG::State
     @computed_properties = Prawn::SVG::Properties.new.load_default_stylesheet
   end
 
-  def initialize_dup(other)
+  def initialize_dup(_other)
     @computed_properties = @computed_properties.dup
   end
 

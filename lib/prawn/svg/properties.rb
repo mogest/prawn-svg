@@ -10,40 +10,41 @@ class Prawn::SVG::Properties
     'large'    => EM / 4 * 5,
     'x-large'  => EM / 4 * 6,
     'xx-large' => EM / 4 * 7
-  }
+  }.freeze
 
   PROPERTIES = {
-    "clip-path"        => Config.new("none", false, %w(inherit none)),
-    "color"            => Config.new('', true),
-    "display"          => Config.new("inline", false, %w(inherit inline none), true),
-    "fill"             => Config.new("black", true, %w(inherit none currentColor)),
-    "fill-opacity"     => Config.new("1", true),
-    "fill-rule"        => Config.new("nonzero", true, %w(inherit nonzero evenodd)),
-    "font-family"      => Config.new("sans-serif", true),
-    "font-size"        => Config.new("medium", true, %w(inherit xx-small x-small small medium large x-large xx-large larger smaller)),
-    "font-style"       => Config.new("normal", true, %w(inherit normal italic oblique), true),
-    "font-variant"     => Config.new("normal", true, %w(inherit normal small-caps), true),
-    "font-weight"      => Config.new("normal", true, %w(inherit normal bold 100 200 300 400 500 600 700 800 900), true), # bolder/lighter not supported
-    "letter-spacing"   => Config.new("normal", true, %w(inherit normal)),
-    "marker-end"       => Config.new("none", true, %w(inherit none)),
-    "marker-mid"       => Config.new("none", true, %w(inherit none)),
-    "marker-start"     => Config.new("none", true, %w(inherit none)),
-    "opacity"          => Config.new("1", false),
-    "overflow"         => Config.new('visible', false, %w(inherit visible hidden scroll auto), true),
-    "stop-color"       => Config.new("black", false, %w(inherit none currentColor)),
-    "stroke"           => Config.new("none", true, %w(inherit none currentColor)),
-    "stroke-dasharray" => Config.new("none", true, %w(inherit none)),
-    "stroke-linecap"   => Config.new("butt", true, %w(inherit butt round square), true),
-    "stroke-linejoin"  => Config.new("miter", true, %w(inherit miter round bevel), true),
-    "stroke-opacity"   => Config.new("1", true),
-    "stroke-width"     => Config.new("1", true),
-    "text-anchor"      => Config.new("start", true, %w(inherit start middle end), true),
-    'text-decoration'  => Config.new('none', true, %w(inherit none underline), true),
-    "dominant-baseline" => Config.new("auto", true, %w(inherit auto middle), true),
+    'clip-path'         => Config.new('none', false, %w[inherit none]),
+    'color'             => Config.new('', true),
+    'display'           => Config.new('inline', false, %w[inherit inline none], true),
+    'fill'              => Config.new('black', true, %w[inherit none currentColor]),
+    'fill-opacity'      => Config.new('1', true),
+    'fill-rule'         => Config.new('nonzero', true, %w[inherit nonzero evenodd]),
+    'font-family'       => Config.new('sans-serif', true),
+    'font-size'         => Config.new('medium', true,
+      %w[inherit xx-small x-small small medium large x-large xx-large larger smaller]),
+    'font-style'        => Config.new('normal', true, %w[inherit normal italic oblique], true),
+    'font-variant'      => Config.new('normal', true, %w[inherit normal small-caps], true),
+    'font-weight'       => Config.new('normal', true, %w[inherit normal bold 100 200 300 400 500 600 700 800 900], true), # bolder/lighter not supported
+    'letter-spacing'    => Config.new('normal', true, %w[inherit normal]),
+    'marker-end'        => Config.new('none', true, %w[inherit none]),
+    'marker-mid'        => Config.new('none', true, %w[inherit none]),
+    'marker-start'      => Config.new('none', true, %w[inherit none]),
+    'opacity'           => Config.new('1', false),
+    'overflow'          => Config.new('visible', false, %w[inherit visible hidden scroll auto], true),
+    'stop-color'        => Config.new('black', false, %w[inherit none currentColor]),
+    'stroke'            => Config.new('none', true, %w[inherit none currentColor]),
+    'stroke-dasharray'  => Config.new('none', true, %w[inherit none]),
+    'stroke-linecap'    => Config.new('butt', true, %w[inherit butt round square], true),
+    'stroke-linejoin'   => Config.new('miter', true, %w[inherit miter round bevel], true),
+    'stroke-opacity'    => Config.new('1', true),
+    'stroke-width'      => Config.new('1', true),
+    'text-anchor'       => Config.new('start', true, %w[inherit start middle end], true),
+    'text-decoration'   => Config.new('none', true, %w[inherit none underline], true),
+    'dominant-baseline' => Config.new('auto', true, %w[inherit auto middle], true)
   }.freeze
 
   PROPERTIES.each do |name, value|
-    value.attr = name.gsub("-", "_")
+    value.attr = name.gsub('-', '_')
     value.ivar = "@#{value.attr}"
   end
 
@@ -51,7 +52,7 @@ class Prawn::SVG::Properties
   NAMES = PROPERTIES.keys
   ATTR_NAMES = PROPERTIES.keys.map { |name| name.gsub('-', '_') }
 
-  attr_accessor *ATTR_NAMES
+  attr_accessor(*ATTR_NAMES)
 
   def load_default_stylesheet
     PROPERTY_CONFIGS.each do |config|
@@ -62,7 +63,7 @@ class Prawn::SVG::Properties
   end
 
   def set(name, value)
-    if config = PROPERTIES[name.to_s.downcase]
+    if (config = PROPERTIES[name.to_s.downcase])
       value = value.strip
       keyword = value.downcase
       keywords = config.keywords || ['inherit']
@@ -92,7 +93,7 @@ class Prawn::SVG::Properties
       value = other.send(config.attr)
 
       if value && value != 'inherit'
-        value = compute_font_size_property(value).to_s if config.attr == "font_size"
+        value = compute_font_size_property(value).to_s if config.attr == 'font_size'
         instance_variable_set(config.ivar, value)
 
       elsif value.nil? && !config.inheritable?
@@ -109,7 +110,7 @@ class Prawn::SVG::Properties
   private
 
   def compute_font_size_property(value)
-    if value[-1] == "%"
+    if value[-1] == '%'
       numerical_font_size * (value.to_f / 100.0)
     elsif value == 'larger'
       numerical_font_size + 4

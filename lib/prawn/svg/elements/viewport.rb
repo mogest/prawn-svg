@@ -12,9 +12,7 @@ class Prawn::SVG::Elements::Viewport < Prawn::SVG::Elements::Base
   end
 
   def apply
-    if @x != 0 || @y != 0
-      add_call 'transformation_matrix', 1, 0, 0, 1, @x, -@y
-    end
+    add_call 'transformation_matrix', 1, 0, 0, 1, @x, -@y if @x != 0 || @y != 0
 
     if overflow_hidden?
       add_call 'rectangle', [0, y(0)], @sizing.output_width, @sizing.output_height

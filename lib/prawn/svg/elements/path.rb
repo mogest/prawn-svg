@@ -2,17 +2,17 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
   include Prawn::SVG::Calculators::ArcToBezierCurve
   include Prawn::SVG::Pathable
 
-  INSIDE_SPACE_REGEXP = /[ \t\r\n,]*/
-  OUTSIDE_SPACE_REGEXP = /[ \t\r\n]*/
-  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}(?>([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?))/
-  FLAG_REGEXP = /#{INSIDE_SPACE_REGEXP}([01])/
-  COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/
+  INSIDE_SPACE_REGEXP = /[ \t\r\n,]*/.freeze
+  OUTSIDE_SPACE_REGEXP = /[ \t\r\n]*/.freeze
+  INSIDE_REGEXP = /#{INSIDE_SPACE_REGEXP}(?>([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:(?<=[0-9])[eE][+-]?[0-9]+)?))/.freeze
+  FLAG_REGEXP = /#{INSIDE_SPACE_REGEXP}([01])/.freeze
+  COMMAND_REGEXP = /^#{OUTSIDE_SPACE_REGEXP}([A-Za-z])((?:#{INSIDE_REGEXP})*)#{OUTSIDE_SPACE_REGEXP}/.freeze
 
-  A_PARAMETERS_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{FLAG_REGEXP}#{FLAG_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
-  ONE_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}/
-  TWO_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
-  FOUR_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
-  SIX_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/
+  A_PARAMETERS_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{FLAG_REGEXP}#{FLAG_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/.freeze
+  ONE_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}/.freeze
+  TWO_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}/.freeze
+  FOUR_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/.freeze
+  SIX_PARAMETER_REGEXP = /^#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}#{INSIDE_REGEXP}/.freeze
 
   COMMAND_MATCH_MAP = {
     'A' => A_PARAMETERS_REGEXP,
@@ -24,8 +24,8 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     'S' => FOUR_PARAMETER_REGEXP,
     'T' => TWO_PARAMETER_REGEXP,
     'V' => ONE_PARAMETER_REGEXP,
-    'Z' => //,
-  }
+    'Z' => //
+  }.freeze
 
   PARAMETERLESS_COMMANDS = COMMAND_MATCH_MAP.select { |_, v| v == // }.map(&:first)
 
@@ -39,10 +39,10 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     @commands = []
     @last_point = nil
 
-    data = attributes["d"].gsub(/#{OUTSIDE_SPACE_REGEXP}$/, '')
+    data = attributes['d'].gsub(/#{OUTSIDE_SPACE_REGEXP}$/, '')
 
     matched_commands = match_all(data, COMMAND_REGEXP)
-    raise SkipElementError, "Invalid/unsupported syntax for SVG path data" if matched_commands.nil?
+    raise SkipElementError, 'Invalid/unsupported syntax for SVG path data' if matched_commands.nil?
 
     matched_commands.each do |(command, parameters)|
       regexp = COMMAND_MATCH_MAP[command.upcase] or break
@@ -80,9 +80,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       return parse_path_command(relative ? 'l' : 'L', values) if values.any?
 
     when 'Z' # closepath
-      if @subpath_initial_point
-        push_command Prawn::SVG::Pathable::Close.new(@subpath_initial_point)
-      end
+      push_command Prawn::SVG::Pathable::Close.new(@subpath_initial_point) if @subpath_initial_point
 
     when 'L' # lineto
       while values.any?
@@ -138,8 +136,8 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         end
 
         if @previous_control_point
-          x1 = 2 * @last_point.first - @previous_control_point.first
-          y1 = 2 * @last_point.last - @previous_control_point.last
+          x1 = (2 * @last_point.first) - @previous_control_point.first
+          y1 = (2 * @last_point.last) - @previous_control_point.last
         else
           x1, y1 = @last_point
         end
@@ -150,7 +148,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
     when 'Q', 'T' # quadratic curveto
       while values.any?
-        if shorthand = upcase_command == 'T'
+        if (shorthand = upcase_command == 'T')
           x, y = values.shift
         else
           x1, y1, x, y = values.shift
@@ -165,18 +163,18 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
         if shorthand
           if @previous_quadratic_control_point
-            x1 = 2 * @last_point.first - @previous_quadratic_control_point.first
-            y1 = 2 * @last_point.last - @previous_quadratic_control_point.last
+            x1 = (2 * @last_point.first) - @previous_quadratic_control_point.first
+            y1 = (2 * @last_point.last) - @previous_quadratic_control_point.last
           else
             x1, y1 = @last_point
           end
         end
 
         # convert from quadratic to cubic
-        cx1 = @last_point.first + (x1 - @last_point.first) * 2 / 3.0
-        cy1 = @last_point.last + (y1 - @last_point.last) * 2 / 3.0
-        cx2 = cx1 + (x - @last_point.first) / 3.0
-        cy2 = cy1 + (y - @last_point.last) / 3.0
+        cx1 = @last_point.first + ((x1 - @last_point.first) * 2 / 3.0)
+        cy1 = @last_point.last + ((y1 - @last_point.last) * 2 / 3.0)
+        cx2 = cx1 + ((x - @last_point.first) / 3.0)
+        cy2 = cy1 + ((y - @last_point.last) / 3.0)
 
         @previous_quadratic_control_point = [x1, y1]
 
@@ -216,13 +214,13 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         # points.  To do this, we use the algorithm documented in the SVG specification section F.6.5.
 
         # F.6.5.1
-        xp1 = Math.cos(phi) * ((x1-x2)/2.0) + Math.sin(phi) * ((y1-y2)/2.0)
-        yp1 = -Math.sin(phi) * ((x1-x2)/2.0) + Math.cos(phi) * ((y1-y2)/2.0)
+        xp1 = (Math.cos(phi) * ((x1 - x2) / 2.0)) + (Math.sin(phi) * ((y1 - y2) / 2.0))
+        yp1 = (-Math.sin(phi) * ((x1 - x2) / 2.0)) + (Math.cos(phi) * ((y1 - y2) / 2.0))
 
         # F.6.6.2
         r2x = rx * rx
         r2y = ry * ry
-        hat = xp1 * xp1 / r2x + yp1 * yp1 / r2y
+        hat = (xp1 * xp1 / r2x) + (yp1 * yp1 / r2y)
         if hat > 1
           rx *= Math.sqrt(hat)
           ry *= Math.sqrt(hat)
@@ -231,22 +229,22 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         # F.6.5.2
         r2x = rx * rx
         r2y = ry * ry
-        square = (r2x * r2y - r2x * yp1 * yp1 - r2y * xp1 * xp1) / (r2x * yp1 * yp1 + r2y * xp1 * xp1)
-        square = 0 if square < 0 && square > -FLOAT_ERROR_DELTA # catch rounding errors
+        square = ((r2x * r2y) - (r2x * yp1 * yp1) - (r2y * xp1 * xp1)) / ((r2x * yp1 * yp1) + (r2y * xp1 * xp1))
+        square = 0 if square.negative? && square > -FLOAT_ERROR_DELTA # catch rounding errors
         base = Math.sqrt(square)
         base *= -1 if fa == fs
         cpx = base * rx * yp1 / ry
         cpy = base * -ry * xp1 / rx
 
         # F.6.5.3
-        cx = Math.cos(phi) * cpx + -Math.sin(phi) * cpy + (x1 + x2) / 2
-        cy = Math.sin(phi) * cpx + Math.cos(phi) * cpy + (y1 + y2) / 2
+        cx = (Math.cos(phi) * cpx) + (-Math.sin(phi) * cpy) + ((x1 + x2) / 2)
+        cy = (Math.sin(phi) * cpx) + (Math.cos(phi) * cpy) + ((y1 + y2) / 2)
 
         # F.6.5.5
         vx = (xp1 - cpx) / rx
         vy = (yp1 - cpy) / ry
-        theta_1 = Math.acos(vx / Math.sqrt(vx * vx + vy * vy))
-        theta_1 *= -1 if vy < 0
+        theta_1 = Math.acos(vx / Math.sqrt((vx * vx) + (vy * vy)))
+        theta_1 *= -1 if vy.negative?
 
         # F.6.5.6
         ux = vx
@@ -254,19 +252,19 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         vx = (-xp1 - cpx) / rx
         vy = (-yp1 - cpy) / ry
 
-        numerator = ux * vx + uy * vy
-        denominator = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy)
+        numerator = (ux * vx) + (uy * vy)
+        denominator = Math.sqrt((ux * ux) + (uy * uy)) * Math.sqrt((vx * vx) + (vy * vy))
         division = numerator / denominator
         division = -1 if division < -1 # for rounding errors
 
         d_theta = Math.acos(division) % (2 * Math::PI)
-        d_theta *= -1 if ux * vy - uy * vx < 0
+        d_theta *= -1 if ((ux * vy) - (uy * vx)).negative?
 
         # Adjust range
-        if fs == 0
-          d_theta -= 2 * Math::PI if d_theta > 0
-        else
-          d_theta += 2 * Math::PI if d_theta < 0
+        if fs.zero?
+          d_theta -= 2 * Math::PI if d_theta.positive?
+        elsif d_theta.negative?
+          d_theta += 2 * Math::PI
         end
 
         theta_2 = theta_1 + d_theta
@@ -277,17 +275,18 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       end
     end
 
-    @previous_control_point = nil unless %w(C S).include?(upcase_command)
-    @previous_quadratic_control_point = nil unless %w(Q T).include?(upcase_command)
+    @previous_control_point = nil unless %w[C S].include?(upcase_command)
+    @previous_quadratic_control_point = nil unless %w[Q T].include?(upcase_command)
   end
 
   def within_float_delta?(a, b)
     (a - b).abs < FLOAT_ERROR_DELTA
   end
 
-  def match_all(string, regexp) # regexp must start with ^
+  # regexp must start with ^
+  def match_all(string, regexp)
     result = []
-    while string != ""
+    while string != ''
       matches = string.match(regexp) or return
       result << matches.captures
       string = matches.post_match

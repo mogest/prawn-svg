@@ -4,8 +4,8 @@ class Prawn::SVG::Elements::Ellipse < Prawn::SVG::Elements::Base
   def parse
     require_attributes 'rx', 'ry'
 
-    @x = x(attributes['cx'] || "0")
-    @y = y(attributes['cy'] || "0")
+    @x = x(attributes['cx'] || '0')
+    @y = y(attributes['cy'] || '0')
     @rx = x_pixels(attributes['rx'])
     @ry = y_pixels(attributes['ry'])
 
@@ -13,11 +13,10 @@ class Prawn::SVG::Elements::Ellipse < Prawn::SVG::Elements::Base
   end
 
   def apply
-    add_call USE_NEW_ELLIPSE_CALL ? "ellipse" : "ellipse_at", [@x, @y], @rx, @ry
+    add_call USE_NEW_ELLIPSE_CALL ? 'ellipse' : 'ellipse_at', [@x, @y], @rx, @ry
   end
 
   def bounding_box
     [@x - @rx, @y + @ry, @x + @rx, @y - @ry]
   end
 end
-

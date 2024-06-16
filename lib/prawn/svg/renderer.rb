@@ -74,7 +74,7 @@ module Prawn
         when :top
           sizing.bounds[1]
         when :center, :centre
-          sizing.bounds[1] - (sizing.bounds[1] - sizing.output_height) / 2.0
+          sizing.bounds[1] - ((sizing.bounds[1] - sizing.output_height) / 2.0)
         when :bottom
           sizing.output_height
         when Numeric
@@ -135,20 +135,20 @@ module Prawn
             @cursor = [at[0], at[1]]
           end
 
-          if offset = options.delete(:offset)
+          if (offset = options.delete(:offset))
             at[0] += offset[0]
             at[1] -= offset[1]
           end
 
           width = prawn.width_of(text, options.merge(kerning: true))
 
-          if stretch_to_width = options.delete(:stretch_to_width)
+          if (stretch_to_width = options.delete(:stretch_to_width))
             factor = stretch_to_width.to_f * 100 / width.to_f
             prawn.add_content "#{factor} Tz"
             width = stretch_to_width.to_f
           end
 
-          if pad_to_width = options.delete(:pad_to_width)
+          if (pad_to_width = options.delete(:pad_to_width))
             padding_required = pad_to_width.to_f - width.to_f
             padding_per_character = padding_required / text.length.to_f
             prawn.add_content "#{padding_per_character} Tc"
@@ -158,7 +158,7 @@ module Prawn
           case options.delete(:text_anchor)
           when 'middle'
             at[0] -= width / 2
-            @cursor = [at[0] + width / 2, at[1]]
+            @cursor = [at[0] + (width / 2), at[1]]
           when 'end'
             at[0] -= width
             @cursor = at.dup
@@ -178,8 +178,8 @@ module Prawn
         when 'transformation_matrix'
           left = prawn.bounds.absolute_left
           top = prawn.bounds.absolute_top
-          arguments[4] += left - (left * arguments[0] + top * arguments[2])
-          arguments[5] += top - (left * arguments[1] + top * arguments[3])
+          arguments[4] += left - ((left * arguments[0]) + (top * arguments[2]))
+          arguments[5] += top - ((left * arguments[1]) + (top * arguments[3]))
 
         when 'clip'
           prawn.add_content 'W n' # clip to path

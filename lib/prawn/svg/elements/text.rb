@@ -17,7 +17,7 @@ class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
 
   def apply_step(calls)
     @base_calls = @calls = calls
-    add_call_and_enter "text_group"
+    add_call_and_enter 'text_group'
     @text_root.apply_step(@calls)
   end
 
