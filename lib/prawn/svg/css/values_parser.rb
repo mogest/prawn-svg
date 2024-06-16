@@ -34,7 +34,7 @@ module Prawn::SVG::CSS
         arguments = []
         in_quote = nil
         in_escape = false
-        current = ''
+        current = +''
 
         rest.each_char.with_index do |char, index|
           if in_escape
@@ -52,7 +52,7 @@ module Prawn::SVG::CSS
             in_escape = true
           elsif in_quote.nil? && char == ','
             arguments << current.strip
-            current = ''
+            current = +''
           elsif in_quote.nil? && char == ')'
             arguments << current.strip
             return [[name, arguments], rest[index + 1..]]
