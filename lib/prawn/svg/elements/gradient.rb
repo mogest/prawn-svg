@@ -12,7 +12,6 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     raise SkipElementQuietly if attributes['id'].nil?
 
     @parent_gradient = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
-
     assert_compatible_prawn_version
     load_gradient_configuration
     load_coordinates
@@ -32,6 +31,10 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
     arguments = specific_gradient_arguments(element)
     arguments&.merge(base_arguments)
+  end
+
+  def derive_attribute(name)
+    attributes[name] || parent_gradient&.derive_attribute(name)
   end
 
   private
@@ -86,13 +89,13 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def load_gradient_configuration
-    @units = attributes['gradientUnits'] == 'userSpaceOnUse' ? :user_space : :bounding_box
+    @units = derive_attribute('gradientUnits') == 'userSpaceOnUse' ? :user_space : :bounding_box
 
-    if (transform = attributes['gradientTransform'])
+    if (transform = derive_attribute('gradientTransform'))
       @transform_matrix = parse_transform_attribute(transform)
     end
 
-    if (spread_method = attributes['spreadMethod']) && spread_method != 'pad'
+    if (spread_method = derive_attribute('spreadMethod')) && spread_method != 'pad'
       warnings << "prawn-svg only currently supports the 'pad' spreadMethod attribute value"
     end
   end
@@ -100,30 +103,30 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   def load_coordinates
     case [type, units]
     when [:linear, :bounding_box]
-      @x1 = parse_zero_to_one(attributes['x1'], 0)
-      @y1 = parse_zero_to_one(attributes['y1'], 0)
-      @x2 = parse_zero_to_one(attributes['x2'], 1)
-      @y2 = parse_zero_to_one(attributes['y2'], 0)
+      @x1 = parse_zero_to_one(derive_attribute('x1'), 0)
+      @y1 = parse_zero_to_one(derive_attribute('y1'), 0)
+      @x2 = parse_zero_to_one(derive_attribute('x2'), 1)
+      @y2 = parse_zero_to_one(derive_attribute('y2'), 0)
 
     when [:linear, :user_space]
-      @x1 = x(attributes['x1'])
-      @y1 = y(attributes['y1'])
-      @x2 = x(attributes['x2'])
-      @y2 = y(attributes['y2'])
+      @x1 = x(derive_attribute('x1'))
+      @y1 = y(derive_attribute('y1'))
+      @x2 = x(derive_attribute('x2'))
+      @y2 = y(derive_attribute('y2'))
 
     when [:radial, :bounding_box]
-      @cx = parse_zero_to_one(attributes['cx'], 0.5)
-      @cy = parse_zero_to_one(attributes['cy'], 0.5)
-      @fx = parse_zero_to_one(attributes['fx'], cx)
-      @fy = parse_zero_to_one(attributes['fy'], cy)
-      @radius = parse_zero_to_one(attributes['r'], 0.5)
+      @cx = parse_zero_to_one(derive_attribute('cx'), 0.5)
+      @cy = parse_zero_to_one(derive_attribute('cy'), 0.5)
+      @fx = parse_zero_to_one(derive_attribute('fx'), cx)
+      @fy = parse_zero_to_one(derive_attribute('fy'), cy)
+      @radius = parse_zero_to_one(derive_attribute('r'), 0.5)
 
     when [:radial, :user_space]
-      @cx = x(attributes['cx'] || '50%')
-      @cy = y(attributes['cy'] || '50%')
-      @fx = x(attributes['fx'] || attributes['cx'])
-      @fy = y(attributes['fy'] || attributes['cy'])
-      @radius = pixels(attributes['r'] || '50%')
+      @cx = x(derive_attribute('cx') || '50%')
+      @cy = y(derive_attribute('cy') || '50%')
+      @fx = x(derive_attribute('fx') || derive_attribute('cx'))
+      @fy = y(derive_attribute('fy') || derive_attribute('cy'))
+      @radius = pixels(derive_attribute('r') || '50%')
 
     else
       raise 'unexpected type/unit system'
