@@ -17,7 +17,11 @@ class Prawn::SVG::Document
     :color_mode
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {})
-    @root = REXML::Document.new(data).root
+    begin
+      @root = REXML::Document.new(data).root
+    rescue REXML::ParseException
+      @root = nil
+    end
 
     if @root.nil?
       if data.respond_to?(:end_with?) && data.end_with?('.svg')
