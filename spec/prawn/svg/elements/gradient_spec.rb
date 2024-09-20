@@ -2,11 +2,11 @@ require 'spec_helper'
 
 describe Prawn::SVG::Elements::Gradient do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600 }) }
-  let(:element)  { Prawn::SVG::Elements::Gradient.new(document, document.root, [], fake_state) }
+  let(:root_element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
+  let(:element) { document.gradients['flag'] }
 
   before do
-    allow(element).to receive(:assert_compatible_prawn_version)
-    element.process
+    root_element.process
   end
 
   describe 'object bounding box with linear gradient' do
@@ -130,6 +130,41 @@ describe Prawn::SVG::Elements::Gradient do
         to:                    [10, 10],
         stops:                 [[0, 'ff0000'], [1, '0000ff']],
         apply_transformations: [2, 0, 0, 2, 10, 0]
+      )
+    end
+  end
+
+  context 'when a gradient is linked to another' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <linearGradient id="flag" gradientUnits="userSpaceOnUse" x1="100" y1="500" x2="200" y2="600">
+            <stop offset="0" stop-color="red"/>
+            <stop offset="1" stop-color="blue"/>
+          </linearGradient>
+
+          <linearGradient id="flag-2" href="#flag" x1="150" x2="220" />
+
+          <linearGradient id="flag-3" href="#flag-2" x1="170" />
+        </svg>
+      SVG
+    end
+
+    it 'correctly inherits the attributes from the parent element' do
+      arguments = document.gradients['flag-2'].gradient_arguments(double)
+      expect(arguments).to eq(
+        from:                  [150.0, 100.0],
+        to:                    [220.0, 0.0],
+        stops:                 [[0, 'ff0000'], [1, '0000ff']],
+        apply_transformations: true
+      )
+
+      arguments = document.gradients['flag-3'].gradient_arguments(double)
+      expect(arguments).to eq(
+        from:                  [170.0, 100.0],
+        to:                    [220.0, 0.0],
+        stops:                 [[0, 'ff0000'], [1, '0000ff']],
+        apply_transformations: true
       )
     end
   end
