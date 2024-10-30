@@ -80,7 +80,7 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - `<marker>`
 
  - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and
-   `gradientTransform` (`spreadMethod` and `stop-opacity` are unimplemented.)
+   `gradientTransform`
 
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.

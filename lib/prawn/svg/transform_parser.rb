@@ -63,7 +63,7 @@ module Prawn::SVG::TransformParser
       end
     end
 
-    matrix.to_a[0..1].transpose.flatten
+    matrix
   end
 
   private

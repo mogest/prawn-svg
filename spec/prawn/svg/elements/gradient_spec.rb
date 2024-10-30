@@ -27,16 +27,19 @@ describe Prawn::SVG::Elements::Gradient do
     it 'returns correct gradient arguments for an element' do
       arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [100.0, 100.0],
-        to:                    [120.0, 0.0],
-        stops:                 [[0, 'ff0000'], [0.25, 'ff0000'], [0.5, 'ffffff'], [0.75, '0000ff'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [0.0, 0.0],
+        to:           [0.2, 1.0],
+        wrap:         :pad,
+        matrix:       Matrix[[100.0, 0.0, 100.0], [0.0, -100.0, 100.0], [0.0, 0.0, 1.0]],
+        bounding_box: [100, 100, 200, 0],
+        stops:        [
+          { offset: 0, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.25, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.5, color: 'ffffff', opacity: 1.0 },
+          { offset: 0.75, color: '0000ff', opacity: 1.0 },
+          { offset: 1, color: '0000ff', opacity: 1.0 }
+        ]
       )
-    end
-
-    it "returns nil if the element doesn't have a bounding box" do
-      arguments = element.gradient_arguments(double(bounding_box: nil))
-      expect(arguments).to be nil
     end
   end
 
@@ -58,12 +61,20 @@ describe Prawn::SVG::Elements::Gradient do
     it 'returns correct gradient arguments for an element' do
       arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [150, 80],
-        to:                    [100, 80],
-        r1:                    0,
-        r2:                    Math.sqrt(((0.8 * 100)**2) + ((0.8 * 100)**2)),
-        stops:                 [[0, 'ff0000'], [0.25, 'ff0000'], [0.5, 'ffffff'], [0.75, '0000ff'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [0.5, 0.2],
+        to:           [0.0, 0.2],
+        r1:           0,
+        r2:           0.8,
+        wrap:         :pad,
+        matrix:       Matrix[[100.0, 0.0, 100.0], [0.0, -100.0, 100.0], [0.0, 0.0, 1.0]],
+        bounding_box: [100, 100, 200, 0],
+        stops:        [
+          { offset: 0, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.25, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.5, color: 'ffffff', opacity: 1.0 },
+          { offset: 0.75, color: '0000ff', opacity: 1.0 },
+          { offset: 1, color: '0000ff', opacity: 1.0 }
+        ]
       )
     end
   end
@@ -79,12 +90,14 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double)
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [100.0, 100.0],
-        to:                    [200.0, 0.0],
-        stops:                 [[0, 'ff0000'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [100.0, 500.0],
+        to:           [200.0, 600.0],
+        stops:        [{ offset: 0, color: 'ff0000', opacity: 1.0 }, { offset: 1, color: '0000ff', opacity: 1.0 }],
+        matrix:       Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, 600.0], [0.0, 0.0, 1.0]],
+        wrap:         :pad,
+        bounding_box: [100, 100, 200, 0]
       )
     end
   end
@@ -100,14 +113,16 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double)
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [100.0, 100.0],
-        to:                    [200.0, 0.0],
-        r1:                    0,
-        r2:                    150,
-        stops:                 [[0, 'ff0000'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [100.0, 500.0],
+        to:           [200.0, 600.0],
+        r1:           0,
+        r2:           150.0,
+        stops:        [{ offset: 0, color: 'ff0000', opacity: 1.0 }, { offset: 1, color: '0000ff', opacity: 1.0 }],
+        matrix:       Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, 600.0], [0.0, 0.0, 1.0]],
+        wrap:         :pad,
+        bounding_box: [100, 100, 200, 0]
       )
     end
   end
@@ -115,7 +130,7 @@ describe Prawn::SVG::Elements::Gradient do
   context 'when gradientTransform is specified' do
     let(:svg) do
       <<-SVG
-        <linearGradient id="flag" gradientTransform="translateX(10) scale(2)" x1="0" y1="0" x2="10" y2="10">
+        <linearGradient id="flag" gradientTransform="translateX(0.5) scale(2)" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="red"/>
           <stop offset="1" stop-color="blue"/>
         </linearGradient>
@@ -123,13 +138,15 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'passes in the transform via the apply_transformations option' do
-      arguments = element.gradient_arguments(double(bounding_box: [0, 0, 10, 10]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
 
       expect(arguments).to eq(
-        from:                  [0, 0],
-        to:                    [10, 10],
-        stops:                 [[0, 'ff0000'], [1, '0000ff']],
-        apply_transformations: [2, 0, 0, 2, 10, 0]
+        from:         [0.0, 0.0],
+        to:           [1.0, 1.0],
+        stops:        [{ offset: 0, color: 'ff0000', opacity: 1.0 }, { offset: 1, color: '0000ff', opacity: 1.0 }],
+        matrix:       Matrix[[200.0, 0.0, 150.0], [0.0, -200.0, 100.0], [0.0, 0.0, 1.0]],
+        wrap:         :pad,
+        bounding_box: [100, 100, 200, 0]
       )
     end
   end
@@ -151,20 +168,24 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'correctly inherits the attributes from the parent element' do
-      arguments = document.gradients['flag-2'].gradient_arguments(double)
+      arguments = document.gradients['flag-2'].gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [150.0, 100.0],
-        to:                    [220.0, 0.0],
-        stops:                 [[0, 'ff0000'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [150.0, 500.0],
+        to:           [220.0, 600.0],
+        stops:        [{ offset: 0, color: 'ff0000', opacity: 1.0 }, { offset: 1, color: '0000ff', opacity: 1.0 }],
+        matrix:       Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, 600.0], [0.0, 0.0, 1.0]],
+        wrap:         :pad,
+        bounding_box: [100, 100, 200, 0]
       )
 
-      arguments = document.gradients['flag-3'].gradient_arguments(double)
+      arguments = document.gradients['flag-3'].gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(
-        from:                  [170.0, 100.0],
-        to:                    [220.0, 0.0],
-        stops:                 [[0, 'ff0000'], [1, '0000ff']],
-        apply_transformations: true
+        from:         [170.0, 500.0],
+        to:           [220.0, 600.0],
+        stops:        [{ offset: 0, color: 'ff0000', opacity: 1.0 }, { offset: 1, color: '0000ff', opacity: 1.0 }],
+        matrix:       Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, 600.0], [0.0, 0.0, 1.0]],
+        wrap:         :pad,
+        bounding_box: [100, 100, 200, 0]
       )
     end
   end

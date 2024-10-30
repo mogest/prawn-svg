@@ -1,6 +1,6 @@
 class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   attr_reader :parent_gradient
-  attr_reader :x1, :y1, :x2, :y2, :cx, :cy, :fx, :fy, :radius, :units, :stops, :transform_matrix
+  attr_reader :x1, :y1, :x2, :y2, :cx, :cy, :r, :fx, :fy, :fr, :units, :stops, :transform_matrix, :wrap
 
   TAG_NAME_TO_TYPE = {
     'linearGradient' => :linear,
@@ -12,6 +12,9 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     raise SkipElementQuietly if attributes['id'].nil?
 
     @parent_gradient = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
+    @transform_matrix = Matrix.identity(3)
+    @wrap = :pad
+
     assert_compatible_prawn_version
     load_gradient_configuration
     load_coordinates
@@ -23,14 +26,29 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def gradient_arguments(element)
-    # Passing in a transformation matrix to the apply_transformations option is supported
-    # by a monkey patch installed by prawn-svg.  Prawn only sees this as a truthy variable.
-    #
-    # See Prawn::SVG::Extensions::AdditionalGradientTransforms for details.
-    base_arguments = { stops: stops, apply_transformations: transform_matrix || true }
+    bbox = element.bounding_box
 
-    arguments = specific_gradient_arguments(element)
-    arguments&.merge(base_arguments)
+    if type == :radial
+      {
+        from:         [fx, fy],
+        r1:           fr,
+        to:           [cx, cy],
+        r2:           r,
+        stops:        stops,
+        matrix:       matrix_for_bounding_box(*bbox),
+        wrap:         wrap,
+        bounding_box: bbox
+      }
+    else
+      {
+        from:         [x1, y1],
+        to:           [x2, y2],
+        stops:        stops,
+        matrix:       matrix_for_bounding_box(*bbox),
+        wrap:         wrap,
+        bounding_box: bbox
+      }
+    end
   end
 
   def derive_attribute(name)
@@ -39,43 +57,25 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
   private
 
-  def specific_gradient_arguments(element)
+  def matrix_for_bounding_box(bounding_x1, bounding_y1, bounding_x2, bounding_y2)
     if units == :bounding_box
-      bounding_x1, bounding_y1, bounding_x2, bounding_y2 = element.bounding_box
-      return if bounding_y2.nil?
-
       width = bounding_x2 - bounding_x1
       height = bounding_y1 - bounding_y2
-    end
 
-    case [type, units]
-    when [:linear, :bounding_box]
-      from = [bounding_x1 + (width * x1), bounding_y1 - (height * y1)]
-      to   = [bounding_x1 + (width * x2), bounding_y1 - (height * y2)]
+      bounding_box_to_user_space_matrix = Matrix[
+        [width, 0.0, bounding_x1],
+        [0.0, height, document.sizing.output_height - bounding_y1],
+        [0.0, 0.0, 1.0]
+      ]
 
-      { from: from, to: to }
-
-    when [:linear, :user_space]
-      { from: [x1, y1], to: [x2, y2] }
-
-    when [:radial, :bounding_box]
-      center = [bounding_x1 + (width * cx), bounding_y1 - (height * cy)]
-      focus  = [bounding_x1 + (width * fx), bounding_y1 - (height * fy)]
-
-      # NOTE: Chrome, at least, implements radial bounding box radiuses as
-      # having separate X and Y components, so in bounding box mode their
-      # gradients come out as ovals instead of circles.  PDF radial shading
-      # doesn't have the option to do this, and it's confusing why the
-      # Chrome user space gradients don't apply the same logic anyway.
-      hypot = Math.sqrt((width * width) + (height * height))
-      { from: focus, r1: 0, to: center, r2: radius * hypot }
-
-    when [:radial, :user_space]
-      { from: [fx, fy], r1: 0, to: [cx, cy], r2: radius }
-
+      svg_to_pdf_matrix * bounding_box_to_user_space_matrix * transform_matrix
     else
-      raise 'unexpected type/unit system'
+      svg_to_pdf_matrix * transform_matrix
     end
+  end
+
+  def svg_to_pdf_matrix
+    @svg_to_pdf_matrix ||= Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, document.sizing.output_height], [0.0, 0.0, 1.0]]
   end
 
   def type
@@ -92,41 +92,43 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     @units = derive_attribute('gradientUnits') == 'userSpaceOnUse' ? :user_space : :bounding_box
 
     if (transform = derive_attribute('gradientTransform'))
-      @transform_matrix = parse_transform_attribute(transform)
+      @transform_matrix = parse_transform_attribute(transform, space: :svg)
     end
 
-    if (spread_method = derive_attribute('spreadMethod')) && spread_method != 'pad'
-      warnings << "prawn-svg only currently supports the 'pad' spreadMethod attribute value"
+    if (spread_method = derive_attribute('spreadMethod'))
+      @wrap = spread_method.to_sym
     end
   end
 
   def load_coordinates
     case [type, units]
     when [:linear, :bounding_box]
-      @x1 = parse_zero_to_one(derive_attribute('x1'), 0)
-      @y1 = parse_zero_to_one(derive_attribute('y1'), 0)
-      @x2 = parse_zero_to_one(derive_attribute('x2'), 1)
-      @y2 = parse_zero_to_one(derive_attribute('y2'), 0)
+      @x1 = percentage_or_proportion(derive_attribute('x1'), 0.0)
+      @y1 = percentage_or_proportion(derive_attribute('y1'), 0.0)
+      @x2 = percentage_or_proportion(derive_attribute('x2'), 1.0)
+      @y2 = percentage_or_proportion(derive_attribute('y2'), 0.0)
 
     when [:linear, :user_space]
       @x1 = x(derive_attribute('x1'))
-      @y1 = y(derive_attribute('y1'))
+      @y1 = y_pixels(derive_attribute('y1'))
       @x2 = x(derive_attribute('x2'))
-      @y2 = y(derive_attribute('y2'))
+      @y2 = y_pixels(derive_attribute('y2'))
 
     when [:radial, :bounding_box]
-      @cx = parse_zero_to_one(derive_attribute('cx'), 0.5)
-      @cy = parse_zero_to_one(derive_attribute('cy'), 0.5)
-      @fx = parse_zero_to_one(derive_attribute('fx'), cx)
-      @fy = parse_zero_to_one(derive_attribute('fy'), cy)
-      @radius = parse_zero_to_one(derive_attribute('r'), 0.5)
+      @cx = percentage_or_proportion(derive_attribute('cx'), 0.5)
+      @cy = percentage_or_proportion(derive_attribute('cy'), 0.5)
+      @r = percentage_or_proportion(derive_attribute('r'), 0.5)
+      @fx = percentage_or_proportion(derive_attribute('fx'), cx)
+      @fy = percentage_or_proportion(derive_attribute('fy'), cy)
+      @fr = percentage_or_proportion(derive_attribute('fr'), 0.0)
 
     when [:radial, :user_space]
       @cx = x(derive_attribute('cx') || '50%')
-      @cy = y(derive_attribute('cy') || '50%')
+      @cy = y_pixels(derive_attribute('cy') || '50%')
+      @r = pixels(derive_attribute('r') || '50%')
       @fx = x(derive_attribute('fx') || derive_attribute('cx'))
-      @fy = y(derive_attribute('fy') || derive_attribute('cy'))
-      @radius = pixels(derive_attribute('r') || '50%')
+      @fy = y_pixels(derive_attribute('fy') || derive_attribute('cy'))
+      @fr = pixels(derive_attribute('fr') || '0%')
 
     else
       raise 'unexpected type/unit system'
@@ -142,14 +144,14 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       element.name == 'stop' && element.attributes['offset']
     end
 
-    @stops = stop_elements.each.with_object([]) do |child, result|
-      offset = parse_zero_to_one(child.attributes['offset'])
+    @stops = stop_elements.each_with_object([]) do |child, result|
+      offset = percentage_or_proportion(child.attributes['offset']).clamp(0.0, 1.0)
 
       # Offsets must be strictly increasing (SVG 13.2.4)
-      offset = result.last.first if result.last && result.last.first > offset
+      offset = result.last[:offset] if result.last && result.last[:offset] > offset
 
       if (color = Prawn::SVG::Color.css_color_to_prawn_color(child.properties.stop_color))
-        result << [offset, color]
+        result << { offset: offset, color: color, opacity: parse_opacity(child.properties.stop_opacity) }
       end
     end
 
@@ -160,17 +162,43 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
       @stops = parent_gradient.stops
     else
-      stops.unshift([0, stops.first.last]) if stops.first.first.positive?
-      stops.push([1, stops.last.last])     if stops.last.first < 1
+      if stops.first[:offset].positive?
+        start_stop = stops.first.dup
+        start_stop[:offset] = 0
+        stops.unshift(start_stop)
+      end
+
+      if stops.last[:offset] < 1
+        end_stop = stops.last.dup
+        end_stop[:offset] = 1
+        stops.push(end_stop)
+      end
     end
   end
 
-  def parse_zero_to_one(string, default = 0)
+  def percentage_or_proportion(string, default = 0)
     string = string.to_s.strip
-    return default if string == ''
+    percentage = false
 
-    value = string.to_f
-    value /= 100.0 if string[-1..] == '%'
-    [0.0, value, 1.0].sort[1]
+    if string[-1] == '%'
+      percentage = true
+      string = string[0..-2]
+    end
+
+    value = Float(string, exception: false)
+    return default unless value
+
+    if percentage
+      value / 100.0
+    else
+      value
+    end
+  end
+
+  def parse_opacity(string)
+    value = Float(string, exception: false)
+    return 1.0 unless value
+
+    value.clamp(0.0, 1.0)
   end
 end

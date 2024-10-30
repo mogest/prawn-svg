@@ -40,10 +40,21 @@ RSpec.describe Prawn::SVG::TransformUtils do
   end
 
   describe '#rotation_matrix' do
-    it '' do
-      p = Vector[1, 0, 1]
-      mat = subject.rotation_matrix(45 * Math::PI / 180.0)
-      puts mat * p
+    let(:angle) { 45 * Math::PI / 180.0 }
+    let(:inv_root_2) { 0.707 }
+
+    context 'in PDF space' do
+      it 'returns the expected matrix' do
+        matrix = Matrix[[inv_root_2, inv_root_2, 0], [-inv_root_2, inv_root_2, 0], [0, 0, 1]]
+        expect(subject.rotation_matrix(angle).round(3)).to eq(matrix)
+      end
+    end
+
+    context 'in SVG space' do
+      it 'returns the expected matrix' do
+        matrix = Matrix[[inv_root_2, -inv_root_2, 0], [inv_root_2, inv_root_2, 0], [0, 0, 1]]
+        expect(subject.rotation_matrix(angle, space: :svg).round(3)).to eq(matrix)
+      end
     end
   end
 end
