@@ -45,7 +45,8 @@ class Prawn::SVG::GradientRenderer
 
   def key
     @key ||= Digest::SHA1.hexdigest([
-      draw_type, shading_type, coordinates, stop_offsets, color_stops, opacity_stops, gradient_matrix
+      draw_type, shading_type, coordinates, stop_offsets, color_stops,
+      opacity_stops, gradient_matrix, wrap, bounding_box
     ].join)
   end
 
