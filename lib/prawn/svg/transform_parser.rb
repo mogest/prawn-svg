@@ -1,5 +1,5 @@
 module Prawn::SVG::TransformParser
-  include Prawn::SVG::TransformUtils
+  include Prawn::SVG::PDFMatrix
 
   def parse_transform_attribute(transform, space: :pdf)
     matrix = Matrix.identity(3)

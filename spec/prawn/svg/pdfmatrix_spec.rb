@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-RSpec.describe Prawn::SVG::TransformUtils do
+RSpec.describe Prawn::SVG::PDFMatrix do
   subject do
     obj = Object.new
-    obj.extend(Prawn::SVG::TransformUtils)
+    obj.extend(Prawn::SVG::PDFMatrix)
     obj
   end
 

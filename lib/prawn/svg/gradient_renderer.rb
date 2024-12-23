@@ -1,5 +1,5 @@
 class Prawn::SVG::GradientRenderer
-  include Prawn::SVG::TransformUtils
+  include Prawn::SVG::PDFMatrix
 
   def initialize(prawn, draw_type, from:, to:, stops:, matrix: nil, r1: nil, r2: nil, wrap: :pad, bounding_box: nil)
     @prawn = prawn

@@ -1,4 +1,4 @@
-module Prawn::SVG::TransformUtils
+module Prawn::SVG::PDFMatrix
   def load_matrix(matrix)
     if matrix.is_a?(Matrix) && matrix.row_count == 3 && matrix.column_count == 3
       matrix
