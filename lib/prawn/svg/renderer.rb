@@ -216,6 +216,11 @@ module Prawn
           Renderer.new(prawn, sub_document, sub_options).draw
           document.warnings.concat(sub_document.warnings)
           yield
+
+        when 'svg:render_gradient'
+          type = arguments.first
+          GradientRenderer.new(prawn, type, **kwarguments).draw
+          yield
         end
       end
 
