@@ -96,7 +96,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     end
 
     if (spread_method = derive_attribute('spreadMethod'))
-      @wrap = spread_method.to_sym
+      spread_method = spread_method.to_sym
+      @wrap = [:pad, :reflect, :repeat].include?(spread_method) ? spread_method : :pad
     end
   end
 
