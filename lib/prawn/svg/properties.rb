@@ -32,6 +32,7 @@ class Prawn::SVG::Properties
     'opacity'           => Config.new('1', false),
     'overflow'          => Config.new('visible', false, %w[inherit visible hidden scroll auto], true),
     'stop-color'        => Config.new('black', false, %w[inherit none currentColor]),
+    'stop-opacity'      => Config.new('1', false),
     'stroke'            => Config.new('none', true, %w[inherit none currentColor]),
     'stroke-dasharray'  => Config.new('none', true, %w[inherit none]),
     'stroke-linecap'    => Config.new('butt', true, %w[inherit butt round square], true),
