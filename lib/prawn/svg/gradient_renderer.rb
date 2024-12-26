@@ -1,6 +1,9 @@
 class Prawn::SVG::GradientRenderer
   include Prawn::SVG::PDFMatrix
 
+  @mutex = Mutex.new
+  @counter = 0
+
   def initialize(prawn, draw_type, from:, to:, stops:, matrix: nil, r1: nil, r2: nil, wrap: :pad, bounding_box: nil)
     @prawn = prawn
     @draw_type = draw_type
@@ -22,6 +25,8 @@ class Prawn::SVG::GradientRenderer
   end
 
   def draw
+    key = self.class.next_key
+
     # If we need transparency, add an ExtGState to the page and enable it.
     if opacity_stops
       prawn.page.ext_gstates["PSVG-ExtGState-#{key}"] = create_transparency_graphics_state
@@ -38,17 +43,14 @@ class Prawn::SVG::GradientRenderer
     prawn.renderer.add_content("/PSVG-Pattern-#{key} #{draw_operator}")
   end
 
+  def self.next_key
+    @mutex.synchronize { @counter += 1 }
+  end
+
   private
 
   attr_reader :prawn, :draw_type, :shading_type, :coordinates, :from, :to,
     :stop_offsets, :color_stops, :opacity_stops, :gradient_matrix, :wrap, :bounding_box
-
-  def key
-    @key ||= Digest::SHA1.hexdigest([
-      draw_type, shading_type, coordinates, stop_offsets, color_stops,
-      opacity_stops, gradient_matrix, wrap, bounding_box
-    ].join)
-  end
 
   def process_stop_arguments(stops)
     stop_offsets = []
