@@ -10,6 +10,10 @@ describe Prawn::SVG::Attributes::Opacity do
       @properties = ::Prawn::SVG::Properties.new
       @state = ::Prawn::SVG::State.new
     end
+
+    def computed_properties
+      @state.computed_properties
+    end
   end
 
   let(:element) { OpacityTestElement.new }
@@ -26,55 +30,58 @@ describe Prawn::SVG::Attributes::Opacity do
 
     context 'with opacity' do
       it 'sets fill and stroke opacity' do
-        element.properties.opacity = '0.4'
+        element.computed_properties.opacity = '0.4'
 
         expect(element).to receive(:add_call_and_enter).with('transparent', 0.4, 0.4)
         subject
 
-        expect(element.state.fill_opacity).to eq 0.4
-        expect(element.state.stroke_opacity).to eq 0.4
+        expect(element.state.opacity).to eq 0.4
+        expect(element.state.last_fill_opacity).to eq 0.4
+        expect(element.state.last_stroke_opacity).to eq 0.4
       end
     end
 
     context 'with just fill opacity' do
       it 'sets fill opacity and sets stroke opacity to 1' do
-        element.properties.fill_opacity = '0.4'
+        element.computed_properties.fill_opacity = '0.4'
 
         expect(element).to receive(:add_call_and_enter).with('transparent', 0.4, 1)
         subject
 
-        expect(element.state.fill_opacity).to eq 0.4
-        expect(element.state.stroke_opacity).to eq 1
+        expect(element.state.opacity).to eq 1
+        expect(element.state.last_fill_opacity).to eq 0.4
+        expect(element.state.last_stroke_opacity).to eq 1
       end
     end
 
-    context 'with an existing fill/stroke opacity' do
+    context 'with an existing stroke opacity' do
       it 'multiplies the new opacity by the old' do
-        element.state.fill_opacity = 0.5
-        element.state.stroke_opacity = 0.8
+        element.state.opacity = 0.5
 
-        element.properties.fill_opacity = '0.4'
-        element.properties.stroke_opacity = '0.5'
+        element.computed_properties.fill_opacity = '0.4'
+        element.computed_properties.stroke_opacity = '0.5'
 
-        expect(element).to receive(:add_call_and_enter).with('transparent', 0.2, 0.4)
+        expect(element).to receive(:add_call_and_enter).with('transparent', 0.2, 0.25)
         subject
 
-        expect(element.state.fill_opacity).to eq 0.2
-        expect(element.state.stroke_opacity).to eq 0.4
+        expect(element.state.opacity).to eq 0.5
+        expect(element.state.last_fill_opacity).to eq 0.2
+        expect(element.state.last_stroke_opacity).to eq 0.25
       end
     end
 
     context 'with stroke, fill, and opacity all specified' do
       it 'choses the lower of them' do
-        element.properties.fill_opacity = '0.4'
-        element.properties.stroke_opacity = '0.6'
-        element.properties.opacity = '0.5'
+        element.computed_properties.fill_opacity = '0.4'
+        element.computed_properties.stroke_opacity = '0.6'
+        element.computed_properties.opacity = '0.5'
 
-        expect(element).to receive(:add_call_and_enter).with('transparent', 0.4, 0.5)
+        expect(element).to receive(:add_call_and_enter).with('transparent', 0.2, 0.3)
         subject
 
-        expect(element.state.fill_opacity).to eq 0.4
-        expect(element.state.stroke_opacity).to eq 0.5
+        expect(element.state.opacity).to eq 0.5
+        expect(element.state.last_fill_opacity).to eq 0.2
+        expect(element.state.last_stroke_opacity).to eq 0.3
       end
     end
   end

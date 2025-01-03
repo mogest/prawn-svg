@@ -1,14 +1,16 @@
 class Prawn::SVG::State
   attr_accessor :text, :preserve_space,
-    :fill_opacity, :stroke_opacity, :stroke_width,
+    :opacity, :last_fill_opacity, :last_stroke_opacity,
+    :stroke_width,
     :computed_properties,
     :viewport_sizing,
     :inside_use, :inside_clip_path
 
   def initialize
     @stroke_width = 1
-    @fill_opacity = 1
-    @stroke_opacity = 1
+    @opacity = 1
+    @last_fill_opacity = 1
+    @last_stroke_opacity = 1
     @computed_properties = Prawn::SVG::Properties.new.load_default_stylesheet
   end
 

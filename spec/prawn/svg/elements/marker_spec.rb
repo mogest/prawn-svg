@@ -69,21 +69,19 @@ RSpec.describe Prawn::SVG::Elements::Marker do
           ['rectangle', [[-0.5, 600.0], 4.0, 3.0], {}, []],
           ['clip', [], {}, []],
           ['transformation_matrix', [0.3, 0, 0, 0.3, 0, 0], {}, []],
-          ['transparent', [1.0, 1.0], {}, [
-            ['fill_color', ['000000'], {}, []],
-            ['line_width', [1.0], {}, []],
-            ['cap_style', [:butt], {}, []],
-            ['join_style', [:miter], {}, []],
-            ['undash', [], {}, []],
-            ['save', [], {}, []],
-            ['fill', [], {}, [
-              ['move_to', [[0.0, 600.0]], {}, []],
-              ['line_to', [[10.0, 595.0]], {}, []],
-              ['line_to', [[0.0, 590.0]], {}, []],
-              ['close_path', [], {}, []]
-            ]],
-            ['restore', [], {}, []]
-          ]]
+          ['fill_color', ['000000'], {}, []],
+          ['line_width', [1.0], {}, []],
+          ['cap_style', [:butt], {}, []],
+          ['join_style', [:miter], {}, []],
+          ['undash', [], {}, []],
+          ['save', [], {}, []],
+          ['fill', [], {}, [
+            ['move_to', [[0.0, 600.0]], {}, []],
+            ['line_to', [[10.0, 595.0]], {}, []],
+            ['line_to', [[0.0, 590.0]], {}, []],
+            ['close_path', [], {}, []]
+          ]],
+          ['restore', [], {}, []]
         ]],
         ['restore', [], {}, []]
       ]

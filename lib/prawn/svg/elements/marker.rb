@@ -56,6 +56,8 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       new_state = state.dup
       new_state.computed_properties = computed_properties.dup
+      new_state.last_fill_opacity = element.state.last_fill_opacity
+      new_state.last_stroke_opacity = element.state.last_stroke_opacity
 
       container = Prawn::SVG::Elements::Container.new(document, nil, [], new_state)
       container.properties.compute_properties(new_state.computed_properties)
