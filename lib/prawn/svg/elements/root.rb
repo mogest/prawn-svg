@@ -8,7 +8,7 @@ class Prawn::SVG::Elements::Root < Prawn::SVG::Elements::Base
   end
 
   def apply
-    if [nil, 'inherit', 'none', 'currentColor'].include?(properties.fill)
+    if [nil, 'inherit', 'none', 'currentcolor'].include?(properties.fill)
       add_call 'fill_color', Prawn::SVG::Color.default_color(@document.color_mode).value
     end
 

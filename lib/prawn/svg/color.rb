@@ -211,6 +211,43 @@ class Prawn::SVG::Color
       result.compact
     end
 
+    def parse_color(value)
+      case value
+      in ['rgb', args]
+        return unless args.length == 3
+
+        rgb =
+          args.map do |arg|
+            number = to_float(arg, 2.55) or break
+            format('%02x', number.round.clamp(0, 255))
+          end
+
+        rgb && RGB.new(rgb.join)
+
+      in ['device-cmyk', args]
+        return unless args.length == 4
+
+        cymk =
+          args.map do |arg|
+            number = to_float(arg, 0.01) or break
+            (number * 100).clamp(0, 100)
+          end
+
+        cymk && CMYK.new(cymk)
+
+      in /\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i
+        RGB.new("#{$1 * 2}#{$2 * 2}#{$3 * 2}")
+
+      in /\A#[0-9a-f]{6}\z/i
+        RGB.new(value[1..])
+
+      in String => color
+        if (hex = HTML_COLORS[color.downcase])
+          hex_color(hex, nil) # TODO : color mode
+        end
+      end
+    end
+
     def css_color_to_prawn_color(color)
       parse(color).detect { |value| value.is_a?(RGB) || value.is_a?(CMYK) }&.value
     end
@@ -220,6 +257,15 @@ class Prawn::SVG::Color
     end
 
     private
+
+    def to_float(string, percentage_multiplier)
+      if string[-1] == '%'
+        number = Float(string[0..-2], exception: false)
+        number && (number * percentage_multiplier)
+      else
+        Float(string, exception: false)
+      end
+    end
 
     def hex_color(hex, color_mode)
       if color_mode == :cmyk

@@ -33,9 +33,13 @@ RSpec.describe Prawn::SVG::Properties do
       expect(subject.color).to eq 'Red'
     end
 
-    it "sets a 'keyword restricted' property to its default if the value doesn't match a keyword" do
-      subject.set('stroke-linecap', 'invalid')
-      expect(subject.stroke_linecap).to eq 'butt'
+    it 'ignores invalid values, retaining any previously set value' do
+      subject.set('display', 'invalid')
+      expect(subject.display).to be nil
+      subject.set('display', 'none')
+      expect(subject.display).to eq 'none'
+      subject.set('display', 'invalid')
+      expect(subject.display).to eq 'none'
     end
   end
 

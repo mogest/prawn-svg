@@ -139,7 +139,7 @@ describe Prawn::SVG::Elements::Base do
 
     it "uses the color attribute if 'currentColor' fill attribute provided" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
-      element.properties.fill = 'currentColor'
+      element.properties.fill = 'currentcolor'
       element.state.computed_properties.color = 'red'
       subject
     end

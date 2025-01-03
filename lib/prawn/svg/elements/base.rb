@@ -182,7 +182,7 @@ class Prawn::SVG::Elements::Base
 
       next if [nil, 'inherit', 'none'].include?(color)
 
-      color = computed_properties.color if color == 'currentColor'
+      color = computed_properties.color if color == 'currentcolor'
 
       results = Prawn::SVG::Color.parse(color, document.gradients, document.color_mode)
 
