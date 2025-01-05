@@ -120,27 +120,27 @@ describe Prawn::SVG::Elements::Base do
     end
 
     it "doesn't change anything if 'none' fill attribute provided" do
-      element.properties.fill = 'none'
+      element.properties.fill = Prawn::SVG::Paint.parse('none')
       expect(element).to_not receive(:add_call)
       subject
     end
 
     it "uses the fill attribute's color" do
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
-      element.properties.fill = 'red'
+      element.properties.fill = Prawn::SVG::Paint.parse('red')
       subject
     end
 
-    it "uses black if the fill attribute's color is unparseable" do
-      expect(element).to receive(:add_call).with('fill_color', '000000')
-      element.properties.fill = 'blarble'
+    it "ignores the instruction if the fill attribute's color is unparseable" do
+      element.properties.fill = Prawn::SVG::Paint.parse('blarble')
+      expect(element).to_not receive(:add_call)
       subject
     end
 
     it "uses the color attribute if 'currentColor' fill attribute provided" do
+      element.properties.fill = Prawn::SVG::Paint.parse('currentColor')
+      element.state.computed_properties.color = Prawn::SVG::Color::RGB.new('ff0000')
       expect(element).to receive(:add_call).with('fill_color', 'ff0000')
-      element.properties.fill = 'currentcolor'
-      element.state.computed_properties.color = 'red'
       subject
     end
 
@@ -159,11 +159,10 @@ describe Prawn::SVG::Elements::Base do
       end
     end
 
-    it "computes to 'none' if UnresolvableURLWithNoFallbackError is raised" do
+    it 'specifies no color if the URL is unresolvable' do
       expect(element).to_not receive(:add_call)
-      element.properties.fill = 'url()'
+      element.properties.fill = Prawn::SVG::Paint.parse('url(bad)')
       subject
-      expect(element.computed_properties.fill).to eq 'none'
     end
   end
 

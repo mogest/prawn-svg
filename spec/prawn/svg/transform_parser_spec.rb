@@ -6,7 +6,7 @@ RSpec.describe Prawn::SVG::TransformParser do
     include Prawn::SVG::TransformParser
 
     State = Struct.new(:viewport_sizing)
-    Properties = Struct.new(:numerical_font_size)
+    Properties = Struct.new(:numeric_font_size)
     Document = Struct.new(:sizing)
 
     def document

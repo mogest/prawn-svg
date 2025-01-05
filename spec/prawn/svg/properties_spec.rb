@@ -14,23 +14,18 @@ RSpec.describe Prawn::SVG::Properties do
     it 'sets a property' do
       result = subject.set('color', 'red')
       expect(result).to be
-      expect(subject.color).to eq 'red'
+      expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
     end
 
     it 'handles property names that are not lower case' do
       result = subject.set('COLor', 'red')
       expect(result).to be
-      expect(subject.color).to eq 'red'
+      expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
     end
 
     it 'right-cases and strips keywords' do
       subject.set('stroke-linecap', ' Round ')
       expect(subject.stroke_linecap).to eq 'round'
-    end
-
-    it "doesn't right-case values that aren't recognised as keywords" do
-      subject.set('color', 'Red')
-      expect(subject.color).to eq 'Red'
     end
 
     it 'ignores invalid values, retaining any previously set value' do
@@ -46,8 +41,8 @@ RSpec.describe Prawn::SVG::Properties do
   describe '#load_hash' do
     it 'uses #set to load in a hash of properties' do
       subject.load_hash('stroke' => 'blue', 'fill' => 'green', 'stroke-linecap' => 'Round')
-      expect(subject.stroke).to eq 'blue'
-      expect(subject.fill).to eq 'green'
+      expect(subject.stroke).to eq Prawn::SVG::Paint.new(Prawn::SVG::Color::RGB.new('0000ff'))
+      expect(subject.fill).to eq Prawn::SVG::Paint.new(Prawn::SVG::Color::RGB.new('008000'))
       expect(subject.stroke_linecap).to eq 'round'
     end
   end
@@ -58,7 +53,7 @@ RSpec.describe Prawn::SVG::Properties do
     it 'auto-inherits inheritable properties when the property is not supplied' do
       subject.set('color', 'green')
       subject.compute_properties(other)
-      expect(subject.color).to eq 'green'
+      expect(subject.color).to eq Prawn::SVG::Color::RGB.new('008000')
     end
 
     it "doesn't auto-inherit non-inheritable properties" do
@@ -78,112 +73,52 @@ RSpec.describe Prawn::SVG::Properties do
       subject.set('color', 'green')
       other.set('color', 'red')
       subject.compute_properties(other)
-      expect(subject.color).to eq 'red'
-    end
-
-    describe 'font size' do
-      before do
-        subject.font_size = '15'
-        other.font_size = font_size
-      end
-
-      context 'when given a % as a font-size' do
-        let(:font_size) { '120%' }
-
-        it 'calculates the new font size' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '18.0'
-        end
-      end
-
-      context "when given 'larger' as a font-size" do
-        let(:font_size) { 'larger' }
-
-        it 'calculates the new font size' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '19.0'
-        end
-      end
-
-      context "when given 'smaller' as a font-size" do
-        let(:font_size) { 'smaller' }
-
-        it 'calculates the new font size' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '11.0'
-        end
-      end
-
-      context "when given a value in 'em' as a font-size" do
-        let(:font_size) { '2.5em' }
-
-        it 'calculates the new font size' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '37.5'
-        end
-      end
-
-      context "when given a value in 'rem' as a font-size" do
-        let(:font_size) { '2.5rem' }
-
-        it 'calculates the new font size' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '40.0'
-        end
-      end
-
-      context "when given a value in 'px' as a font-size" do
-        let(:font_size) { '19.5px' }
-
-        it 'uses the font size specified' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '19.5'
-        end
-      end
-
-      context "when given a value in 'pt' as a font-size" do
-        let(:font_size) { '19.5pt' }
-
-        it 'uses the font size specified' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '19.5'
-        end
-      end
-
-      context 'when given a value without units as a font-size' do
-        let(:font_size) { '19.5' }
-
-        it 'uses the font size specified' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '19.5'
-        end
-      end
-
-      context "when given the keyword 'inherit' as a font-size" do
-        let(:font_size) { 'inherit' }
-
-        it 'uses the font size specified by the parent' do
-          subject.compute_properties(other)
-          expect(subject.font_size).to eq '15'
-        end
-      end
+      expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
     end
   end
 
-  describe '#numerical_font_size' do
-    context 'when the font size is a number' do
-      before { subject.font_size = '16.5' }
+  describe '#numeric_font_size' do
+    def calculate
+      properties = Prawn::SVG::Properties.new
+      properties.compute_properties(subject)
+      properties.numeric_font_size
+    end
 
-      it 'returns the number as a float' do
-        expect(subject.numerical_font_size).to eq 16.5
+    cases =
+      {
+        Prawn::SVG::Length.parse('18.5pt') => 18.5,
+        Prawn::SVG::Percentage.new(120)    => 19.2,
+        19.5                               => 19.5,
+        'larger'                           => 20,
+        'smaller'                          => 12,
+        nil                                => 16,
+        'inherit'                          => 16,
+        'x-large'                          => 24
+      }
+
+    cases.each do |font_size, expected|
+      context "when the font size is #{font_size.inspect}" do
+        before { subject.font_size = font_size }
+
+        it 'returns the correct number' do
+          expect(calculate).to eq expected
+        end
       end
     end
 
-    context 'when the font size is one of the keyword size specifiers' do
-      before { subject.font_size = 'x-large' }
+    context 'with a font-size of 1.2em, under a parent with a font size of x-large' do
+      it 'returns 24 * 1.2' do
+        a = Prawn::SVG::Properties.new
+        a.set('font-size', 'x-large')
 
-      it 'returns the font size number corresponding with the keyword' do
-        expect(subject.numerical_font_size).to eq 24
+        b = Prawn::SVG::Properties.new
+        b.set('font-size', '1.2em')
+
+        properties = Prawn::SVG::Properties.new
+        properties.compute_properties(a)
+        properties.compute_properties(b)
+
+        expect(properties.numeric_font_size.round(1)).to eq 28.8
       end
     end
   end

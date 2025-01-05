@@ -158,8 +158,8 @@ class Prawn::SVG::Elements::Base
   def apply_drawing_call
     return if state.disable_drawing || !drawable?
 
-    fill   = computed_properties.fill != 'none'
-    stroke = computed_properties.stroke != 'none'
+    fill   = !computed_properties.fill.none? # rubocop:disable Style/InverseMethods
+    stroke = !computed_properties.stroke.none? # rubocop:disable Style/InverseMethods
 
     if fill
       command = stroke ? 'fill_and_stroke' : 'fill'
@@ -178,28 +178,27 @@ class Prawn::SVG::Elements::Base
 
   def apply_colors
     PAINT_TYPES.each do |type|
-      color = properties.send(type)
+      paint = properties.send(type)
 
-      next if [nil, 'inherit', 'none'].include?(color)
+      case paint
+      when nil, 'inherit'
+        next
+      when Prawn::SVG::Paint
+        color = paint.resolve(document.gradients, computed_properties.color, document.color_mode)
 
-      color = computed_properties.color if color == 'currentcolor'
-
-      results = Prawn::SVG::Color.parse(color, document.gradients, document.color_mode)
-
-      success = results.detect do |result|
-        case result
+        case color
         when Prawn::SVG::Color::RGB, Prawn::SVG::Color::CMYK
-          add_call "#{type}_color", result.value
-          true
+          add_call "#{type}_color", color.value
         when Prawn::SVG::Elements::Gradient
-          add_call 'svg:render_gradient', type.to_sym, **result.gradient_arguments(self)
-          true
+          add_call 'svg:render_gradient', type.to_sym, **color.gradient_arguments(self)
+        when nil
+          nil
+        else
+          raise "Unknown resolved color type: #{color.inspect}"
         end
+      else
+        raise "Unknown paint type: #{paint.inspect}"
       end
-
-      # If we were unable to find a suitable color candidate,
-      # we turn off this type of paint.
-      computed_properties.set(type, 'none') if success.nil?
     end
   end
 
@@ -247,15 +246,11 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def extract_element_from_url_id_reference(values, expected_type = nil)
-    Prawn::SVG::CSS::ValuesParser.parse(values).detect do |value|
-      case value
-      in ['url', [url]]
-        element = document.elements_by_id[url[1..]] if url.start_with?('#')
-        break element if element && (expected_type.nil? || element.name == expected_type)
-      else
-        nil
-      end
+  def extract_element_from_url_id_reference(value, expected_type = nil)
+    case value
+    when Prawn::SVG::FuncIRI
+      element = document.elements_by_id[value.url[1..]] if value.url.start_with?('#')
+      element if element && (expected_type.nil? || element.name == expected_type)
     end
   end
 

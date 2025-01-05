@@ -23,19 +23,17 @@ module Prawn::SVG::Attributes::Stroke
         # don't do anything
       when 'none'
         add_call('undash')
-      else
-        array = dasharray.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
-        array *= 2 if array.length.odd?
-        number_array = array.map { |value| pixels(value) }
+      when Array
+        dasharray *= 2 if dasharray.length.odd?
+        values = dasharray.map { |value| pixels(value) }
 
-        if number_array.any?(&:negative?)
-          @document.warnings << "stroke-dasharray cannot have negative numbers; treating as 'none'"
-          add_call('undash')
-        elsif number_array.inject(0) { |a, b| a + b }.zero?
+        if values.inject(0) { |a, b| a + b }.zero?
           add_call('undash')
         else
-          add_call('dash', number_array)
+          add_call('dash', values)
         end
+      else
+        raise "Unknown dasharray value: #{dasharray.inspect}"
       end
     end
   end

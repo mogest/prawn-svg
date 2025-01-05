@@ -5,7 +5,7 @@ describe Prawn::SVG::Calculators::Pixels do
     include Prawn::SVG::Calculators::Pixels
 
     def computed_properties
-      Struct.new(:numerical_font_size).new(16)
+      Struct.new(:numeric_font_size).new(16)
     end
 
     [:x, :y, :pixels, :x_pixels, :y_pixels].each { |method| public method }
@@ -35,7 +35,6 @@ describe Prawn::SVG::Calculators::Pixels do
       expect(subject.pixels(32)).to eq 32.0
       expect(subject.pixels(32.0)).to eq 32.0
       expect(subject.pixels('32')).to eq 32.0
-      expect(subject.pixels('32unknown')).to eq 32.0
       expect(subject.pixels('32px')).to eq 32.0
       expect(subject.pixels('32pt')).to eq 32.0
       expect(subject.pixels('32in')).to eq 32.0 * 72

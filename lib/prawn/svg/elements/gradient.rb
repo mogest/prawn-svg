@@ -151,8 +151,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       # Offsets must be strictly increasing (SVG 13.2.4)
       offset = result.last[:offset] if result.last && result.last[:offset] > offset
 
-      if (color = Prawn::SVG::Color.css_color_to_prawn_color(child.properties.stop_color))
-        result << { offset: offset, color: color, opacity: parse_opacity(child.properties.stop_opacity) }
+      if (color = child.properties.stop_color&.value)
+        result << { offset: offset, color: color, opacity: (child.properties.stop_opacity || 1.0).clamp(0.0, 1.0) }
       end
     end
 
@@ -194,12 +194,5 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     else
       value
     end
-  end
-
-  def parse_opacity(string)
-    value = Float(string, exception: false)
-    return 1.0 unless value
-
-    value.clamp(0.0, 1.0)
   end
 end

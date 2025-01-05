@@ -1,6 +1,28 @@
 class Prawn::SVG::Color
-  RGB = Struct.new(:value)
-  CMYK = Struct.new(:value)
+  CMYK = Struct.new(:value) do
+    def to_cmyk
+      self
+    end
+  end
+
+  RGB = Struct.new(:value) do
+    def to_rgb
+      [value[0..1], value[2..3], value[4..5]].map { |h| h.to_i(16) / 255.0 }
+    end
+
+    def to_cmyk
+      r, g, b = rgb = to_rgb
+      k = 1 - rgb.max
+      if k == 1
+        CMYK.new([0, 0, 0, 100])
+      else
+        c = (1 - r - k) / (1 - k)
+        m = (1 - g - k) / (1 - k)
+        y = (1 - b - k) / (1 - k)
+        CMYK.new([c, m, y, k].map { |v| (v * 100).round })
+      end
+    end
+  end
 
   RGB_DEFAULT_COLOR = RGB.new('000000')
   CMYK_DEFAULT_COLOR = CMYK.new([0, 0, 0, 100])
@@ -156,62 +178,11 @@ class Prawn::SVG::Color
   }.freeze
 
   class << self
-    def parse(color_string, gradients = nil, color_mode = :rgb)
-      url_specified = false
-
-      values = ::Prawn::SVG::CSS::ValuesParser.parse(color_string)
-
-      result = values.map do |value|
-        case value
-        in ['rgb', args]
-          hex = (0..2).collect do |n|
-            number = args[n].to_f
-            number *= 2.55 if args[n][-1..] == '%'
-            format('%02x', number.round.clamp(0, 255))
-          end.join
-
-          RGB.new(hex)
-
-        in ['device-cmyk', args]
-          cmyk = (0..3).collect do |n|
-            number = args[n].to_f
-            number *= 100 unless args[n][-1..] == '%'
-            number.clamp(0, 100)
-          end
-
-          CMYK.new(cmyk)
-
-        in ['url', [url]]
-          url_specified = true
-          if url[0] == '#' && gradients && (gradient = gradients[url[1..]])
-            gradient
-          end
-
-        in /\A#([0-9a-f])([0-9a-f])([0-9a-f])\z/i
-          RGB.new("#{$1 * 2}#{$2 * 2}#{$3 * 2}")
-
-        in /\A#[0-9a-f]{6}\z/i
-          RGB.new(value[1..])
-
-        in String => color
-          if (hex = HTML_COLORS[color.downcase])
-            hex_color(hex, color_mode)
-          end
-
-        else
-          nil
-        end
-      end
-
-      # Generally, we default to black if the colour was unparseable.
-      # http://www.w3.org/TR/SVG/painting.html section 11.2 says if a URL was
-      # supplied without a fallback, that's an error.
-      result << default_color(color_mode) unless url_specified
-
-      result.compact
+    def black
+      RGB_DEFAULT_COLOR
     end
 
-    def parse_color(value)
+    def parse(value)
       case value
       in ['rgb', args]
         return unless args.length == 3
@@ -243,13 +214,12 @@ class Prawn::SVG::Color
 
       in String => color
         if (hex = HTML_COLORS[color.downcase])
-          hex_color(hex, nil) # TODO : color mode
+          RGB.new(hex)
         end
-      end
-    end
 
-    def css_color_to_prawn_color(color)
-      parse(color).detect { |value| value.is_a?(RGB) || value.is_a?(CMYK) }&.value
+      else
+        nil
+      end
     end
 
     def default_color(color_mode)
@@ -264,23 +234,6 @@ class Prawn::SVG::Color
         number && (number * percentage_multiplier)
       else
         Float(string, exception: false)
-      end
-    end
-
-    def hex_color(hex, color_mode)
-      if color_mode == :cmyk
-        r, g, b = [hex[0..1], hex[2..3], hex[4..5]].map { |h| h.to_i(16) / 255.0 }
-        k = 1 - [r, g, b].max
-        if k == 1
-          CMYK.new([0, 0, 0, 100])
-        else
-          c = (1 - r - k) / (1 - k)
-          m = (1 - g - k) / (1 - k)
-          y = (1 - b - k) / (1 - k)
-          CMYK.new([c, m, y, k].map { |v| (v * 100).round })
-        end
-      else
-        RGB.new(hex)
       end
     end
   end

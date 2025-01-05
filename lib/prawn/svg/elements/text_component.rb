@@ -46,7 +46,7 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
     # text_anchor and dominant_baseline aren't Prawn options; we have to do some math to support them
     # and so we handle them in Prawn::SVG::Interface#rewrite_call_arguments
     opts = {
-      size:        computed_properties.numerical_font_size,
+      size:        computed_properties.numeric_font_size,
       style:       font&.subfamily,
       text_anchor: computed_properties.text_anchor
     }
@@ -222,8 +222,8 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   end
 
   def calculate_text_rendering_mode
-    fill = computed_properties.fill != 'none'
-    stroke = computed_properties.stroke != 'none'
+    fill = !computed_properties.fill.none? # rubocop:disable Style/InverseMethods
+    stroke = !computed_properties.stroke.none? # rubocop:disable Style/InverseMethods
 
     if fill && stroke
       :fill_stroke
