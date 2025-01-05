@@ -71,8 +71,13 @@ module Prawn::SVG
     end
 
     def set(name, value)
-      if (config = PROPERTIES[name.to_s.downcase]) && (value = parse_value(config, value.strip))
-        instance_variable_set(config.ivar, value)
+      name = name.to_s.downcase
+      if (config = PROPERTIES[name])
+        if (value = parse_value(config, value.strip))
+          instance_variable_set(config.ivar, value)
+        end
+      elsif name == 'font'
+        apply_font_shorthand(value)
       end
     end
 
@@ -179,6 +184,48 @@ module Prawn::SVG
       else
         raise "Unknown valid value type: #{type}"
       end
+    end
+
+    FONT_KEYWORD_MAPPING = ['font-style', 'font-variant', 'font-weight'].each.with_object({}) do |property, result|
+      PROPERTIES[property].valid_values.each do |value|
+        result[value] = property
+      end
+    end
+
+    def apply_font_shorthand(value)
+      if value.strip.match(/\s/).nil?
+        case value.strip.downcase
+        when 'inherit'
+          load_hash('font-style' => 'inherit', 'font-variant' => 'inherit', 'font-weight' => 'inherit', 'font-size' => 'inherit', 'font-family' => 'inherit')
+        when 'caption', 'icon', 'menu', 'message-box', 'small-caption', 'status-bar'
+          load_hash('font-style' => 'normal', 'font-variant' => 'normal', 'font-weight' => 'normal', 'font-size' => 'medium', 'font-family' => 'sans-serif')
+        end
+
+        return
+      end
+
+      properties = ['font-style', 'font-variant', 'font-weight'].each.with_object({}) do |property, result|
+        result[property] = PROPERTIES[property].default
+      end
+
+      values = CSS::FontParser.parse(value)
+      return if values.length < 2
+
+      properties['font-family'] = values.pop
+      font_size = values.pop.sub(%r{/.*}, '')
+
+      values.each do |keyword|
+        keyword = keyword.downcase
+        if (property = FONT_KEYWORD_MAPPING[keyword])
+          properties[property] = keyword
+        else
+          break
+        end
+      end or return
+
+      set('font-size', font_size) or return
+      load_hash(properties)
+      value
     end
   end
 end

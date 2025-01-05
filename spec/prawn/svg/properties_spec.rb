@@ -36,6 +36,84 @@ RSpec.describe Prawn::SVG::Properties do
       subject.set('display', 'invalid')
       expect(subject.display).to eq 'none'
     end
+
+    context 'when setting the font shorthand property' do
+      it 'sets font style, weight, size, and family' do
+        subject.set('font', 'italic bold 12px/30px "New Font", sans-serif')
+        expect(subject.font_style).to eq 'italic'
+        expect(subject.font_weight).to eq 'bold'
+        expect(subject.font_variant).to eq 'normal'
+        expect(subject.font_size).to eq Prawn::SVG::Length.parse('12px')
+        expect(subject.font_family).to eq '"New Font", sans-serif'
+      end
+
+      it 'sets font style, weight, variant, size, and family' do
+        subject.set('font', 'italic small-caps bold 12px/30px "New Font", sans-serif')
+        expect(subject.font_style).to eq 'italic'
+        expect(subject.font_weight).to eq 'bold'
+        expect(subject.font_variant).to eq 'small-caps'
+        expect(subject.font_size).to eq Prawn::SVG::Length.parse('12px')
+        expect(subject.font_family).to eq '"New Font", sans-serif'
+      end
+
+      it 'sets size and family, defaulting everything else to normal' do
+        subject.set('font-weight', 'bold')
+        subject.set('font-style', 'italic')
+        subject.set('font-variant', 'small-caps')
+
+        subject.set('font', '12px fontname')
+        expect(subject.font_style).to eq 'normal'
+        expect(subject.font_weight).to eq 'normal'
+        expect(subject.font_variant).to eq 'normal'
+        expect(subject.font_size).to eq Prawn::SVG::Length.parse('12px')
+        expect(subject.font_family).to eq 'fontname'
+      end
+
+      it 'suports the inherit keyword' do
+        subject.set('font', 'inherit')
+        expect(subject.font_style).to eq 'inherit'
+        expect(subject.font_weight).to eq 'inherit'
+        expect(subject.font_variant).to eq 'inherit'
+        expect(subject.font_size).to eq 'inherit'
+        expect(subject.font_family).to eq 'inherit'
+      end
+
+      it 'supports the standard font keyword, menu' do
+        subject.set('font', 'menu')
+        expect(subject.font_style).to eq 'normal'
+        expect(subject.font_weight).to eq 'normal'
+        expect(subject.font_variant).to eq 'normal'
+        expect(subject.font_size).to eq 'medium'
+        expect(subject.font_family).to eq 'sans-serif'
+      end
+
+      it 'does nothing if an unrecognised keyword is used' do
+        subject.set('font', 'invalid')
+        expect(subject.font_style).to be nil
+        expect(subject.font_weight).to be nil
+        expect(subject.font_variant).to be nil
+        expect(subject.font_size).to be nil
+        expect(subject.font_family).to be nil
+      end
+
+      it 'does nothing if the font size is not valid' do
+        subject.set('font', '23bad sans-serif')
+        expect(subject.font_style).to be nil
+        expect(subject.font_weight).to be nil
+        expect(subject.font_variant).to be nil
+        expect(subject.font_size).to be nil
+        expect(subject.font_family).to be nil
+      end
+
+      it 'does nothing if one of the font keywords is not recognised' do
+        subject.set('font', 'italic invalid bold 12px/30px "New Font", sans-serif')
+        expect(subject.font_style).to be nil
+        expect(subject.font_weight).to be nil
+        expect(subject.font_variant).to be nil
+        expect(subject.font_size).to be nil
+        expect(subject.font_family).to be nil
+      end
+    end
   end
 
   describe '#load_hash' do
