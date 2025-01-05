@@ -17,6 +17,7 @@ module Prawn::SVG
       'clip-path'         => Config.new('none', false, ['none', :funciri]),
       'color'             => Config.new(Color.black, true, [:color]),
       'display'           => Config.new('inline', false, %w[inline none]),
+      'dominant-baseline' => Config.new('auto', true, %w[auto middle]),
       'fill'              => Config.new(Paint.black, true, [:paint]),
       'fill-opacity'      => Config.new(1.0, true, [:number]),
       'fill-rule'         => Config.new('nonzero', true, %w[nonzero evenodd]),
@@ -43,7 +44,7 @@ module Prawn::SVG
       'stroke-width'      => Config.new(1.0, true, [:positive_length, :positive_percentage]),
       'text-anchor'       => Config.new('start', true, %w[start middle end]),
       'text-decoration'   => Config.new('none', true, %w[none underline]),
-      'dominant-baseline' => Config.new('auto', true, %w[auto middle])
+      'visibility'        => Config.new('visible', true, %w[visible hidden collapse])
     }.freeze
 
     PROPERTIES.each do |name, value|

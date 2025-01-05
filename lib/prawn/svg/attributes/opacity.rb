@@ -14,17 +14,17 @@ module Prawn::SVG::Attributes::Opacity
     fill_opacity = computed_properties.fill_opacity.to_f.clamp(0, 1)
     stroke_opacity = computed_properties.stroke_opacity.to_f.clamp(0, 1)
 
-    if opacity || fill_opacity || stroke_opacity
-      state.opacity *= opacity if opacity
+    state.opacity *= opacity if opacity
 
-      fill_opacity = (fill_opacity || 1) * state.opacity
-      stroke_opacity = (stroke_opacity || 1) * state.opacity
+    fill_opacity = (fill_opacity || 1) * state.opacity
+    stroke_opacity = (stroke_opacity || 1) * state.opacity
 
-      if state.last_fill_opacity != fill_opacity || state.last_stroke_opacity != stroke_opacity
-        state.last_fill_opacity = fill_opacity
-        state.last_stroke_opacity = stroke_opacity
-        add_call_and_enter 'transparent', fill_opacity, stroke_opacity
-      end
+    fill_opacity = stroke_opacity = 0 if computed_properties.visibility != 'visible'
+
+    if state.last_fill_opacity != fill_opacity || state.last_stroke_opacity != stroke_opacity
+      state.last_fill_opacity = fill_opacity
+      state.last_stroke_opacity = stroke_opacity
+      add_call_and_enter 'transparent', fill_opacity, stroke_opacity
     end
   end
 end
