@@ -25,10 +25,22 @@ describe Prawn::SVG::Document do
     context 'when unparsable XML is provided' do
       let(:svg) { "this isn't SVG data" }
 
-      it 'raises an exception' do
+      it "raises an exception, passing on REXML's error message" do
         expect do
           Prawn::SVG::Document.new(svg, bounds, options)
-        end.to raise_error Prawn::SVG::Document::InvalidSVGData, 'The data supplied is not a valid SVG document.'
+        end.to raise_error Prawn::SVG::Document::InvalidSVGData,
+          /\AThe data supplied is not a valid SVG document.+Malformed.+#{Regexp.escape(svg)}/m
+      end
+    end
+
+    context 'when broken XML is provided' do
+      let(:svg) { '<svg><g><rect></rect></svg>' }
+
+      it "raises an exception, passing on REXML's error message" do
+        expect do
+          Prawn::SVG::Document.new(svg, bounds, options)
+        end.to raise_error Prawn::SVG::Document::InvalidSVGData,
+          /\AThe data supplied is not a valid SVG document.+Missing end tag for 'g'/m
       end
     end
 
@@ -36,10 +48,12 @@ describe Prawn::SVG::Document do
       let(:svg) { 'some_file.svg' }
 
       it "raises an exception letting them know what they've done" do
+        message = "The data supplied is not a valid SVG document.  It looks like you've supplied a filename " \
+                  'instead; use File.read(filename) to get the data from the file before you pass it to prawn-svg.'
+
         expect do
           Prawn::SVG::Document.new(svg, bounds, options)
-        end.to raise_error Prawn::SVG::Document::InvalidSVGData,
-          "The data supplied is not a valid SVG document.  It looks like you've supplied a filename instead; use IO.read(filename) to get the data before you pass it to prawn-svg."
+        end.to raise_error Prawn::SVG::Document::InvalidSVGData, /\A#{Regexp.escape(message)}/
       end
     end
   end
