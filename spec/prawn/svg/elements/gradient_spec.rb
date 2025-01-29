@@ -24,6 +24,24 @@ describe Prawn::SVG::Elements::Gradient do
       expect(document.gradients['flag']).to eq element
     end
 
+    it 'returns correct gradient arguments for an element with no bounding box' do
+      arguments = element.gradient_arguments(double(bounding_box: nil))
+      expect(arguments).to eq(
+        from:         [0.0, 0.0],
+        to:           [0.2, 1.0],
+        wrap:         :pad,
+        matrix:       Matrix[[1.0, 0.0, 0.0], [0.0, -1.0, 600.0], [0.0, 0.0, 1.0]],
+        bounding_box: nil,
+        stops:        [
+          { offset: 0, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.25, color: 'ff0000', opacity: 1.0 },
+          { offset: 0.5, color: 'ffffff', opacity: 1.0 },
+          { offset: 0.75, color: '0000ff', opacity: 1.0 },
+          { offset: 1, color: '0000ff', opacity: 1.0 }
+        ]
+      )
+    end
+
     it 'returns correct gradient arguments for an element' do
       arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
       expect(arguments).to eq(

@@ -35,7 +35,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         to:           [cx, cy],
         r2:           r,
         stops:        stops,
-        matrix:       matrix_for_bounding_box(*bbox),
+        matrix:       matrix_for_bounding_box(bbox),
         wrap:         wrap,
         bounding_box: bbox
       }
@@ -44,7 +44,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         from:         [x1, y1],
         to:           [x2, y2],
         stops:        stops,
-        matrix:       matrix_for_bounding_box(*bbox),
+        matrix:       matrix_for_bounding_box(bbox),
         wrap:         wrap,
         bounding_box: bbox
       }
@@ -57,8 +57,10 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
   private
 
-  def matrix_for_bounding_box(bounding_x1, bounding_y1, bounding_x2, bounding_y2)
-    if units == :bounding_box
+  def matrix_for_bounding_box(bbox)
+    if bbox && units == :bounding_box
+      bounding_x1, bounding_y1, bounding_x2, bounding_y2 = *bbox
+
       width = bounding_x2 - bounding_x1
       height = bounding_y1 - bounding_y2
 
