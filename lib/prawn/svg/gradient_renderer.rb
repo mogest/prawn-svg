@@ -79,10 +79,21 @@ class Prawn::SVG::GradientRenderer
 
     repeat_count, repeat_offset, transform = compute_wrapping(wrap, from, to, current_pdf_translation)
 
+    x0, y0, x1, y1 = bounding_box || prawn_bounding_box
+
+    offset_x, offset_y = prawn.bounds.anchor
+    x0 += offset_x
+    y0 += offset_y
+    x1 += offset_x
+    y1 += offset_y
+
+    width = x1 - x0
+    height = y0 - y1
+
     transparency_group = prawn.ref!(
       Type:      :XObject,
       Subtype:   :Form,
-      BBox:      prawn.state.page.dimensions,
+      BBox:      [x0, y1, x1, y0],
       Group:     {
         Type: :Group,
         S:    :Transparency,
@@ -108,7 +119,7 @@ class Prawn::SVG::GradientRenderer
     )
 
     transparency_group.stream << begin
-      box = PDF::Core.real_params(prawn.state.page.dimensions)
+      box = PDF::Core.real_params([x0, y1, width, height])
 
       <<~CMDS.strip
         /Pattern cs
