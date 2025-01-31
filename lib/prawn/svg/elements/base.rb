@@ -262,6 +262,14 @@ class Prawn::SVG::Elements::Base
     ['hidden', 'scroll'].include?(computed_properties.overflow)
   end
 
+  def stroke_width
+    if computed_properties.stroke.none?
+      0
+    else
+      pixels(properties.stroke_width) || 1.0
+    end
+  end
+
   def clone_element_source(source)
     new_source = source.dup
     document.element_styles[new_source] = document.element_styles[source]

@@ -25,7 +25,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [0.0, 0.0],
         to:           [0.2, 1.0],
@@ -59,7 +59,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [0.5, 0.2],
         to:           [0.0, 0.2],
@@ -90,7 +90,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [100.0, 500.0],
         to:           [200.0, 600.0],
@@ -113,7 +113,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element' do
-      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [100.0, 500.0],
         to:           [200.0, 600.0],
@@ -138,7 +138,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'passes in the transform via the apply_transformations option' do
-      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = element.gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
 
       expect(arguments).to eq(
         from:         [0.0, 0.0],
@@ -168,7 +168,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'correctly inherits the attributes from the parent element' do
-      arguments = document.gradients['flag-2'].gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = document.gradients['flag-2'].gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [150.0, 500.0],
         to:           [220.0, 600.0],
@@ -178,7 +178,7 @@ describe Prawn::SVG::Elements::Gradient do
         bounding_box: [100, 100, 200, 0]
       )
 
-      arguments = document.gradients['flag-3'].gradient_arguments(double(bounding_box: [100, 100, 200, 0]))
+      arguments = document.gradients['flag-3'].gradient_arguments(double(bounding_box: [100, 100, 200, 0], stroke_width: 0))
       expect(arguments).to eq(
         from:         [170.0, 500.0],
         to:           [220.0, 600.0],
