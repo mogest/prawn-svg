@@ -28,6 +28,9 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   def gradient_arguments(element)
     bbox = element.bounding_box
 
+    sw = element.state.stroke_width
+    bbox_with_stroke = bbox&.zip([-sw, sw, sw, -sw])&.map(&:sum)
+
     if type == :radial
       {
         from:         [fx, fy],
@@ -37,7 +40,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         stops:        stops,
         matrix:       matrix_for_bounding_box(*bbox),
         wrap:         wrap,
-        bounding_box: bbox
+        bounding_box: bbox_with_stroke
       }
     else
       {
@@ -46,7 +49,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         stops:        stops,
         matrix:       matrix_for_bounding_box(*bbox),
         wrap:         wrap,
-        bounding_box: bbox
+        bounding_box: bbox_with_stroke
       }
     end
   end
