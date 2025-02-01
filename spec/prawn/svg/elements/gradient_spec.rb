@@ -25,7 +25,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'returns correct gradient arguments for an element with no bounding box' do
-      arguments = element.gradient_arguments(double(bounding_box: nil))
+      arguments = element.gradient_arguments(double(bounding_box: nil, stroke_width: 0))
       expect(arguments).to eq(
         from:         [0.0, 0.0],
         to:           [0.2, 1.0],
