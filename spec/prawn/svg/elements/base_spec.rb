@@ -175,8 +175,8 @@ describe Prawn::SVG::Elements::Base do
         </style>
         <rect width="100" height="100"></rect>
         <g class="special">
-          <rect width="100" height="100"></rect>
-          <rect width="100" height="100" style="fill: yellow;"></rect>
+          <rect width="100" fill="blue" height="100"></rect>
+          <rect width="100" height="100" fill="blue" style="fill: yellow;"></rect>
         </g>
       </svg>
     SVG

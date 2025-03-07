@@ -142,7 +142,7 @@ class Prawn::SVG::Elements::Base
     source.elements.select do |elem|
       # To be strict, we shouldn't treat namespace-less elements as SVG, but for
       # backwards compatibility, and because it doesn't hurt, we will.
-      elem.namespace == SVG_NAMESPACE || elem.namespace == ''
+      [SVG_NAMESPACE, ''].include?(elem.namespace)
     end
   end
 
@@ -203,6 +203,18 @@ class Prawn::SVG::Elements::Base
   end
 
   def extract_attributes_and_properties
+    # Apply user agent stylesheet
+    if %w[svg symbol image marker pattern foreignObject].include?(source.name)
+      @properties.set('overflow', 'hidden')
+    end
+
+    # Apply presentation attributes, and set attributes that aren't presentation attributes
+    source.attributes.each do |name, value|
+      # Properties#set returns nil if it's not a recognised property name
+      @properties.set(name, value) or @attributes[name] = value
+    end
+
+    # Apply stylesheet styles
     if (styles = document.element_styles[source])
       # TODO : implement !important, at the moment it's just ignored
       styles.each do |name, value, _important|
@@ -210,12 +222,8 @@ class Prawn::SVG::Elements::Base
       end
     end
 
+    # Apply inline styles
     @properties.load_hash(parse_css_declarations(source.attributes['style'] || ''))
-
-    source.attributes.each do |name, value|
-      # Properties#set returns nil if it's not a recognised property name
-      @properties.set(name, value) or @attributes[name] = value
-    end
 
     state.computed_properties.compute_properties(@properties)
   end
