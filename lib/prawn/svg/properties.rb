@@ -1,6 +1,6 @@
 module Prawn::SVG
   class Properties
-    Config = Struct.new(:default, :inheritable?, :valid_values, :attr, :ivar)
+    Config = Struct.new(:default, :inheritable?, :valid_values, :attr, :ivar, :id)
 
     EM = 16
     FONT_SIZES = {
@@ -49,6 +49,7 @@ module Prawn::SVG
 
     PROPERTIES.each do |name, value|
       value.attr = name.gsub('-', '_')
+      value.id = value.attr.to_sym
       value.ivar = "@#{value.attr}"
     end
 
@@ -57,9 +58,11 @@ module Prawn::SVG
     ATTR_NAMES = PROPERTIES.keys.map { |name| name.gsub('-', '_') }
 
     attr_accessor(*ATTR_NAMES)
+    attr_reader :important_ids
 
     def initialize
       @numeric_font_size = EM
+      @important_ids = []
     end
 
     def load_default_stylesheet
@@ -70,10 +73,11 @@ module Prawn::SVG
       self
     end
 
-    def set(name, value)
+    def set(name, value, important: false)
       name = name.to_s.downcase
       if (config = PROPERTIES[name])
-        if (value = parse_value(config, value.strip))
+        if (value = parse_value(config, value.strip)) && (important || !@important_ids.include?(config.id))
+          @important_ids << config.id if important
           instance_variable_set(config.ivar, value)
         end
       elsif name == 'font'
@@ -99,7 +103,7 @@ module Prawn::SVG
       PROPERTY_CONFIGS.each do |config|
         value = other.send(config.attr)
 
-        if value && value != 'inherit'
+        if value && value != 'inherit' && (!@important_ids.include?(config.id) || other.important_ids.include?(config.id))
           instance_variable_set(config.ivar, value)
 
         elsif value.nil? && !config.inheritable?
@@ -107,6 +111,7 @@ module Prawn::SVG
         end
       end
 
+      @important_ids += other.important_ids
       @numeric_font_size = calculate_numeric_font_size
       nil
     end

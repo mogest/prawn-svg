@@ -114,9 +114,9 @@ prawn-svg supports CSS, both in `<style>` blocks and `style` attributes.
 In CSS selectors you can use element names, IDs, classes, attributes (existence, `=`, `^=`, `$=`, `*=`, `~=`, `|=`)
 and all combinators (` `, `>`, `+`, `~`).
 The pseudo-classes `:first-child`, `:last-child` and `:nth-child(n)` (where n is a number) also work.
+`!important` is supported.
 
-Pseudo-elements and the other pseudo-classes are not supported.  Specificity ordering is
-implemented, but `!important` is not.
+Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 

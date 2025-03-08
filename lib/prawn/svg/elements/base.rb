@@ -216,9 +216,8 @@ class Prawn::SVG::Elements::Base
 
     # Apply stylesheet styles
     if (styles = document.element_styles[source])
-      # TODO : implement !important, at the moment it's just ignored
-      styles.each do |name, value, _important|
-        @properties.set(name, value)
+      styles.each do |name, value, important|
+        @properties.set(name, value, important: important)
       end
     end
 

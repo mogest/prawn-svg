@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="320" height="320">
+    <rect x="10" y="10" width="100" height="100" class="green" id="id" />
+    <text x="10" y="130" fill="green">The square above should be green</text>
+
+    <rect x="10" y="170" width="100" height="100" class="green" style="fill: blue;" />
+    <text x="10" y="290" fill="green">The square above should be also be green</text>
+
+    <style>
+        .green { fill: green !important; }
+        rect.green { fill: red; }
+        #id { fill: orange; }
+    </style>
+</svg>
