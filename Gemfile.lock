@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    prawn-svg (0.36.2)
+    prawn-svg (0.37.0)
       css_parser (~> 1.6)
       matrix (~> 0.4.2)
       prawn (>= 0.11.1, < 3)
