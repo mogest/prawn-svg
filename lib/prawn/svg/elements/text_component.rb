@@ -178,9 +178,9 @@ class Prawn::SVG::Elements::TextComponent < Prawn::SVG::Elements::DepthFirstBase
   def svg_text_children
     text_children.select do |child|
       child.node_type == :text || (
-        child.node_type == :element && (
-          child.namespace == SVG_NAMESPACE || child.namespace == ''
-        )
+        child.node_type == :element &&
+          [SVG_NAMESPACE, ''].include?(child.namespace)
+
       )
     end
   end
