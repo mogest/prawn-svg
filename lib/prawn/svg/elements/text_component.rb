@@ -168,7 +168,7 @@ module Prawn::SVG
     def select_font
       font_families = [computed_properties.font_family, document.fallback_font_name]
       font_style = :italic if computed_properties.font_style == 'italic'
-      font_weight = Prawn::SVG::Font.weight_for_css_font_weight(computed_properties.font_weight)
+      font_weight = computed_properties.font_weight
 
       font_families.compact.each do |name|
         font = document.font_registry.load(name, font_weight, font_style)
