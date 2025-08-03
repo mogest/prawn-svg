@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="500" style="text-decoration: underline;" version="1.0" viewBox="0 0 681 500" width="681" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <rect fill="none" height="500" stroke="red" width="681"></rect>
+  <line stroke="red" x1="340" x2="340" y1="0" y2="500"></line>
+  <text text-anchor="middle" x="360" y="21">Centered text with "<tspan font-size="40">tspan</tspan>"</text>
+  <text text-anchor="middle" x="360" y="41">Centered text with "<tspan dx="20">offset tspan</tspan>"</text>
+  <text lengthAdjust="spacingAndGlyphs" textLength="340" y="61">Text with "<tspan dx="20">tspan</tspan>"</text>
+  <text textLength="340" y="81">Text with "<tspan dx="20">tspan</tspan>"</text>
+  <g transform="translate(100,0)">
+    <text transform="translate(100,0) rotate(1)" x="0" y="101">Translated and "<tspan textLength="300">stretched</tspan>"</text>
+  </g>
+  <text y="121">Text with "<tspan textLength="300">stretched <tspan>(partial)</tspan></tspan>"</text>
+  <text y="141">Text with <tspan dx="20">offset</tspan> <tspan dy="20">and</tspan> <tspan dx="20">more offset</tspan></text>
+  <text y="181">tspans are <tspan transform="translate(100,0)">not transformed</tspan></text>
+  <text textLength="340" y="201">double <tspan textLength="150">text length</tspan></text>
+  <text lengthAdjust="spacingAndGlyphs" textLength="340" y="221">double <tspan textLength="150">text length</tspan></text>
+  <text lengthAdjust="spacingAndGlyphs" textLength="340" y="241">double <tspan lengthAdjust="spacingAndGlyphs" textLength="150">text length</tspan></text>
+  <text x="10 30 50 70 90 110 130 150 170 190" y="261">1234<tspan x="300 320">5678</tspan>90ABC</text>
+  <text style="letter-spacing: 30" y="281">Letter spacing</text>
+  <text style="letter-spacing: 30" textLength="340" y="301">Text length and letter spacing</text>
+  <text textLength="340" y="321">ab</text>
+  <text lengthAdjust="spacingAndGlyphs" textLength="120" y="341">Squashing text with "<tspan dx="20">tspan</tspan>"</text>
+  <text textLength="120" y="361">Squashing text with "<tspan dx="20">tspan</tspan>"</text>
+  <text textLength="340" y="381">Simple text length</text>
+  <text lengthAdjust="spacingAndGlyphs" style="letter-spacing: 20" textLength="340" y="401">Text length and letter spacing</text>
+</svg>

@@ -50,6 +50,10 @@ module Prawn
         options[:at] || [x_based_on_requested_alignment, y_based_on_requested_alignment]
       end
 
+      def render_calls(prawn, calls)
+        issue_prawn_command(prawn, calls)
+      end
+
       private
 
       def x_based_on_requested_alignment
@@ -109,65 +113,23 @@ module Prawn
 
       def rewrite_call_arguments(prawn, call, arguments, kwarguments)
         case call
-        when 'text_group'
-          @cursor = [0, sizing.output_height]
+        when 'svg:render'
+          element = arguments.first
+          raise ArgumentError, "Expected a Prawn::SVG::Elements::DirectRenderBase, got #{element.class}" unless element.is_a?(Prawn::SVG::Elements::DirectRenderBase)
+
+          begin
+            element.render(prawn, self)
+          rescue Prawn::SVG::Elements::Base::SkipElementQuietly
+          rescue Prawn::SVG::Elements::Base::SkipElementError => e
+            @document.warnings << e.message
+          end
+
           yield
 
-        when 'draw_text'
-          text = arguments.first
-          options = kwarguments
-
-          at = options.fetch(:at)
-
-          at[0] = @cursor[0] if at[0] == :relative
-          at[1] = @cursor[1] if at[1] == :relative
-
-          case options.delete(:dominant_baseline)
-          when 'middle'
-            height = prawn.font.height
-            at[1] -= height / 2.0
-            @cursor = [at[0], at[1]]
-          end
-
-          if (offset = options.delete(:offset))
-            at[0] += offset[0]
-            at[1] -= offset[1]
-          end
-
-          width = prawn.width_of(text, options.merge(kerning: true))
-
-          if (stretch_to_width = options.delete(:stretch_to_width))
-            factor = stretch_to_width.to_f * 100 / width.to_f
-            prawn.add_content "#{factor} Tz"
-            width = stretch_to_width.to_f
-          end
-
-          if (pad_to_width = options.delete(:pad_to_width))
-            padding_required = pad_to_width.to_f - width.to_f
-            padding_per_character = padding_required / text.length.to_f
-            prawn.add_content "#{padding_per_character} Tc"
-            width = pad_to_width.to_f
-          end
-
-          case options.delete(:text_anchor)
-          when 'middle'
-            at[0] -= width / 2
-            @cursor = [at[0] + (width / 2), at[1]]
-          when 'end'
-            at[0] -= width
-            @cursor = at.dup
-          else
-            @cursor = [at[0] + width, at[1]]
-          end
-
-          decoration = options.delete(:decoration)
-          if decoration == 'underline'
-            prawn.save_graphics_state do
-              prawn.line_width 1
-              prawn.line [at[0], at[1] - 1.25], [at[0] + width, at[1] - 1.25]
-              prawn.stroke
-            end
-          end
+        when 'svg:yield'
+          block = arguments.first
+          block.call
+          yield
 
         when 'transformation_matrix'
           left = prawn.bounds.absolute_left
@@ -216,6 +178,34 @@ module Prawn
           GradientRenderer.new(prawn, type, **kwarguments).draw
           yield
         end
+      end
+
+      def calculate_text_group_width(prawn, children)
+        total_width = 0.0
+
+        children.each do |call, arguments, kwarguments, nested_children|
+          case call
+          when 'draw_text'
+            text = arguments.first
+            options = kwarguments
+
+            total_width += if (stretch_to_width = options[:stretch_to_width])
+                             stretch_to_width.to_f
+                           elsif (pad_to_width = options[:pad_to_width])
+                             pad_to_width.to_f
+                           else
+                             prawn.width_of(text, options.merge(kerning: true))
+                           end
+
+            if (offset = options[:offset])
+              total_width += offset[0]
+            end
+          else
+            total_width += calculate_text_group_width(prawn, nested_children) if nested_children.any?
+          end
+        end
+
+        total_width
       end
 
       def inheritable_options

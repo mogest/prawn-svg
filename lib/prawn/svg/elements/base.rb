@@ -36,7 +36,7 @@ class Prawn::SVG::Elements::Base
     @attributes = {}
     @properties = Prawn::SVG::Properties.new
 
-    if source && !state.inside_use
+    if source && add_to_elements_by_id? && !state.inside_use
       id = source.attributes['id']
       id = id.strip if id
 
@@ -112,6 +112,10 @@ class Prawn::SVG::Elements::Base
 
   def add_calls_from_element(other)
     @calls.concat duplicate_calls(other.base_calls)
+  end
+
+  def add_yield_call(&block)
+    add_call('svg:yield', block)
   end
 
   def new_call_context_from_base
@@ -267,6 +271,14 @@ class Prawn::SVG::Elements::Base
 
   def overflow_hidden?
     ['hidden', 'scroll'].include?(computed_properties.overflow)
+  end
+
+  def transformable?
+    true
+  end
+
+  def add_to_elements_by_id?
+    true
   end
 
   def stroke_width

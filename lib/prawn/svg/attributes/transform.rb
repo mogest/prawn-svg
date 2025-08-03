@@ -1,5 +1,7 @@
 module Prawn::SVG::Attributes::Transform
   def parse_transform_attribute_and_call
+    # Some elements do not support transforms
+    return unless transformable?
     return unless (transform = attributes['transform'])
 
     matrix = matrix_for_pdf(parse_transform_attribute(transform))

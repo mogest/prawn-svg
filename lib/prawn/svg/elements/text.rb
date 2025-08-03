@@ -1,70 +1,72 @@
-class Prawn::SVG::Elements::Text < Prawn::SVG::Elements::DepthFirstBase
-  private
+module Prawn::SVG
+  class Elements::Text < Elements::DirectRenderBase
+    Cursor = Struct.new(:x, :y)
 
-  # This class doesn't represent an element in the SVG document; it's here
-  # to hold together text information.  Because of this, we overload the
-  # parse_step and apply_step methods, and bypass all the normal processing
-  # of the element, delegating it to our root text component.
+    def parse
+      @root_component = Elements::TextComponent.new(document, source, [], state.dup)
+      @root_component.process
 
-  def parse_step
-    state.text = Prawn::SVG::Elements::TextComponent::TextState.new
+      reintroduce_trailing_and_leading_whitespace
+    end
 
-    @text_root = Prawn::SVG::Elements::TextComponent.new(document, source, nil, state.dup)
-    @text_root.parse_step
+    def render(prawn, renderer)
+      @root_component.lay_out(prawn)
 
-    reintroduce_trailing_and_leading_whitespace
-  end
+      translate_x =
+        case @root_component.computed_properties.text_anchor
+        when 'middle'
+          -@root_component.calculated_width / 2.0
+        when 'end'
+          -@root_component.calculated_width
+        end
 
-  def apply_step(calls)
-    @base_calls = @calls = calls
-    add_call_and_enter 'text_group'
-    @text_root.apply_step(@calls)
-  end
+      cursor = Cursor.new(0, document.sizing.output_height)
+      @root_component.render_component(prawn, renderer, cursor, translate_x)
+    end
 
-  def drawable?
-    false
-  end
+    private
 
-  def reintroduce_trailing_and_leading_whitespace
-    printables = []
-    built_printable_queue(printables, @text_root)
+    def reintroduce_trailing_and_leading_whitespace
+      text_nodes = []
+      build_text_node_queue(text_nodes, @root_component)
 
-    remove_whitespace_only_printables_and_start_and_end(printables)
-    remove_printables_that_are_completely_empty(printables)
-    apportion_leading_and_trailing_spaces(printables)
-  end
+      remove_whitespace_only_text_nodes_and_start_and_end(text_nodes)
+      remove_text_nodes_that_are_completely_empty(text_nodes)
+      apportion_leading_and_trailing_spaces(text_nodes)
+    end
 
-  def built_printable_queue(queue, component)
-    component.commands.each do |command|
-      case command
-      when Prawn::SVG::Elements::TextComponent::Printable
-        queue << command
-      else
-        built_printable_queue(queue, command)
+    def build_text_node_queue(queue, component)
+      component.children.each do |element|
+        case element
+        when Elements::TextNode
+          queue << element
+        else
+          build_text_node_queue(queue, element)
+        end
       end
     end
-  end
 
-  def remove_whitespace_only_printables_and_start_and_end(printables)
-    printables.pop   while printables.last  && printables.last.text.empty?
-    printables.shift while printables.first && printables.first.text.empty?
-  end
-
-  def remove_printables_that_are_completely_empty(printables)
-    printables.reject! do |printable|
-      printable.text.empty? && !printable.trailing_space? && !printable.leading_space?
+    def remove_whitespace_only_text_nodes_and_start_and_end(text_nodes)
+      text_nodes.pop   while text_nodes.last  && text_nodes.last.text.empty?
+      text_nodes.shift while text_nodes.first && text_nodes.first.text.empty?
     end
-  end
 
-  def apportion_leading_and_trailing_spaces(printables)
-    printables.each_cons(2) do |a, b|
-      if a.text.empty?
-        # Empty strings can only get a leading space from the previous non-empty text,
-        # and never get a trailing space
-      elsif a.trailing_space?
-        a.text += ' '
-      elsif b.leading_space?
-        b.text = " #{b.text}"
+    def remove_text_nodes_that_are_completely_empty(text_nodes)
+      text_nodes.reject! do |text_node|
+        text_node.text.empty? && !text_node.trailing_space? && !text_node.leading_space?
+      end
+    end
+
+    def apportion_leading_and_trailing_spaces(text_nodes)
+      text_nodes.each_cons(2) do |a, b|
+        if a.text.empty?
+          # Empty strings can only get a leading space from the previous non-empty text,
+          # and never get a trailing space
+        elsif a.trailing_space?
+          a.text += ' '
+        elsif b.leading_space?
+          b.text = " #{b.text}"
+        end
       end
     end
   end

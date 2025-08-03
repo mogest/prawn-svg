@@ -10,6 +10,10 @@ describe Prawn::SVG::Attributes::Transform do
       @warnings = []
       @attributes = {}
     end
+
+    def transformable?
+      true
+    end
   end
 
   let(:element) { TransformTestElement.new }

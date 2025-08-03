@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="12cm" height="8cm" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" xmlns:xlink='http://www.w3.org/1999/xlink' version="1.1">
+  <defs>
+    <text id="basic-text" x="50" y="50" font-family="Arial" font-size="24" fill="black">Hello World</text>
+
+    <text id="styled-text" x="0" y="0" font-family="Arial" font-size="20" fill="blue" font-weight="bold">Styled Text</text>
+
+    <g id="text-group">
+      <text x="10" y="30" font-family="Arial" font-size="16" fill="red">Line 1</text>
+      <text x="10" y="50" font-family="Arial" font-size="16" fill="green">Line 2</text>
+      <text x="10" y="70" font-family="Arial" font-size="16" fill="blue">Line 3</text>
+    </g>
+  </defs>
+
+  <!-- Test basic text use -->
+  <use xlink:href="#basic-text"/>
+  <use xlink:href="#basic-text" x="200" y="50"/>
+  <use xlink:href="#basic-text" x="400" y="100"/>
+
+  <!-- Test styled text with transforms -->
+  <use xlink:href="#styled-text" x="100" y="200" transform="scale(1.5)"/>
+  <use xlink:href="#styled-text" x="300" y="250" transform="rotate(15)"/>
+  <use xlink:href="#styled-text" x="500" y="200" style="opacity: 0.5;"/>
+
+  <!-- Test text group reuse -->
+  <use xlink:href="#text-group" x="50" y="350"/>
+  <use xlink:href="#text-group" x="250" y="400" transform="scale(0.8)"/>
+  <use xlink:href="#text-group" x="450" y="350" style="fill: purple;"/>
+
+  <!-- Test with additional styling on use elements -->
+  <use xlink:href="#basic-text" x="100" y="600" style="fill: orange; font-size: 32px;"/>
+  <use xlink:href="#styled-text" x="400" y="650" style="stroke: black; stroke-width: 1;"/>
+
+  <!-- Border for reference -->
+  <rect x="1" y="1" width="1198" height="798" fill="none" stroke="gray" stroke-width="2"/>
+</svg>

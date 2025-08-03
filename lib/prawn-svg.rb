@@ -6,6 +6,7 @@ require 'prawn/svg/version'
 require 'css_parser'
 
 require 'prawn/svg/font_registry'
+require 'prawn/svg/font_metrics'
 require 'prawn/svg/calculators/arc_to_bezier_curve'
 require 'prawn/svg/calculators/aspect_ratio'
 require 'prawn/svg/calculators/document_sizing'
