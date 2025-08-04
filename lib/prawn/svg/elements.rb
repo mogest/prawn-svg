@@ -4,7 +4,7 @@ end
 
 require 'prawn/svg/elements/call_duplicator'
 
-%w[base depth_first_base direct_render_base root container clip_path viewport text text_component text_node line polyline polygon circle ellipse
+%w[base direct_render_base root container clip_path viewport text text_component text_node line polyline polygon circle ellipse
    rect path use image gradient marker ignored].each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
