@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="106" preserveAspectRatio="xMidYMid meet" version="1.0" viewBox="0 0 681 106" width="681" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="60" y="8">0</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="100" y="8">1</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="140" y="8">2</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="180" y="8">3</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="220" y="8">4</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="260" y="8">5</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="300" y="8">6</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="340" y="8">7</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="380" y="8">8</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="420" y="8">9</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="460" y="8">a</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="500" y="8">b</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="540" y="8">c</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="580" y="8">d</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="620" y="8">e</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" text-anchor="middle" x="660" y="8">f</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="40" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="80" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="80" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="80" x2="80" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="40" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="60" y="31">51</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="80" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="120" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="120" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="120" x2="120" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="80" x2="80" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="100" y="31">73</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="120" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="160" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="160" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="160" x2="160" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="120" x2="120" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="140" y="31">70</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="160" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="160" x2="200" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="160" x2="200" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="200" x2="200" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="160" x2="160" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="180" y="31">74</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="200" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="240" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="240" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="240" x2="240" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="200" x2="200" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="220" y="31">31</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="240" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="240" x2="280" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="240" x2="280" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="280" x2="280" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="240" x2="240" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="260" y="31">57</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="280" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="280" x2="320" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="280" x2="320" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="320" x2="320" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="280" x2="280" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="300" y="31">6d</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="320" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="320" x2="360" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="320" x2="360" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="360" x2="360" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="320" x2="320" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="340" y="31">4a</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="360" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="360" x2="400" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="360" x2="400" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="400" x2="400" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="360" x2="360" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="380" y="31">4f</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="400" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="400" x2="440" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="400" x2="440" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="440" x2="440" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="400" x2="400" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="420" y="31">4c</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="440" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="440" x2="480" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="440" x2="480" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="480" x2="480" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="440" x2="440" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" font-weight="bold" text-anchor="middle" x="460" y="31">0a</text>
+  <rect fill="#a0ffa0" height="30" width="40" x="480" y="15"></rect>
+  <line stroke="#000000" stroke-width="1" x1="480" x2="520" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="480" x2="520" y1="45" y2="45"></line>
+  <line stroke="#000000" stroke-width="1" x1="520" x2="520" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-dasharray="1,3" stroke-width="1" x1="480" x2="480" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="500" y="31">00</text>
+  <line stroke="#000000" stroke-width="1" x1="520" x2="680" y1="15" y2="15"></line>
+  <line stroke="#000000" stroke-width="1" x1="680" x2="680" y1="15" y2="45"></line>
+  <line stroke="#000000" stroke-width="1" x1="520" x2="520" y1="15" y2="45"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" font-style="normal" text-anchor="end" x="35" y="30">00</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" font-style="normal" text-anchor="end" x="35" y="60">10</text>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="680" y1="75" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="680" x2="680" y1="45" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="40" y1="45" y2="75"></line>
+  <text dominant-baseline="middle" font-family="Palatino, Georgia, Times New Roman, serif" font-size="18" text-anchor="middle" x="360" y="61">Device Name (padded with <tspan dominant-baseline="middle" font-family="Courier New, monospace" font-size="18">00</tspan>)</text>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="11" font-style="normal" text-anchor="end" x="35" y="90">20</text>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="80" y1="75" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="80" y1="105" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="80" y1="75" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="40" x2="40" y1="75" y2="105"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="60" y="91">01</text>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="120" y1="75" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="120" y1="105" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="120" y1="75" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="80" x2="80" y1="75" y2="105"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" font-weight="bold" text-anchor="middle" x="100" y="91">02</text>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="200" y1="75" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="200" y1="105" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="200" y1="75" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="120" x2="120" y1="75" y2="105"></line>
+  <text dominant-baseline="middle" font-family="Palatino, Georgia, Times New Roman, serif" font-size="18" font-style="italic" text-anchor="middle" x="160" y="91">len<tspan dominant-baseline="middle" dy="0.5ex" font-size="70%">p</tspan></text>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="240" y1="75" y2="75"></line>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="240" y1="105" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="240" x2="240" y1="75" y2="105"></line>
+  <line stroke="#000000" stroke-width="1" x1="200" x2="200" y1="75" y2="105"></line>
+  <text dominant-baseline="middle" font-family="Courier New, monospace" font-size="18" text-anchor="middle" x="220" y="91">02</text>
+</svg>
