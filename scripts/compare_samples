@@ -1,0 +1,25 @@
+#!/usr/bin/env fish
+
+if test (count $argv) -ne 2
+    echo "Usage: compare_samples [file containing sample output files] [new branch name]"
+    echo
+    echo A handy script that generates a sample SVG on both the main branch and the specified branch, and displays
+    echo them alongside the original SVG as rendered by Arc.  Used to see whether there have been regressions or
+    echo improvements in rendering code changes.
+    exit 1
+end
+
+set files $argv[1]
+set branch $argv[2]
+
+set i (cat $files | string trim | fzf)
+and echo $i
+and git switch main
+and bundle exec rspec -e (echo $i | string replace 'spec/sample_output/' '' | string replace '.pdf' '')
+and cp $i original.pdf
+and git switch $branch
+and bundle exec rspec -e (echo $i | string replace 'spec/sample_output/' '' | string replace '.pdf' '')
+and cp $i new.pdf
+and open -n original.pdf
+and open -n new.pdf
+and open -a Arc (echo $i | string replace sample_output sample_svg | string replace .pdf '')
