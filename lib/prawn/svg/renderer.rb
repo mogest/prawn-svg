@@ -180,34 +180,6 @@ module Prawn
         end
       end
 
-      def calculate_text_group_width(prawn, children)
-        total_width = 0.0
-
-        children.each do |call, arguments, kwarguments, nested_children|
-          case call
-          when 'draw_text'
-            text = arguments.first
-            options = kwarguments
-
-            total_width += if (stretch_to_width = options[:stretch_to_width])
-                             stretch_to_width.to_f
-                           elsif (pad_to_width = options[:pad_to_width])
-                             pad_to_width.to_f
-                           else
-                             prawn.width_of(text, options.merge(kerning: true))
-                           end
-
-            if (offset = options[:offset])
-              total_width += offset[0]
-            end
-          else
-            total_width += calculate_text_group_width(prawn, nested_children) if nested_children.any?
-          end
-        end
-
-        total_width
-      end
-
       def inheritable_options
         (options || {}).slice(Prawn::SVG::Interface::INHERITABLE_OPTIONS)
       end
