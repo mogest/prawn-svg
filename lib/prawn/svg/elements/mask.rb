@@ -46,9 +46,9 @@ module Prawn::SVG::Elements
         element.add_call_and_enter 'soft_mask'
         
         # Process mask's child elements to get drawing commands for the mask
-        # First process my children to generate the mask pattern
+        # This needs to handle <use> elements and convert them appropriately
         new_call_context_from_base do
-          process_child_elements
+          process_child_elements_for_mask
         end
         
         # Add the mask's drawing commands inside the soft_mask block
@@ -59,6 +59,55 @@ module Prawn::SVG::Elements
         
         # Now the masked content will be drawn after this
       end
+    end
+
+    private
+
+    def process_child_elements_for_mask
+      # Override to handle special mask processing
+      source.elements.each do |elem|
+        case elem.name
+        when 'use'
+          # Special handling for use elements in masks
+          process_use_element_for_mask(elem)
+        else
+          # Process normally
+          process_child_element(elem)
+        end
+      end
+    end
+
+    def process_use_element_for_mask(use_element)
+      # Process a use element the standard way
+      # This will handle references to images and other elements properly
+      use_elem = Prawn::SVG::Elements::Use.new(document, use_element, calls, state.dup)
+      begin
+        use_elem.process
+      rescue Prawn::SVG::Elements::Base::SkipElementError => e
+        @document.warnings << "Skipped use element in mask: #{e.message}"
+      end
+    end
+
+    def find_element_by_id(id)
+      # First check the document's cached elements
+      if @document.elements_by_id && @document.elements_by_id[id]
+        return @document.elements_by_id[id].source
+      end
+      
+      # Otherwise search the document
+      REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
+    end
+
+    def process_child_element(elem)
+      child = build_element(elem, calls, state.dup)
+      child.process if child
+    end
+
+    def build_element(source, calls, state)
+      klass = Prawn::SVG::Elements::TAG_CLASS_MAPPING[source.name.to_sym]
+      return unless klass
+      
+      klass.new(document, source, calls, state)
     end
   end
 end
