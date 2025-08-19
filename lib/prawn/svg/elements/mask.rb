@@ -34,30 +34,30 @@ module Prawn::SVG::Elements
     end
 
     def apply_mask(element)
+      # Apply the mask to the element  
       element.new_call_context_from_base do
-        if mask_units == 'userSpaceOnUse'
-          location = [@x, @y]
-          size = [@width, @height]
-        else
-          bounding_x1, bounding_y1, bounding_x2, bounding_y2 = element.bounding_box
-          return if bounding_y2.nil?
-
-          bounding_width = bounding_x2 - bounding_x1
-          bounding_height = bounding_y2 - bounding_y1
-
-          location = [
-            bounding_x1 + bounding_width * @x,
-            bounding_y1 - bounding_height * @y
-          ]
-
-          size = [bounding_width * @width, bounding_height * @height]
+        # Save graphics state first
+        element.add_call 'save_graphics_state'
+        
+        # Store current position before entering soft_mask
+        element.push_call_position
+        
+        # Create soft mask with the mask's content as nested calls
+        element.add_call_and_enter 'soft_mask'
+        
+        # Process mask's child elements to get drawing commands for the mask
+        # First process my children to generate the mask pattern
+        new_call_context_from_base do
+          process_child_elements
         end
-
-        element.add_call 'rectangle', location, size[0], size[1]
-        element.add_call 'clip'
-
-        element.add_call_and_enter('soft_mask')
+        
+        # Add the mask's drawing commands inside the soft_mask block
         element.add_calls_from_element(self)
+        
+        # Restore to parent context (outside soft_mask block)
+        element.pop_call_position
+        
+        # Now the masked content will be drawn after this
       end
     end
   end
