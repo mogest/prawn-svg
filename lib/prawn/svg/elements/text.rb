@@ -6,10 +6,12 @@ module Prawn::SVG
       @root_component = Elements::TextComponent.new(document, source, [], state.dup)
       @root_component.process
 
-      reintroduce_trailing_and_leading_whitespace
+      reintroduce_trailing_and_leading_whitespace if @root_component.children
     end
 
     def render(prawn, renderer)
+      return unless @root_component.children
+
       @root_component.lay_out(prawn)
 
       translate_x =
