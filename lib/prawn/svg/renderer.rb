@@ -106,15 +106,17 @@ module Prawn
           elsif children.empty? && call != 'transparent' # some prawn calls complain if they aren't supplied a block
             if kwarguments && !kwarguments.empty?
               prawn.send(call, *arguments, **kwarguments)
-            else
+            elsif arguments.any?
               prawn.send(call, *arguments)
-            end
-          else
-            if kwarguments && !kwarguments.empty?
-              prawn.send(call, *arguments, **kwarguments, &proc_creator(prawn, children))
             else
-              prawn.send(call, *arguments, &proc_creator(prawn, children))
+              prawn.send(call)
             end
+          elsif kwarguments && !kwarguments.empty?
+            prawn.send(call, *arguments, **kwarguments, &proc_creator(prawn, children))
+          elsif arguments.any?
+            prawn.send(call, *arguments, &proc_creator(prawn, children))
+          else
+            prawn.send(call, &proc_creator(prawn, children))
           end
         end
       end
