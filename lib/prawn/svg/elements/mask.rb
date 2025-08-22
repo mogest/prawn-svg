@@ -76,7 +76,7 @@ module Prawn::SVG::Elements
     def find_element_by_id(id)
       # First check the document's cached elements
       return @document.elements_by_id[id].source if @document.elements_by_id && @document.elements_by_id[id]
-      
+
       # Otherwise search the document
       REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
     end
