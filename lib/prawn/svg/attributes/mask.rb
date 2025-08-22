@@ -3,16 +3,12 @@ module Prawn::SVG::Attributes
     URI_REGEX = /\A\s*url\(#(.+)\)\s*\z/
 
     def parse_mask_and_call
-      return unless matches = properties.mask&.match(URI_REGEX)
-      id = matches[1]
+      mask_element = extract_element_from_url_id_reference(properties.mask, 'mask')
 
-      # TODO: need to look forward too? how do we do this elsewhere
-      mask = document.elements_by_id[id]
-
-      if mask && mask.class == Prawn::SVG::Elements::Mask
-        mask.apply_mask(self)
-      else
-        @document.warnings << "mask ID '#{id}' not found, ignoring attribute"
+      if mask_element
+        mask_element.apply_mask(self)
+      elsif properties.mask && properties.mask != 'none'
+        @document.warnings << "Could not resolve mask URI to a mask element"
       end
     end
   end
