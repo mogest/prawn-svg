@@ -104,9 +104,19 @@ module Prawn
           if skip
             # the call has been overridden
           elsif children.empty? && call != 'transparent' # some prawn calls complain if they aren't supplied a block
-            prawn.send(call, *arguments, **kwarguments)
-          else
+            if kwarguments && !kwarguments.empty?
+              prawn.send(call, *arguments, **kwarguments)
+            elsif arguments.any?
+              prawn.send(call, *arguments)
+            else
+              prawn.send(call)
+            end
+          elsif kwarguments && !kwarguments.empty?
             prawn.send(call, *arguments, **kwarguments, &proc_creator(prawn, children))
+          elsif arguments.any?
+            prawn.send(call, *arguments, &proc_creator(prawn, children))
+          else
+            prawn.send(call, &proc_creator(prawn, children))
           end
         end
       end

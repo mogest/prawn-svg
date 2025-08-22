@@ -29,6 +29,7 @@ module Prawn::SVG
       'font-variant'      => Config.new('normal', true, %w[normal small-caps]),
       'font-weight'       => Config.new('normal', true, %w[normal bold 100 200 300 400 500 600 700 800 900]), # bolder/lighter not supported
       'letter-spacing'    => Config.new('normal', true, [:length, 'normal']),
+      'mask'              => Config.new('none', false, ['none', :funciri]),
       'marker-end'        => Config.new('none', true, [:funciri, 'none']),
       'marker-mid'        => Config.new('none', true, [:funciri, 'none']),
       'marker-start'      => Config.new('none', true, [:funciri, 'none']),

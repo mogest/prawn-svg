@@ -1,4 +1,6 @@
 class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
+  include Prawn::SVG::Calculators::UnitInterval
+
   attr_reader :parent_gradient
   attr_reader :x1, :y1, :x2, :y2, :cx, :cy, :r, :fx, :fy, :fr, :units, :stops, :transform_matrix, :wrap
 

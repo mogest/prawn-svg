@@ -10,6 +10,7 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::ClipPath
   include Prawn::SVG::Attributes::Stroke
   include Prawn::SVG::Attributes::Space
+  include Prawn::SVG::Attributes::Mask
 
   include Prawn::SVG::TransformParser
 
@@ -125,17 +126,21 @@ class Prawn::SVG::Elements::Base
     @calls = old_calls
   end
 
+  def isolate_children?
+    true
+  end
+
   def process_child_elements
     return unless source
 
     svg_child_elements.each do |elem|
       if (element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[elem.name.to_sym])
-        add_call 'save'
+        add_call 'save' if isolate_children?
 
         child = element_class.new(@document, elem, @calls, state.dup)
         child.process
 
-        add_call 'restore'
+        add_call 'restore' if isolate_children?
       else
         @document.warnings << "Unknown tag '#{elem.name}'; ignoring"
       end
@@ -154,6 +159,7 @@ class Prawn::SVG::Elements::Base
     parse_transform_attribute_and_call
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call
+    parse_mask_and_call
     apply_colors
     parse_stroke_attributes_and_call
     apply_drawing_call
