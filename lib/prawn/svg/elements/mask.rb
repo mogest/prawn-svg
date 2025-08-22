@@ -35,20 +35,14 @@ module Prawn::SVG::Elements
       # Apply the mask to the element
       element.new_call_context_from_base do
         element.add_call 'save_graphics_state'
-        
         element.push_call_position
-        
         element.add_call_and_enter 'soft_mask'
-        
         # Process mask's child elements to get drawing commands for the mask
         new_call_context_from_base do
           process_child_elements_for_mask
         end
-        
         element.add_calls_from_element(self)
-        
         element.pop_call_position
-        
         # Now the masked content will be drawn after this
       end
     end

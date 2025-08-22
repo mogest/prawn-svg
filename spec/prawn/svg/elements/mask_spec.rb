@@ -17,7 +17,7 @@ describe Prawn::SVG::Elements::Mask do
         </svg>
       SVG
     end
-    
+
     let(:mask_element) { document.root.elements['//mask'] }
 
     it 'creates a mask element' do
@@ -47,7 +47,7 @@ describe Prawn::SVG::Elements::Mask do
         </svg>
       SVG
     end
-    
+
     let(:mask_element) { document.root.elements['//mask'] }
 
     it 'can parse masks with use elements' do
@@ -68,10 +68,10 @@ describe Prawn::SVG::Elements::Mask do
         </svg>
       SVG
     end
-    
+
     let(:mask_element) { document.root.elements['//mask'] }
 
-    it "can be parsed" do
+    it 'can be parsed' do
       expect { element.parse }.not_to raise_error
       expect(element.mask_units).to eq('objectBoundingBox')
       expect(element.mask_content_units).to eq('userSpaceOnUse')
