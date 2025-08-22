@@ -183,6 +183,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       end
     end
   end
+  
   def percentage_or_proportion(string, default = 0)
     string = string.to_s.strip
     percentage = false

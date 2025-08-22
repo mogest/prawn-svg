@@ -8,9 +8,7 @@ module Prawn::SVG::Elements
       @mask_units = attributes['maskUnits'] || 'objectBoundingBox'
       @mask_content_units = attributes['maskContentUnits'] || 'userSpaceOnUse'
 
-      if @mask_content_units == 'objectBoundingBox'
-        @document.warnings << "maskContentUnits='objectBoundingBox' on mask element is not supported"
-      end
+      @document.warnings << "maskContentUnits='objectBoundingBox' on mask element is not supported" if @mask_content_units == 'objectBoundingBox'
 
       if mask_units == 'userSpaceOnUse'
         @x = x(attributes['x'] || '-10%')
@@ -34,27 +32,21 @@ module Prawn::SVG::Elements
     end
 
     def apply_mask(element)
-      # Apply the mask to the element  
+      # Apply the mask to the element
       element.new_call_context_from_base do
-        # Save graphics state first
         element.add_call 'save_graphics_state'
         
-        # Store current position before entering soft_mask
         element.push_call_position
         
-        # Create soft mask with the mask's content as nested calls
         element.add_call_and_enter 'soft_mask'
         
         # Process mask's child elements to get drawing commands for the mask
-        # This needs to handle <use> elements and convert them appropriately
         new_call_context_from_base do
           process_child_elements_for_mask
         end
         
-        # Add the mask's drawing commands inside the soft_mask block
         element.add_calls_from_element(self)
         
-        # Restore to parent context (outside soft_mask block)
         element.pop_call_position
         
         # Now the masked content will be drawn after this
@@ -79,7 +71,6 @@ module Prawn::SVG::Elements
 
     def process_use_element_for_mask(use_element)
       # Process a use element the standard way
-      # This will handle references to images and other elements properly
       use_elem = Prawn::SVG::Elements::Use.new(document, use_element, calls, state.dup)
       begin
         use_elem.process
@@ -90,9 +81,7 @@ module Prawn::SVG::Elements
 
     def find_element_by_id(id)
       # First check the document's cached elements
-      if @document.elements_by_id && @document.elements_by_id[id]
-        return @document.elements_by_id[id].source
-      end
+      return @document.elements_by_id[id].source if @document.elements_by_id && @document.elements_by_id[id]
       
       # Otherwise search the document
       REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
@@ -100,13 +89,13 @@ module Prawn::SVG::Elements
 
     def process_child_element(elem)
       child = build_element(elem, calls, state.dup)
-      child.process if child
+      child&.process
     end
 
     def build_element(source, calls, state)
       klass = Prawn::SVG::Elements::TAG_CLASS_MAPPING[source.name.to_sym]
       return unless klass
-      
+
       klass.new(document, source, calls, state)
     end
   end

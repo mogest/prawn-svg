@@ -7,7 +7,7 @@ module Prawn::SVG::Calculators
       return default if string == ''
 
       value = string.to_f
-      value /= 100.0 if string[-1..-1] == '%'
+      value /= 100.0 if string[-1..] == '%'
       [0.0, value, 1.0].sort[1]
     end
   end

@@ -4,7 +4,7 @@ describe Prawn::SVG::Elements::Mask do
   let(:document) { Prawn::SVG::Document.new(svg, [100, 100], {}) }
   let(:element) { Prawn::SVG::Elements::Mask.new(document, mask_element, [], Prawn::SVG::State.new) }
 
-  describe "basic mask support" do
+  describe 'basic mask support' do
     let(:svg) do
       <<-SVG
         <svg xmlns="http://www.w3.org/2000/svg">
@@ -18,22 +18,22 @@ describe Prawn::SVG::Elements::Mask do
       SVG
     end
     
-    let(:mask_element) { document.root.elements["//mask"] }
+    let(:mask_element) { document.root.elements['//mask'] }
 
-    it "creates a mask element" do
+    it 'creates a mask element' do
       expect(element).to be_a(Prawn::SVG::Elements::Mask)
     end
 
-    it "is a container element" do
+    it 'is a container element' do
       expect(element.container?).to be true
     end
 
-    it "does not isolate children" do
+    it 'does not isolate children' do
       expect(element.isolate_children?).to be false
     end
   end
 
-  describe "mask with use element" do
+  describe 'mask with use element' do
     let(:svg) do
       <<-SVG
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100">
@@ -48,15 +48,15 @@ describe Prawn::SVG::Elements::Mask do
       SVG
     end
     
-    let(:mask_element) { document.root.elements["//mask"] }
+    let(:mask_element) { document.root.elements['//mask'] }
 
-    it "can parse masks with use elements" do
+    it 'can parse masks with use elements' do
       element.parse
       expect(element).to be_a(Prawn::SVG::Elements::Mask)
     end
   end
 
-  describe "mask processing" do
+  describe 'mask processing' do
     let(:svg) do
       <<-SVG
         <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
@@ -69,7 +69,7 @@ describe Prawn::SVG::Elements::Mask do
       SVG
     end
     
-    let(:mask_element) { document.root.elements["//mask"] }
+    let(:mask_element) { document.root.elements['//mask'] }
 
     it "can be parsed" do
       expect { element.parse }.not_to raise_error
