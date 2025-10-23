@@ -15,6 +15,15 @@ RSpec.describe Prawn::SVG::FontRegistry do
       expect(font_registry.load('blah, serif , test').name).to eq('Times-Roman')
     end
 
+    it 'allows generic font family to be remapped in font registry' do
+      pdf = Prawn::Document.new
+      pdf.font_families.update('serif' => { normal: 'Courier' })
+      registry = Prawn::SVG::FontRegistry.new(pdf.font_families)
+
+      font = registry.load('serif')
+      expect(font.name).to eq('serif')
+    end
+
     if Prawn::SVG::FontRegistry.new({}).installed_fonts['Verdana']
       it 'matches a font installed on the system' do
         expect(font_registry.load('verdana, sans-serif').name).to eq('Verdana')

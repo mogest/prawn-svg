@@ -58,7 +58,8 @@ module Prawn::SVG
 
     def find_suitable_font(name, weight, style)
       name = correctly_cased_font_name(name) || name
-      name = GENERIC_CSS_FONT_MAPPING[name] if GENERIC_CSS_FONT_MAPPING.key?(name)
+
+      name = GENERIC_CSS_FONT_MAPPING[name] if GENERIC_CSS_FONT_MAPPING.key?(name) && !installed_fonts.key?(name)
 
       return unless (subfamilies = installed_fonts[name])
       return if subfamilies.empty?
