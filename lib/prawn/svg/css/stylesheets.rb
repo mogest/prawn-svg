@@ -119,7 +119,7 @@ module Prawn::SVG::CSS
           when '^='
             result << "[starts-with(@#{key}, #{xpath_quote value})]"
           when '$='
-            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_quote value})]"
+            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_quote value}]"
           when '*='
             result << "[contains(@#{key}, #{xpath_quote value})]"
           when '~='

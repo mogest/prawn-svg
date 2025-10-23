@@ -73,7 +73,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       ]
 
       expected << [5,
-                   [['fill', '#ff0000', false], ['fill', '#330000', false], ['fill', '#330000', false], ['fill', '#440000', false],
+                   [['fill', '#ff0000', false], ['fill', '#330000', false], ['fill', '#440000', false],
                     ['fill', '#00ff00', false]]]
 
       expected.push(
