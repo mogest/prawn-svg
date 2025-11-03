@@ -110,7 +110,10 @@ module Prawn::SVG
         cursor.y = chunk.y if chunk.y
         cursor.y -= chunk.dy if chunk.dy
 
-        render_underline(prawn, size, cursor, y_offset, chunk.fixed_width || chunk.base_width) if component.computed_properties.text_decoration == 'underline'
+        width = chunk.fixed_width || chunk.base_width
+
+        render_underline(prawn, size, cursor, y_offset, width) if component.computed_properties.text_decoration == 'underline'
+        render_link_annotation(prawn, size, cursor, y_offset, width)
 
         opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)] }
         opts[:rotate] = chunk.rotate if chunk.rotate
@@ -154,6 +157,20 @@ module Prawn::SVG
       offset, thickness = FontMetrics.underline_metrics(prawn, size)
 
       prawn.fill_rectangle [cursor.x, cursor.y + (y_offset || 0) + offset + (thickness / 2.0)], width, thickness
+    end
+
+    def render_link_annotation(prawn, size, cursor, y_offset, width)
+      href = component.state.anchor_href
+      return unless href
+
+      text_bottom = cursor.y + (y_offset || 0) - scaled_font_size(prawn, :descender, size)
+      font_height = scaled_font_size(prawn, :height, size)
+
+      LinkRenderer.new(href, [cursor.x, text_bottom + font_height, cursor.x + width, text_bottom]).render(prawn)
+    end
+
+    def scaled_font_size(prawn, method_name, size)
+      (prawn.font.public_send(method_name) / prawn.font_size) * size
     end
 
     def calculate_text_rendering_mode

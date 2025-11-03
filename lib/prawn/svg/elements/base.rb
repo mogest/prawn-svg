@@ -56,6 +56,10 @@ class Prawn::SVG::Elements::Base
     apply_calls_from_standard_attributes
     apply
 
+    if state.anchor_href && bounding_box
+      add_call('svg:add_link', state.anchor_href, bounding_box)
+    end
+
     process_child_elements if container?
 
     append_calls_to_parent unless computed_properties.display == 'none'
