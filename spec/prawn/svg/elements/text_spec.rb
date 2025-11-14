@@ -11,12 +11,13 @@ describe Prawn::SVG::Elements::Text do
     { size: 16, style: :normal, at: [:relative, :relative], offset: [0, 0] }
   end
 
-  let(:prawn) { instance_double('Prawn::Document') }
+  let(:prawn) { instance_double('Prawn::Document', font_size: 20) }
   let(:renderer) { instance_double('Prawn::SVG::Renderer') }
+  let(:font) { instance_double('Prawn::Font', descender: 5, height: 15) }
 
   def setup_basic_mocks
     allow(prawn).to receive(:save_font).and_yield
-    allow(prawn).to receive(:font)
+    allow(prawn).to receive(:font).and_return(font)
     allow(prawn).to receive(:width_of).and_return(50.0)
     allow(prawn).to receive(:draw_text)
     allow(prawn).to receive(:horizontal_text_scaling).and_yield
@@ -187,6 +188,43 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'link' do
+    let(:fake_state) do
+      state = super()
+      state.anchor_href = 'http://example.com'
+      state
+    end
+
+    let(:bounds) { instance_double('Prawn::Document::BoundingBox', anchor: [0, 0]) }
+    let(:prawn) do
+      instance_double(
+        'Prawn::Document',
+        font_size:                                      20,
+        bounds:                                         bounds,
+        current_transformation_matrix_with_translation: Matrix.identity(3)
+      )
+    end
+    let(:svg) { '<text>a link</text>' }
+
+    it 'marks the element to be underlined' do
+      setup_basic_mocks
+
+      expect(prawn).to receive(:link_annotation).with(
+        [0.0, 600.0, 50.0, 600.0],
+        {
+          A:      {
+            S:    :URI,
+            Type: :Action,
+            URI:  'http://example.com'
+          },
+          Border: [0, 0, 0]
+        }
+      )
+
+      process_and_render
+    end
+  end
+
   describe 'fill/stroke modes' do
     context 'with a stroke and no fill' do
       let(:svg) { '<text stroke="red" fill="none">stroked</text>' }
@@ -265,7 +303,6 @@ describe Prawn::SVG::Elements::Text do
           setup_basic_mocks
           process_and_render
 
-          expect(prawn).not_to have_received(:font)
           expect(document.warnings.first).to include 'is not a known font'
         end
       end

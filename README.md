@@ -120,7 +120,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 
-prawn-svg does not support hyperlinks, patterns, masks or filters.
+prawn-svg does not support patterns, masks or filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 

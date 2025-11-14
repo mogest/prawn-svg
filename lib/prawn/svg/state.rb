@@ -4,7 +4,7 @@ class Prawn::SVG::State
     :stroke_width,
     :computed_properties,
     :viewport_sizing,
-    :inside_use, :inside_clip_path
+    :inside_use, :inside_clip_path, :anchor_href
 
   def initialize
     @stroke_width = 1

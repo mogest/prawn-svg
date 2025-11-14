@@ -183,6 +183,10 @@ module Prawn
           type = arguments.first
           GradientRenderer.new(prawn, type, **kwarguments).draw
           yield
+
+        when 'svg:add_link'
+          LinkRenderer.new(*arguments).render(prawn)
+          yield
         end
       end
 

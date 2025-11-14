@@ -4,7 +4,7 @@ end
 
 require 'prawn/svg/elements/call_duplicator'
 
-%w[base direct_render_base root container clip_path viewport text text_component text_node line polyline polygon circle ellipse
+%w[base direct_render_base root anchor container clip_path viewport text text_component text_node line polyline polygon circle ellipse
    rect path use image gradient marker ignored].each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
@@ -14,7 +14,7 @@ module Prawn::SVG::Elements
     g:              Prawn::SVG::Elements::Container,
     symbol:         Prawn::SVG::Elements::Container,
     defs:           Prawn::SVG::Elements::Container,
-    a:              Prawn::SVG::Elements::Container,
+    a:              Prawn::SVG::Elements::Anchor,
     clipPath:       Prawn::SVG::Elements::ClipPath,
     switch:         Prawn::SVG::Elements::Container,
     svg:            Prawn::SVG::Elements::Viewport,
