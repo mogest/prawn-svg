@@ -4,33 +4,44 @@ class Prawn::SVG::FontMetrics
     DEFAULT_X_HEIGHT_RATIO = 0.5
 
     def x_height_in_points(pdf, font_size)
-      @x_height_cache ||= {}
-
-      cache_key = cache_key_for(pdf)
-
-      @x_height_cache[cache_key] ||= calculate_x_height_ratio(pdf)
-      @x_height_cache[cache_key] * font_size
+      x_height = cache(:x_height, pdf.font) { calculate_x_height_ratio(pdf) }
+      x_height * font_size
     end
 
     def underline_metrics(pdf, size)
-      @underline_metrics_cache ||= {}
-
-      cache_key = cache_key_for(pdf)
-
-      @underline_metrics_cache[cache_key] ||= fetch_underline_metrics(pdf, size)
-      @underline_metrics_cache[cache_key]
+      cache(:underline, pdf.font, size) do
+        fetch_underline_metrics(pdf, size)
+      end
     end
 
     private
 
-    def cache_key_for(pdf)
-      return 'default' unless pdf && pdf.font.is_a?(Prawn::Fonts::TTF)
+    def cache(name, *args)
+      @font_metrics_cache ||= {}
 
-      ttf = pdf.font.ttf
+      cache_key = generate_cache_key([name, *args])
+      return @font_metrics_cache[cache_key] if @font_metrics_cache.key?(cache_key)
+
+      @font_metrics_cache[cache_key] = yield
+      @font_metrics_cache[cache_key]
+    end
+
+    def generate_cache_key(key)
+      case
+      when key.is_a?(Prawn::Fonts::TTF) then font_cache_key(key)
+      when key.is_a?(Prawn::Font)       then 'default'
+      when key.is_a?(Array)             then key.map { |element| generate_cache_key(element) }.join('/')
+      when key.respond_to?(:to_a)       then generate_cache_key(key.to_a)
+      else                              key.to_s
+      end.to_s
+    end
+
+    def font_cache_key(font)
+      ttf = font.ttf
       return 'default' unless ttf
 
       # Use font family name from TTF metadata, which doesn't include size
-      ttf.name&.font_family&.first || pdf&.font&.name || 'default'
+      ttf.name&.font_family&.first || font&.name || 'default'
     end
 
     def calculate_x_height_ratio(pdf)
