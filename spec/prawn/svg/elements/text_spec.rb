@@ -19,7 +19,7 @@ describe Prawn::SVG::Elements::Text do
     let(:svg) { '<text>Hello World</text>' }
 
     it 'renders simple text' do
-      expect(Prawn::Text::Box).to receive(:new).with('Hello World', hash_including(:size, :at)).twice.and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(:size, :at)).and_call_original
 
       process_and_render
     end
@@ -41,7 +41,7 @@ describe Prawn::SVG::Elements::Text do
 
       it 'converts newlines and tabs to spaces, and preserves spaces' do
         allow(prawn).to receive(:width_of).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('some    text', hash_including(:size, :at)).twice.and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
         expect(prawn).to receive(:width_of).with('some    text', hash_including(:kerning, :size)).and_call_original
 
         process_and_render
@@ -53,7 +53,7 @@ describe Prawn::SVG::Elements::Text do
 
       it 'strips space' do
         allow(prawn).to receive(:width_of).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('some text', hash_including(:size, :at)).twice.and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
         expect(prawn).to receive(:width_of).with('some text', hash_including(:kerning, :size)).and_call_original
 
         process_and_render
@@ -82,13 +82,15 @@ describe Prawn::SVG::Elements::Text do
     end
 
     it 'correctly apportions white space between the tags' do
-      expect(Prawn::Text::Box).to receive(:new).with('Some text here ', anything).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('More text', anything).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('Even more', anything).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with("\u00A0leading goodness ", anything).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('ok', anything).twice.and_call_original
+      drawn_texts = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn_texts << text
+        method.call(text, **opts)
+      end
 
       process_and_render
+
+      expect(drawn_texts).to eq ['Some text here ', 'More text', 'Even more', ' leading goodness ', 'ok']
     end
   end
 
@@ -99,7 +101,7 @@ describe Prawn::SVG::Elements::Text do
     it 'should inherit text-anchor from parent element' do
       allow(prawn).to receive(:width_of).and_return(40.0)
       expect(prawn).to receive(:translate).with(-20.0, 0).and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('Text', anything).twice.and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
 
       element.process
       renderer.render_calls(prawn, element.calls)
@@ -114,7 +116,7 @@ describe Prawn::SVG::Elements::Text do
       allow(prawn).to receive(:character_spacing).and_call_original
       expect(prawn).to receive(:font).with('Helvetica', style: :normal).at_least(:once).and_call_original
       expect(prawn).to receive(:character_spacing).with(5.0).at_least(:once).and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('spaced', hash_including(size: 16, at: anything)).twice.and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(size: 16, at: anything)).and_call_original
 
       process_and_render
     end
@@ -125,7 +127,7 @@ describe Prawn::SVG::Elements::Text do
 
     it 'marks the element to be underlined' do
       allow(prawn).to receive(:width_of).and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('underlined', hash_including(:size, :at)).twice.and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(:size, :at)).and_call_original
       expect(prawn).to receive(:width_of).with('underlined', hash_including(:kerning, :size)).at_least(:once).and_call_original
 
       expect(prawn).to receive(:fill_rectangle).with(
@@ -176,7 +178,7 @@ describe Prawn::SVG::Elements::Text do
         allow(prawn).to receive(:text_rendering_mode).and_call_original
         expect(prawn).to receive(:font).with('Helvetica', style: :normal).at_least(:once).and_call_original
         expect(prawn).to receive(:text_rendering_mode).with(:stroke).at_least(:once).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('stroked', hash_including(size: 16, at: anything)).twice.and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(size: 16, at: anything)).and_call_original
 
         element.render(prawn, renderer)
       end
@@ -197,9 +199,7 @@ describe Prawn::SVG::Elements::Text do
         expect(prawn).to receive(:text_rendering_mode).with(:stroke).at_least(:once).and_call_original
         expect(prawn).to receive(:text_rendering_mode).with(:fill_stroke).at_least(:once).and_call_original
         expect(prawn).to receive(:text_rendering_mode).with(:invisible).at_least(:once).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('stroked ', anything).twice.and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('both', anything).twice.and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('neither', anything).twice.and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
         expect(prawn).to receive(:save_graphics_state).at_least(:once).and_call_original
         expect(prawn).to receive(:restore_graphics_state).at_least(:once).and_call_original
 
@@ -215,7 +215,7 @@ describe Prawn::SVG::Elements::Text do
       it 'finds the font and uses it' do
         allow(prawn).to receive(:font).and_call_original
         expect(prawn).to receive(:font).with('Courier', style: :normal).at_least(:once).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('hello', hash_including(size: 16, at: anything)).twice.and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(size: 16, at: anything)).and_call_original
 
         process_and_render
       end
@@ -227,7 +227,7 @@ describe Prawn::SVG::Elements::Text do
       it 'uses the fallback font' do
         allow(prawn).to receive(:font).and_call_original
         expect(prawn).to receive(:font).with('Times-Roman', style: :normal).at_least(:once).and_call_original
-        expect(Prawn::Text::Box).to receive(:new).with('hello', hash_including(size: 16, at: anything)).twice.and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(size: 16, at: anything)).and_call_original
 
         process_and_render
       end
@@ -259,9 +259,9 @@ describe Prawn::SVG::Elements::Text do
     let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
 
     it 'correctly calculates the positions of the text' do
-      expect(Prawn::Text::Box).to receive(:new).with('H', hash_including(at: [40.0, anything])).twice.and_call_original # 10 + 30
-      expect(Prawn::Text::Box).to receive(:new).with('i', hash_including(at: [70.0, anything])).twice.and_call_original # 20 + 50
-      expect(Prawn::Text::Box).to receive(:new).with("\u00A0there, this is a good test", anything).twice.and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(at: [40.0, anything])).and_call_original # 10 + 30
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(at: [70.0, anything])).and_call_original # 20 + 50
+      allow(prawn).to receive(:draw_text).and_call_original
 
       process_and_render
     end
@@ -271,15 +271,21 @@ describe Prawn::SVG::Elements::Text do
     let(:svg) { '<text rotate="10 20 30 40 50 60 70 80 90 100">Hi <tspan rotate="0">this</tspan> ok!</text>' }
 
     it 'correctly processes rotated text' do
-      allow(Prawn::Text::Box).to receive(:new).and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('H', hash_including(rotate: -10.0)).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('i', hash_including(rotate: -20.0)).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with("\u00A0", hash_including(rotate: -30.0)).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('this', hash_excluding(:rotate)).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('o', hash_including(rotate: -90.0)).twice.and_call_original
-      expect(Prawn::Text::Box).to receive(:new).with('k', hash_including(rotate: -100.0)).twice.and_call_original
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << [text, opts[:rotate]]
+        method.call(text, **opts)
+      end
 
       process_and_render
+
+      expect(drawn).to include(['H', -10.0])
+      expect(drawn).to include(['i', -20.0])
+      expect(drawn).to include([' ', -30.0])
+      expect(drawn).to include(['o', -90.0])
+      expect(drawn).to include(['k', -100.0])
+      this_entry = drawn.find { |text, _| text == 'this' }
+      expect(this_entry[1]).to be_nil
     end
   end
 
