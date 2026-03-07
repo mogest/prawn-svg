@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <mask id="obb-mask">
+      <rect width="400" height="300" fill="white"/>
+    </mask>
+  </defs>
+
+  <rect x="20" y="20" width="100" height="100" fill="#e74c3c" mask="url(#obb-mask)"/>
+  <rect x="150" y="50" width="200" height="60" fill="#3498db" mask="url(#obb-mask)"/>
+  <circle cx="100" cy="230" r="50" fill="#2ecc71" mask="url(#obb-mask)"/>
+</svg>

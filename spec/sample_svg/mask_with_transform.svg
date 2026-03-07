@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <mask id="transform-mask">
+      <rect width="300" height="300" fill="black"/>
+      <circle cx="100" cy="100" r="80" fill="white"/>
+    </mask>
+  </defs>
+
+  <rect width="200" height="200" fill="#e67e22" mask="url(#transform-mask)" transform="translate(50, 50)"/>
+  <rect width="200" height="200" fill="none" stroke="gray" stroke-dasharray="5,5" transform="translate(50, 50)"/>
+</svg>

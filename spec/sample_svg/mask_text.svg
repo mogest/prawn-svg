@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <mask id="text-mask">
+      <rect width="300" height="300" fill="black"/>
+      <text x="150" y="170" font-size="80" fill="white" text-anchor="middle" font-weight="bold">MASK</text>
+    </mask>
+  </defs>
+
+  <rect width="300" height="300" fill="#2ecc71" mask="url(#text-mask)"/>
+</svg>

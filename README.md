@@ -77,6 +77,8 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
 
  - `<clipPath>`
 
+ - `<mask>` with attributes `maskUnits` and `maskContentUnits`
+
  - `<marker>`
 
  - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and
@@ -120,7 +122,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 
-prawn-svg does not support patterns, masks or filters.
+prawn-svg does not support patterns or filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 

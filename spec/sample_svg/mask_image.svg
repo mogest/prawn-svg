@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <mask id="img-mask">
+      <rect width="300" height="300" fill="black"/>
+      <circle cx="150" cy="150" r="120" fill="white"/>
+    </mask>
+  </defs>
+
+  <rect width="300" height="300" fill="#e74c3c" mask="url(#img-mask)"/>
+</svg>

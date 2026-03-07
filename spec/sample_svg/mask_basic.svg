@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <mask id="circle-mask">
+      <rect width="300" height="300" fill="black"/>
+      <circle cx="150" cy="150" r="100" fill="white"/>
+    </mask>
+  </defs>
+
+  <rect width="300" height="300" fill="#4a90d9" mask="url(#circle-mask)"/>
+  <circle cx="150" cy="150" r="100" fill="none" stroke="red" stroke-width="2"/>
+</svg>

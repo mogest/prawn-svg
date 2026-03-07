@@ -8,6 +8,7 @@ class Prawn::SVG::Elements::Base
   include Prawn::SVG::Attributes::Transform
   include Prawn::SVG::Attributes::Opacity
   include Prawn::SVG::Attributes::ClipPath
+  include Prawn::SVG::Attributes::Mask
   include Prawn::SVG::Attributes::Stroke
   include Prawn::SVG::Attributes::Space
 
@@ -158,6 +159,7 @@ class Prawn::SVG::Elements::Base
     parse_transform_attribute_and_call
     parse_opacity_attributes_and_call
     parse_clip_path_attribute_and_call
+    parse_mask_attribute_and_call
     apply_colors
     parse_stroke_attributes_and_call
     apply_drawing_call

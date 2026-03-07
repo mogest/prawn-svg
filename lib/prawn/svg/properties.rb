@@ -32,6 +32,7 @@ module Prawn::SVG
       'marker-end'        => Config.new('none', true, [:funciri, 'none']),
       'marker-mid'        => Config.new('none', true, [:funciri, 'none']),
       'marker-start'      => Config.new('none', true, [:funciri, 'none']),
+      'mask'              => Config.new('none', false, [:funciri, 'none']),
       'opacity'           => Config.new(1.0, false, [:number]),
       'overflow'          => Config.new('visible', false, %w[visible hidden scroll auto]),
       'stop-color'        => Config.new(Color.black, false, [:color_with_icc, 'currentcolor']),

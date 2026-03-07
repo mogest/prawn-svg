@@ -54,6 +54,14 @@ class Prawn::SVG::Document
     sizing.calculate
   end
 
+  def with_sizing(temporary_sizing)
+    original = @sizing
+    @sizing = temporary_sizing
+    yield
+  ensure
+    @sizing = original
+  end
+
   private
 
   def load_color_mode

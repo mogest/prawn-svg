@@ -96,7 +96,7 @@ module Prawn
         calls.each do |call, arguments, kwarguments, children|
           skip = false
 
-          rewrite_call_arguments(prawn, call, arguments, kwarguments) do
+          rewrite_call_arguments(prawn, call, arguments, kwarguments, children) do
             issue_prawn_command(prawn, children) if children.any?
             skip = true
           end
@@ -117,7 +117,7 @@ module Prawn
         end
       end
 
-      def rewrite_call_arguments(prawn, call, arguments, kwarguments)
+      def rewrite_call_arguments(prawn, call, arguments, kwarguments, children)
         case call
         when 'svg:render'
           element = arguments.first
@@ -179,6 +179,17 @@ module Prawn
           document.warnings.concat(sub_document.warnings)
           yield
 
+        when 'soft_mask'
+          with_large_page_dimensions(prawn) do
+            prawn.soft_mask do
+              issue_prawn_command(prawn, children) if children.any?
+            end
+          end
+          # Clear children so issue_prawn_command doesn't re-process them
+          # after soft_mask has already rendered them above.
+          children.clear
+          yield
+
         when 'svg:render_gradient'
           type = arguments.first
           GradientRenderer.new(prawn, type, **kwarguments).draw
@@ -188,6 +199,18 @@ module Prawn
           LinkRenderer.new(*arguments).render(prawn)
           yield
         end
+      end
+
+      # Prawn's soft_mask hardcodes BBox to page.dimensions, which causes
+      # Chrome and Firefox to clip mask content that extends beyond the page.
+      # Temporarily override dimensions to use a large BBox.
+      def with_large_page_dimensions(prawn)
+        page = prawn.state.page
+        large_bbox = [-10_000, -10_000, 10_000, 10_000]
+        page.define_singleton_method(:dimensions) { large_bbox }
+        yield
+      ensure
+        page.singleton_class.remove_method(:dimensions)
       end
 
       def inheritable_options

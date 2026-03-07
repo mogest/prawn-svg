@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <mask id="circle-mask">
+      <circle cx="75" cy="75" r="60" fill="white"/>
+    </mask>
+    <mask id="rect-mask">
+      <rect x="10" y="10" width="130" height="130" fill="white" rx="20"/>
+    </mask>
+  </defs>
+
+  <rect x="10"  y="10"  width="150" height="150" fill="#e74c3c" mask="url(#circle-mask)"/>
+  <rect x="200" y="10"  width="150" height="150" fill="#3498db" mask="url(#circle-mask)"/>
+  <rect x="10"  y="170" width="150" height="120" fill="#2ecc71" mask="url(#rect-mask)"/>
+  <rect x="200" y="170" width="150" height="120" fill="#f39c12" mask="url(#rect-mask)"/>
+</svg>

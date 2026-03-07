@@ -194,9 +194,17 @@ class Prawn::SVG::GradientRenderer
   end
 
   def current_pdf_transform
-    @current_pdf_transform ||= load_matrix(
-      prawn.current_transformation_matrix_with_translation(*prawn.bounds.anchor)
-    )
+    @current_pdf_transform ||= if prawn.state.page.in_stamp_stream?
+                                 # Inside a soft_mask Form XObject, the CTM resets to identity but Prawn's
+                                 # internal tracking still reflects the page CTM. The geometry coordinates
+                                 # only have the bounds offset applied (no scaling), so the pattern matrix
+                                 # should match by using only the bounds translation.
+                                 current_pdf_translation
+                               else
+                                 load_matrix(
+                                   prawn.current_transformation_matrix_with_translation(*prawn.bounds.anchor)
+                                 )
+                               end
   end
 
   def current_pdf_translation
