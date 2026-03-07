@@ -96,7 +96,6 @@ describe 'Integration test' do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
     let(:ttf_directory) { Pathname.new(__dir__).join('sample_ttf') }
-    let(:open_sans_ttf) { ttf_directory.join('OpenSans-SemiboldItalic.ttf') }
     let(:noto_sans_ttf) { ttf_directory.join('NotoSansJP-Regular.ttf') }
 
     before do
@@ -120,9 +119,6 @@ describe 'Integration test' do
         warnings = nil
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do |prawn|
           prawn.font_families.update(
-            'Open Sans' => {
-              normal: open_sans_ttf.to_s
-            },
             'Noto Sans' => {
               normal: noto_sans_ttf.to_s
             }
