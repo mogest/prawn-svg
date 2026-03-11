@@ -244,6 +244,34 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'fallback fonts' do
+    before do
+      ttf = File.expand_path('../../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)
+      prawn.font_families.update('Open Sans' => { normal: ttf })
+    end
+
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], {}, font_registry: Prawn::SVG::FontRegistry.new(prawn.font_families))
+    end
+
+    context 'when text contains characters unsupported by the primary built-in font' do
+      let(:svg) { "<text font-family=\"sans-serif, 'Open Sans'\">Hello \u0167</text>" }
+
+      it 'uses the fallback font for unsupported characters' do
+        drawn = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          drawn << [text, prawn.font.family]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        expect(drawn).to include(['Hello ', 'Helvetica'])
+        expect(drawn).to include(["\u0167", 'Open Sans'])
+      end
+    end
+  end
+
   describe '<tref>' do
     let(:svg) { '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><defs><text id="ref" fill="green">my reference text</text></defs><text x="10"><tref xlink:href="#ref" fill="red" /></text></svg>' }
     let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, [], fake_state) }

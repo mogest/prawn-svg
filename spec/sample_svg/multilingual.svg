@@ -1,5 +1,5 @@
 <svg style="overflow: hidden; position: relative;" height="512" version="1.1" width="512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <g style="font-style: normal; font-variant: normal; font-size: 16px; line-height: normal; font-family: 'Open Sans', 'Noto Sans';" transform="translate(20, 20)">
+  <g style="font-style: normal; font-variant: normal; font-size: 16px; line-height: normal; font-family: sans-serif, 'Noto Sans';" transform="translate(20, 20)">
     <text y="0" fill="black">Here is some</text>
     <text y="40" fill="black">Japanese text: 谷うさえ文代ス柄長でに着同</text>
     <text y="80" fill="black">in the same text element as English text</text>
