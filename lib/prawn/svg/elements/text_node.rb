@@ -115,7 +115,12 @@ module Prawn::SVG
 
         width = chunk.fixed_width || chunk.base_width
 
-        render_underline(prawn, size, cursor, y_offset, width) if component.computed_properties.text_decoration == 'underline'
+        decoration = component.computed_properties.text_decoration
+        unless decoration == 'none'
+          render_underline(prawn, size, cursor, y_offset, width) if decoration.include?('underline')
+          render_overline(prawn, size, cursor, y_offset, width) if decoration.include?('overline')
+          render_line_through(prawn, size, cursor, y_offset, width) if decoration.include?('line-through')
+        end
         render_link_annotation(prawn, size, cursor, y_offset, width)
 
         opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: true }
@@ -229,6 +234,18 @@ module Prawn::SVG
 
     def render_underline(prawn, size, cursor, y_offset, width)
       offset, thickness = FontMetrics.underline_metrics(prawn, size)
+
+      prawn.fill_rectangle [cursor.x, cursor.y + (y_offset || 0) + offset + (thickness / 2.0)], width, thickness
+    end
+
+    def render_overline(prawn, size, cursor, y_offset, width)
+      offset, thickness = FontMetrics.overline_metrics(prawn, size)
+
+      prawn.fill_rectangle [cursor.x, cursor.y + (y_offset || 0) + offset + (thickness / 2.0)], width, thickness
+    end
+
+    def render_line_through(prawn, size, cursor, y_offset, width)
+      offset, thickness = FontMetrics.strikethrough_metrics(prawn, size)
 
       prawn.fill_rectangle [cursor.x, cursor.y + (y_offset || 0) + offset + (thickness / 2.0)], width, thickness
     end

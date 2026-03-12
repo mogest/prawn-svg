@@ -14,6 +14,18 @@ class Prawn::SVG::FontMetrics
       end
     end
 
+    def overline_metrics(pdf, size)
+      cache(:overline, pdf.font, size) do
+        fetch_overline_metrics(pdf, size)
+      end
+    end
+
+    def strikethrough_metrics(pdf, size)
+      cache(:strikethrough, pdf.font, size) do
+        fetch_strikethrough_metrics(pdf, size)
+      end
+    end
+
     private
 
     def cache(name, *args)
@@ -97,12 +109,44 @@ class Prawn::SVG::FontMetrics
 
       thick =
         if units_per_em && thick_units&.positive?
-          [(thick_units / units_per_em) * size, 0.5].max
+          [(thick_units / units_per_em) * size, 1.0].max
         else
-          [size * 0.06, 0.5].max
+          [size * 0.07, 1.0].max
         end
 
       [offset, thick]
+    end
+
+    def fetch_overline_metrics(pdf, size)
+      _, underline_thickness = fetch_underline_metrics(pdf, size)
+      [size, underline_thickness]
+    end
+
+    def fetch_strikethrough_metrics(pdf, size)
+      _, underline_thickness = fetch_underline_metrics(pdf, size)
+
+      units_per_em = nil
+      strikeout_pos = nil
+      if pdf.font.is_a?(Prawn::Font::TTF)
+        ttf = begin
+          pdf.font.ttf
+        rescue StandardError
+          nil
+        end
+        if ttf.respond_to?(:os2) && ttf.os2 && ttf.respond_to?(:header) && ttf.header
+          units_per_em = ttf.header.units_per_em.to_f
+          strikeout_pos = ttf.os2.y_strikeout_position.to_f
+        end
+      end
+
+      offset =
+        if units_per_em && strikeout_pos
+          (strikeout_pos / units_per_em) * size
+        else
+          0.3 * size
+        end
+
+      [offset, underline_thickness]
     end
   end
 end

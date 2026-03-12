@@ -44,7 +44,7 @@ module Prawn::SVG
       'stroke-opacity'    => Config.new(1.0, true, [:number]),
       'stroke-width'      => Config.new(1.0, true, [:positive_length, :positive_percentage]),
       'text-anchor'       => Config.new('start', true, %w[start middle end]),
-      'text-decoration'   => Config.new('none', true, %w[none underline]),
+      'text-decoration'   => Config.new('none', true, [:text_decoration]),
       'visibility'        => Config.new('visible', true, %w[visible hidden collapse])
     }.freeze
 
@@ -185,6 +185,13 @@ module Prawn::SVG
         Length.parse(value, positive_only: true)
       when :positive_percentage
         Percentage.parse(value, positive_only: true)
+      when :text_decoration
+        parts = keyword.split
+        valid = %w[none underline overline line-through]
+        return nil unless parts.all? { |p| valid.include?(p) }
+        return 'none' if parts.include?('none')
+
+        parts.uniq.sort.join(' ')
       when :any
         value
       else

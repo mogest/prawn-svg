@@ -122,19 +122,55 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
-  describe 'underline' do
-    let(:svg) { '<text text-decoration="underline">underlined</text>' }
+  describe 'text-decoration' do
+    describe 'underline' do
+      let(:svg) { '<text text-decoration="underline">underlined</text>' }
 
-    it 'marks the element to be underlined' do
-      allow(prawn).to receive(:width_of).and_call_original
-      expect(prawn).to receive(:draw_text).with(anything, hash_including(:size, :at)).and_call_original
-      expect(prawn).to receive(:width_of).with('underlined', hash_including(:kerning, :size)).at_least(:once).and_call_original
+      it 'draws an underline' do
+        allow(prawn).to receive(:width_of).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:size, :at)).and_call_original
+        expect(prawn).to receive(:width_of).with('underlined', hash_including(:kerning, :size)).at_least(:once).and_call_original
 
-      expect(prawn).to receive(:fill_rectangle).with(
-        [0, be_within(1).of(598.56)], be_within(0.5).of(75), be_within(0.5).of(0.96)
-      ).and_call_original
+        expect(prawn).to receive(:fill_rectangle).with(
+          [0, be_within(1).of(598.56)], be_within(0.5).of(75), be_within(0.5).of(0.96)
+        ).and_call_original
 
-      process_and_render
+        process_and_render
+      end
+    end
+
+    describe 'overline' do
+      let(:svg) { '<text text-decoration="overline">overlined</text>' }
+
+      it 'draws an overline above the text' do
+        expect(prawn).to receive(:fill_rectangle).with(
+          [0, be_within(2).of(616)], be_within(1).of(65), be_within(0.5).of(0.96)
+        ).and_call_original
+
+        process_and_render
+      end
+    end
+
+    describe 'line-through' do
+      let(:svg) { '<text text-decoration="line-through">struck</text>' }
+
+      it 'draws a line through the text' do
+        expect(prawn).to receive(:fill_rectangle).with(
+          [0, be_within(2).of(605)], be_within(0.5).of(43), be_within(0.5).of(0.96)
+        ).and_call_original
+
+        process_and_render
+      end
+    end
+
+    describe 'multiple decorations' do
+      let(:svg) { '<text text-decoration="underline line-through">decorated</text>' }
+
+      it 'draws both underline and line-through' do
+        expect(prawn).to receive(:fill_rectangle).twice.and_call_original
+
+        process_and_render
+      end
     end
   end
 
