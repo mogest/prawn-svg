@@ -2,7 +2,7 @@ module Prawn::SVG
   class Elements::TextComponent < Elements::DirectRenderBase
     attr_reader :children, :parent_component
     attr_reader :x_values, :y_values, :dx, :dy, :rotation, :text_length, :length_adjust
-    attr_reader :font
+    attr_reader :font, :fallback_fonts
 
     def initialize(document, source, _calls, state, parent_component = nil)
       if parent_component.nil? && source.name != 'text'
@@ -24,7 +24,7 @@ module Prawn::SVG
       @text_length = normalize_length(attributes['textLength'])
       @length_adjust = attributes['lengthAdjust']
 
-      @font = select_font
+      @font, @fallback_fonts = select_fonts
 
       @children = svg_text_children.flat_map do |child|
         if child.node_type == :text
@@ -42,9 +42,8 @@ module Prawn::SVG
     end
 
     def lay_out(prawn)
-      @children.each do |child|
-        prawn.save_font do
-          prawn.font(font.name, style: font.subfamily) if font
+      with_svg_fonts(prawn) do
+        @children.each do |child|
           child.lay_out(prawn)
         end
       end
@@ -73,9 +72,7 @@ module Prawn::SVG
           y_offset = -height / 2.0
         end
 
-        prawn.save_font do
-          prawn.font(font.name, style: font.subfamily) if font
-
+        with_svg_fonts(prawn) do
           children.each do |child|
             case child
             when Elements::TextNode
@@ -165,18 +162,42 @@ module Prawn::SVG
       end
     end
 
-    def select_font
-      font_families = [computed_properties.font_family, document.fallback_font_name]
+    def select_fonts
       font_style = :italic if computed_properties.font_style == 'italic'
       font_weight = computed_properties.font_weight
+      fonts = []
 
-      font_families.compact.each do |name|
+      font_family_names.each do |name|
         font = document.font_registry.load(name, font_weight, font_style)
-        return font if font
+        next unless font
+        next if fonts.any? { |existing| existing.name == font.name && existing.subfamily == font.subfamily }
+
+        fonts << font
       end
 
+      _, *fallback_font_names = fonts.map(&:name).uniq
+
+      return [fonts.first, fallback_font_names] if fonts.any?
+
       warnings << "Font family '#{computed_properties.font_family}' style '#{computed_properties.font_style}' is not a known font, and the fallback font could not be found."
-      nil
+      []
+    end
+
+    def with_svg_fonts(prawn)
+      prawn.save_font do
+        if font
+          prawn.font(font.name, style: font.subfamily)
+          prawn.fallback_fonts(fallback_fonts)
+        end
+
+        yield
+      end
+    end
+
+    def font_family_names
+      names = CSS::FontFamilyParser.parse(computed_properties.font_family.to_s)
+      names << document.fallback_font_name if document.fallback_font_name
+      names.map(&:strip).reject(&:empty?)
     end
 
     def total_flexible_and_fixed_width

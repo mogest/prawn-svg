@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'open-uri'
 
 describe 'Integration test' do
   root = "#{File.dirname(__FILE__)}/.."
@@ -94,6 +95,19 @@ describe 'Integration test' do
   describe 'sample file rendering' do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
+    let(:ttf_directory) { Pathname.new(__dir__).join('sample_ttf') }
+    let(:noto_sans_ttf) { ttf_directory.join('NotoSansJP-Regular.ttf') }
+
+    before do
+      next if noto_sans_ttf.exist?
+
+      FileUtils.mkdir_p(noto_sans_ttf.dirname)
+      uri = URI('https://github.com/googlefonts/noto-cjk/raw/main/Sans/Variable/TTF/Subset/NotoSansJP-VF.ttf')
+
+      tempfile = uri.open
+      FileUtils.mv(tempfile.path, noto_sans_ttf)
+    end
+
     it 'has at least 10 SVG sample files to test' do
       files.length.should >= 10
     end
@@ -104,6 +118,12 @@ describe 'Integration test' do
 
         warnings = nil
         Prawn::Document.generate("#{root}/spec/sample_output/#{File.basename file}.pdf") do |prawn|
+          prawn.font_families.update(
+            'Noto Sans' => {
+              normal: noto_sans_ttf.to_s
+            }
+          )
+
           r = prawn.svg File.read(file), at: [0, prawn.bounds.top], width: prawn.bounds.width,
             enable_file_requests_with_root: File.dirname(__FILE__) do |doc|
             doc.url_loader.add_to_cache(

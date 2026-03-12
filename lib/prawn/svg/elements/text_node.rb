@@ -1,6 +1,6 @@
 module Prawn::SVG
   class Elements::TextNode
-    Chunk = Struct.new(:text, :x, :y, :dx, :dy, :rotate, :base_width, :offset, :fixed_width)
+    Chunk = Struct.new(:text, :x, :y, :dx, :dy, :rotate, :base_width, :offset, :fixed_width, :font_runs)
 
     attr_reader :component, :chunks
     attr_accessor :text
@@ -75,12 +75,15 @@ module Prawn::SVG
 
         opts = { size: component.computed_properties.numeric_font_size, kerning: true }
 
+        fallback_fonts = component.fallback_fonts
+        font_runs = fallback_fonts&.any? ? split_into_font_runs(prawn, text_to_draw, fallback_fonts) : nil
+
         total_spacing = text_to_draw.length > 1 ? (component.letter_spacing_pixels || 0) * (text_to_draw.length - 1) : 0
-        base_width = prawn.width_of(text_to_draw, opts) + total_spacing
+        base_width = width_of_text(prawn, text_to_draw, font_runs, opts) + total_spacing
 
         offset = dx ? [0, dx].max : 0
 
-        @chunks << Chunk.new(text_to_draw, x, y, dx, dy, rotate, base_width, offset, nil)
+        @chunks << Chunk.new(text_to_draw, x, y, dx, dy, rotate, base_width, offset, nil, font_runs)
 
         if remaining
           remaining_text = remaining_text[1..]
@@ -115,7 +118,7 @@ module Prawn::SVG
         render_underline(prawn, size, cursor, y_offset, width) if component.computed_properties.text_decoration == 'underline'
         render_link_annotation(prawn, size, cursor, y_offset, width)
 
-        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)] }
+        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: true }
         opts[:rotate] = chunk.rotate if chunk.rotate
 
         scaling =
@@ -140,7 +143,7 @@ module Prawn::SVG
         prawn.horizontal_text_scaling(scaling) do
           prawn.character_spacing(spacing || component.letter_spacing_pixels || prawn.character_spacing) do
             prawn.text_rendering_mode(calculate_text_rendering_mode) do
-              prawn.draw_text(chunk.text, **opts)
+              render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
             end
           end
         end
@@ -151,6 +154,77 @@ module Prawn::SVG
         # to the end of our string.  See comment above for why this isn't quite right.
         cursor.x += spacing if parent_spacing
       end
+    end
+
+    def width_of_text(prawn, text, font_runs, opts)
+      if font_runs.nil?
+        prawn.width_of(text, **opts)
+      else
+        font_runs.sum(0.0) do |font_name, run_text|
+          if font_name
+            width = nil
+            prawn.font(font_name) { width = prawn.width_of(run_text, **opts) }
+            width
+          else
+            prawn.width_of(run_text, **opts)
+          end
+        end
+      end
+    end
+
+    def render_text_directly(prawn, text, font_runs, opts)
+      if font_runs.nil?
+        prawn.draw_text(text, **opts)
+      else
+        x = opts[:at][0]
+        font_runs.each do |font_name, run_text|
+          run_opts = opts.merge(at: [x, opts[:at][1]])
+          if font_name
+            prawn.font(font_name) do
+              prawn.draw_text(run_text, **run_opts)
+              x += prawn.width_of(run_text, size: opts[:size], kerning: true)
+            end
+          else
+            prawn.draw_text(run_text, **run_opts)
+            x += prawn.width_of(run_text, size: opts[:size], kerning: true)
+          end
+        end
+      end
+    end
+
+    def split_into_font_runs(prawn, text, fallback_fonts)
+      original_font = prawn.font.family
+      runs = []
+      current_font = nil
+      current_text = +''
+
+      prawn.save_font do
+        text.each_char do |char|
+          font_for_char = font_for_glyph(prawn, char, original_font, fallback_fonts)
+
+          if font_for_char != current_font && !current_text.empty?
+            runs << [current_font, current_text]
+            current_text = +''
+          end
+          current_font = font_for_char
+          current_text << char
+        end
+      end
+
+      runs << [current_font, current_text] unless current_text.empty?
+      runs
+    end
+
+    def font_for_glyph(prawn, char, original_font, fallback_fonts)
+      prawn.font(original_font)
+      return nil if prawn.font.glyph_present?(char)
+
+      fallback_fonts.each do |fb|
+        prawn.font(fb)
+        return fb if prawn.font.glyph_present?(char)
+      end
+
+      nil
     end
 
     def render_underline(prawn, size, cursor, y_offset, width)

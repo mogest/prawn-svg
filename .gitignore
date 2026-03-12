@@ -1,5 +1,6 @@
 .DS_Store
 spec/sample_output/*.pdf
+spec/sample_ttf/NotoSansJP-Regular.ttf
 prawn-svg-*.gem
 .rvmrc
 .*.swp
