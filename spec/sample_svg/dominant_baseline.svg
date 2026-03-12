@@ -1,0 +1,41 @@
+<svg viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg" font-size="18">
+  <style>
+    .label { font-size: 13px; fill: #666; }
+    .baseline-line { stroke: #c00; stroke-width: 0.5; stroke-dasharray: 4,3; }
+  </style>
+
+  <!-- auto (default) -->
+  <line x1="140" y1="40" x2="480" y2="40" class="baseline-line"/>
+  <text x="10" y="40" class="label">auto</text>
+  <text x="140" y="40" dominant-baseline="auto">The quick brown fox</text>
+
+  <!-- alphabetic -->
+  <line x1="140" y1="80" x2="480" y2="80" class="baseline-line"/>
+  <text x="10" y="80" class="label">alphabetic</text>
+  <text x="140" y="80" dominant-baseline="alphabetic">The quick brown fox</text>
+
+  <!-- middle -->
+  <line x1="140" y1="120" x2="480" y2="120" class="baseline-line"/>
+  <text x="10" y="120" class="label">middle</text>
+  <text x="140" y="120" dominant-baseline="middle">The quick brown fox</text>
+
+  <!-- central -->
+  <line x1="140" y1="160" x2="480" y2="160" class="baseline-line"/>
+  <text x="10" y="160" class="label">central</text>
+  <text x="140" y="160" dominant-baseline="central">The quick brown fox</text>
+
+  <!-- hanging -->
+  <line x1="140" y1="200" x2="480" y2="200" class="baseline-line"/>
+  <text x="10" y="200" class="label">hanging</text>
+  <text x="140" y="200" dominant-baseline="hanging">The quick brown fox</text>
+
+  <!-- text-before-edge -->
+  <line x1="140" y1="240" x2="480" y2="240" class="baseline-line"/>
+  <text x="10" y="240" class="label">text-before-edge</text>
+  <text x="140" y="240" dominant-baseline="text-before-edge">The quick brown fox</text>
+
+  <!-- text-after-edge -->
+  <line x1="140" y1="280" x2="480" y2="280" class="baseline-line"/>
+  <text x="10" y="280" class="label">text-after-edge</text>
+  <text x="140" y="280" dominant-baseline="text-after-edge">The quick brown fox</text>
+</svg>

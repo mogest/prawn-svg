@@ -67,10 +67,7 @@ module Prawn::SVG
 
         size = computed_properties.numeric_font_size
 
-        if computed_properties.dominant_baseline == 'middle'
-          height = FontMetrics.x_height_in_points(prawn, size || prawn.font_size)
-          y_offset = -height / 2.0
-        end
+        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size)
 
         with_svg_fonts(prawn) do
           children.each do |child|
@@ -236,6 +233,29 @@ module Prawn::SVG
     # overridden from Base, we want the id to point to the Text element
     def add_to_elements_by_id?
       source.name != 'text'
+    end
+
+    def dominant_baseline_offset(prawn, size)
+      case computed_properties.dominant_baseline
+      when 'middle'
+        -FontMetrics.x_height_in_points(prawn, size) / 2.0
+      when 'central'
+        -(prawn.font.ascender / prawn.font_size) * size / 2.0
+      when 'hanging'
+        -(prawn.font.ascender / prawn.font_size) * size
+      when 'text-before-edge'
+        ascender, descender = scaled_ascender_descender(prawn, size)
+        -(ascender * size) / (ascender + descender)
+      when 'text-after-edge'
+        ascender, descender = scaled_ascender_descender(prawn, size)
+        (descender * size) / (ascender + descender)
+      end
+    end
+
+    def scaled_ascender_descender(prawn, size)
+      ascender = (prawn.font.ascender / prawn.font_size) * size
+      descender = (prawn.font.descender / prawn.font_size) * size
+      [ascender, descender]
     end
 
     def normalize_length(length)

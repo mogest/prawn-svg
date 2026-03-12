@@ -17,7 +17,7 @@ module Prawn::SVG
       'clip-path'         => Config.new('none', false, ['none', :funciri]),
       'color'             => Config.new(Color.black, true, [:color]),
       'display'           => Config.new('inline', false, %w[inline none]),
-      'dominant-baseline' => Config.new('auto', true, %w[auto middle]),
+      'dominant-baseline' => Config.new('auto', true, %w[auto middle central hanging alphabetic text-before-edge text-after-edge]),
       'fill'              => Config.new(Paint.black, true, [:paint]),
       'fill-opacity'      => Config.new(1.0, true, [:number]),
       'fill-rule'         => Config.new('nonzero', true, %w[nonzero evenodd]),
