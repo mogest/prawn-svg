@@ -1,0 +1,101 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="800" height="1000" viewBox="0 0 800 1000" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-size: 11px; font-family: sans-serif; fill: #333; }
+    .label { font-size: 13px; font-weight: bold; }
+  </style>
+
+  <!-- Row 1: rx only, ry only, both equal -->
+  <text x="20" y="25" class="label">rx only / ry only / both equal</text>
+
+  <rect x="20" y="40" width="160" height="100" rx="30" fill="#4a90d9" />
+  <text x="20" y="160">rx="30"</text>
+
+  <rect x="220" y="40" width="160" height="100" ry="30" fill="#d94a4a" />
+  <text x="220" y="160">ry="30"</text>
+
+  <rect x="420" y="40" width="160" height="100" rx="30" ry="30" fill="#4ad94a" />
+  <text x="420" y="160">rx="30" ry="30"</text>
+
+  <rect x="620" y="40" width="160" height="100" rx="0" ry="0" fill="#d9d94a" />
+  <text x="620" y="160">rx="0" ry="0"</text>
+
+  <!-- Row 2: different rx/ry combos -->
+  <text x="20" y="200" class="label">Elliptical corners (rx != ry)</text>
+
+  <rect x="20" y="215" width="160" height="100" rx="50" ry="10" fill="#e07020" />
+  <text x="20" y="335">rx="50" ry="10"</text>
+
+  <rect x="220" y="215" width="160" height="100" rx="10" ry="50" fill="#20a0e0" />
+  <text x="220" y="335">rx="10" ry="50"</text>
+
+  <rect x="420" y="215" width="160" height="100" rx="80" ry="20" fill="#a020e0" />
+  <text x="420" y="335">rx="80" ry="20"</text>
+
+  <rect x="620" y="215" width="160" height="100" rx="20" ry="45" fill="#20e0a0" />
+  <text x="620" y="335">rx="20" ry="45"</text>
+
+  <!-- Row 3: clamping to half width/height -->
+  <text x="20" y="375" class="label">Clamping (radius exceeds half dimension)</text>
+
+  <rect x="20" y="390" width="160" height="100" rx="200" fill="#d94a90" />
+  <text x="20" y="510">rx="200" (clamped to 50)</text>
+
+  <rect x="220" y="390" width="160" height="100" ry="200" fill="#90d94a" />
+  <text x="220" y="510">ry="200" (clamped to 50)</text>
+
+  <rect x="420" y="390" width="160" height="100" rx="999" ry="999" fill="#4a90d9" />
+  <text x="420" y="510">rx/ry="999" (stadium)</text>
+
+  <rect x="620" y="390" width="100" height="100" rx="999" ry="999" fill="#d9904a" />
+  <text x="620" y="510">square rx/ry="999" (circle)</text>
+
+  <!-- Row 4: clamping with mixed rx/ry -->
+  <text x="20" y="550" class="label">Clamping with elliptical corners</text>
+
+  <rect x="20" y="565" width="160" height="100" rx="999" ry="10" fill="#e04070" />
+  <text x="20" y="685">rx="999" ry="10"</text>
+
+  <rect x="220" y="565" width="160" height="100" rx="10" ry="999" fill="#4070e0" />
+  <text x="220" y="685">rx="10" ry="999"</text>
+
+  <rect x="420" y="565" width="60" height="120" rx="30" ry="10" fill="#70e040" />
+  <text x="420" y="685">tall narrow, rx="30" ry="10"</text>
+
+  <rect x="540" y="565" width="120" height="60" rx="10" ry="30" fill="#e07040" />
+  <text x="540" y="685">wide short, rx="10" ry="30"</text>
+
+  <!-- Row 5: stroked, transformed -->
+  <text x="20" y="725" class="label">Stroked and transformed</text>
+
+  <rect x="20" y="740" width="160" height="100" rx="40" ry="15" fill="none" stroke="#333" stroke-width="3" />
+  <text x="20" y="860">stroke only</text>
+
+  <rect x="220" y="740" width="160" height="100" rx="40" ry="15" fill="#ffd700" stroke="#333" stroke-width="4" />
+  <text x="220" y="860">fill + stroke</text>
+
+  <g transform="translate(500 790) rotate(-20)">
+    <rect x="0" y="0" width="160" height="100" rx="50" ry="15" fill="none" stroke="purple" stroke-width="4" />
+  </g>
+  <text x="420" y="860">rotated</text>
+
+  <g transform="translate(640 740) scale(0.8 1.2)">
+    <rect x="0" y="0" width="160" height="100" rx="30" ry="15" fill="#ff6b6b" opacity="0.7" />
+  </g>
+  <text x="620" y="860">scaled + opacity</text>
+
+  <!-- Row 6: edge cases -->
+  <text x="20" y="900" class="label">Edge cases</text>
+
+  <rect x="20" y="915" width="160" height="100" rx="80" ry="50" fill="#8080ff" />
+  <text x="20" y="980" font-size="10">rx=w/2 ry=h/2 (full ellipse)</text>
+
+  <rect x="220" y="935" width="160" height="30" rx="40" ry="15" fill="#ff8080" />
+  <text x="220" y="980">very short</text>
+
+  <rect x="420" y="915" width="40" height="80" rx="20" ry="10" fill="#80ff80" />
+  <text x="420" y="980">very narrow</text>
+
+  <rect x="520" y="915" width="160" height="80" rx="1" ry="1" fill="#c0c0c0" />
+  <text x="520" y="980">tiny radius (rx/ry=1)</text>
+</svg>

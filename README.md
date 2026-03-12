@@ -54,9 +54,7 @@ Option      | Data type | Description
 
 prawn-svg supports most but not all of the full SVG 1.1 specification.  It currently supports:
 
- - `<line>`, `<polyline>`, `<polygon>`, `<circle>` and `<ellipse>`
-
- - `<rect>`.  Rounded rects are supported, but only one radius is applied to all corners.
+ - `<line>`, `<polyline>`, `<rect>`, `<polygon>`, `<circle>` and `<ellipse>`
 
  - `<path>` supports all commands defined in SVG 1.1, although the
    implementation of elliptical arc is a bit rough at the moment.
