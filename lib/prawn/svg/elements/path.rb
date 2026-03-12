@@ -240,36 +240,29 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
         cx = (Math.cos(phi) * cpx) + (-Math.sin(phi) * cpy) + ((x1 + x2) / 2)
         cy = (Math.sin(phi) * cpx) + (Math.cos(phi) * cpy) + ((y1 + y2) / 2)
 
-        # F.6.5.5
+        # F.6.5.5 - compute the eccentric anomaly (eta) of the start point
         vx = (xp1 - cpx) / rx
         vy = (yp1 - cpy) / ry
-        theta_1 = Math.acos(vx / Math.sqrt((vx * vx) + (vy * vy)))
-        theta_1 *= -1 if vy.negative?
+        eta_1 = Math.atan2(vy, vx)
 
-        # F.6.5.6
+        # F.6.5.6 - compute the sweep angle between start and end points
         ux = vx
         uy = vy
         vx = (-xp1 - cpx) / rx
         vy = (-yp1 - cpy) / ry
 
-        numerator = (ux * vx) + (uy * vy)
-        denominator = Math.sqrt((ux * ux) + (uy * uy)) * Math.sqrt((vx * vx) + (vy * vy))
-        division = numerator / denominator
-        division = -1 if division < -1 # for rounding errors
-
-        d_theta = Math.acos(division) % (2 * Math::PI)
-        d_theta *= -1 if ((ux * vy) - (uy * vx)).negative?
+        d_eta = Math.atan2((ux * vy) - (uy * vx), (ux * vx) + (uy * vy))
 
         # Adjust range
         if fs.zero?
-          d_theta -= 2 * Math::PI if d_theta.positive?
-        elsif d_theta.negative?
-          d_theta += 2 * Math::PI
+          d_eta -= 2 * Math::PI if d_eta.positive?
+        elsif d_eta.negative?
+          d_eta += 2 * Math::PI
         end
 
-        theta_2 = theta_1 + d_theta
+        eta_2 = eta_1 + d_eta
 
-        calculate_bezier_curve_points_for_arc(cx, cy, rx, ry, theta_1, theta_2, phi).each do |points|
+        calculate_bezier_curve_points_for_arc(cx, cy, rx, ry, eta_1, eta_2, phi).each do |points|
           push_command Prawn::SVG::Pathable::Curve.new(points[:p2], points[:q1], points[:q2])
         end
       end

@@ -52,12 +52,11 @@ Option      | Data type | Description
 
 ## Supported features
 
-prawn-svg supports most but not all of the full SVG 1.1 specification.  It currently supports:
+prawn-svg supports most of the full SVG 1.1 specification.  It currently supports:
 
  - `<line>`, `<polyline>`, `<rect>`, `<polygon>`, `<circle>` and `<ellipse>`
 
- - `<path>` supports all commands defined in SVG 1.1, although the
-   implementation of elliptical arc is a bit rough at the moment.
+ - `<path>`
 
  - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`, `lengthAdjust`,
    and with extra properties `text-anchor`, `text-decoration` (underline only), `font`, `font-size`, `font-family`,
@@ -124,7 +123,8 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 
-prawn-svg does not support filters.
+prawn-svg will not support filters, as gaussian blur (the most common use of filters) is not something the PDF
+format was designed to support.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 

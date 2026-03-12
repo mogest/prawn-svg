@@ -1,0 +1,186 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="1200" height="1200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-size: 11px; font-family: sans-serif; }
+    .label { font-size: 13px; font-weight: bold; }
+  </style>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Four flag combinations on circular arcs           -->
+  <!-- ============================================================ -->
+  <text x="20" y="30" class="label">1. Four flag combos (fa, fs) — circular arc rx=ry=60</text>
+
+  <g transform="translate(100, 120)">
+    <text x="-60" y="-70" text-anchor="middle">fa=0 fs=0</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 60,60 0 0,0 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(300, 120)">
+    <text x="-60" y="-70" text-anchor="middle">fa=0 fs=1</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 60,60 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(500, 120)">
+    <text x="-60" y="-70" text-anchor="middle">fa=1 fs=0</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 60,60 0 1,0 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(700, 120)">
+    <text x="-60" y="-70" text-anchor="middle">fa=1 fs=1</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 60,60 0 1,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Four flag combinations on elliptical arcs         -->
+  <!-- ============================================================ -->
+  <text x="20" y="220" class="label">2. Four flag combos — elliptical arc rx=80 ry=40</text>
+
+  <g transform="translate(100, 310)">
+    <text x="-60" y="-70" text-anchor="middle">fa=0 fs=0</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 80,40 0 0,0 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(300, 310)">
+    <text x="-60" y="-70" text-anchor="middle">fa=0 fs=1</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 80,40 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(500, 310)">
+    <text x="-60" y="-70" text-anchor="middle">fa=1 fs=0</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 80,40 0 1,0 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(700, 310)">
+    <text x="-60" y="-70" text-anchor="middle">fa=1 fs=1</text>
+    <circle cx="-60" cy="0" r="2" fill="red"/>
+    <circle cx="60" cy="0" r="2" fill="blue"/>
+    <path d="M -60,0 A 80,40 0 1,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Rotated elliptical arcs                           -->
+  <!-- ============================================================ -->
+  <text x="20" y="410" class="label">3. Rotated ellipses — rx=80 ry=30, rotation=0/30/45/60/90</text>
+
+  <g transform="translate(100, 500)">
+    <text x="0" y="-70" text-anchor="middle">rot=0</text>
+    <path d="M -50,0 A 80,30 0 0,1 50,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -50,0 A 80,30 0 1,1 50,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(300, 500)">
+    <text x="0" y="-70" text-anchor="middle">rot=30</text>
+    <path d="M -50,0 A 80,30 30 0,1 50,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -50,0 A 80,30 30 1,1 50,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(500, 500)">
+    <text x="0" y="-70" text-anchor="middle">rot=45</text>
+    <path d="M -50,0 A 80,30 45 0,1 50,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -50,0 A 80,30 45 1,1 50,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(700, 500)">
+    <text x="0" y="-70" text-anchor="middle">rot=60</text>
+    <path d="M -50,0 A 80,30 60 0,1 50,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -50,0 A 80,30 60 1,1 50,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(900, 500)">
+    <text x="0" y="-70" text-anchor="middle">rot=90</text>
+    <path d="M -50,0 A 80,30 90 0,1 50,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -50,0 A 80,30 90 1,1 50,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: High eccentricity ellipses                        -->
+  <!-- ============================================================ -->
+  <text x="20" y="600" class="label">4. High eccentricity — rx=100 ry varies (50, 20, 10, 5, 2)</text>
+
+  <g transform="translate(120, 700)">
+    <text x="0" y="-65" text-anchor="middle">ry=50</text>
+    <path d="M -60,0 A 100,50 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 100,50 0 1,0 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(350, 700)">
+    <text x="0" y="-65" text-anchor="middle">ry=20</text>
+    <path d="M -60,0 A 100,20 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 100,20 0 1,0 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(580, 700)">
+    <text x="0" y="-65" text-anchor="middle">ry=10</text>
+    <path d="M -60,0 A 100,10 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 100,10 0 1,0 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(810, 700)">
+    <text x="0" y="-65" text-anchor="middle">ry=5</text>
+    <path d="M -60,0 A 100,5 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 100,5 0 1,0 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(1040, 700)">
+    <text x="0" y="-65" text-anchor="middle">ry=2</text>
+    <path d="M -60,0 A 100,2 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 100,2 0 1,0 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Rotated high-eccentricity ellipses                -->
+  <!-- ============================================================ -->
+  <text x="20" y="790" class="label">5. Rotated high-eccentricity — rx=100 ry=10, rotation=0/30/45/60/90</text>
+
+  <g transform="translate(120, 890)">
+    <text x="0" y="-75" text-anchor="middle">rot=0</text>
+    <path d="M -40,-30 A 100,10 0 0,1 40,30" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -40,-30 A 100,10 0 1,1 40,30" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(350, 890)">
+    <text x="0" y="-75" text-anchor="middle">rot=30</text>
+    <path d="M -40,-30 A 100,10 30 0,1 40,30" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -40,-30 A 100,10 30 1,1 40,30" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(580, 890)">
+    <text x="0" y="-75" text-anchor="middle">rot=45</text>
+    <path d="M -40,-30 A 100,10 45 0,1 40,30" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -40,-30 A 100,10 45 1,1 40,30" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(810, 890)">
+    <text x="0" y="-75" text-anchor="middle">rot=60</text>
+    <path d="M -40,-30 A 100,10 60 0,1 40,30" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -40,-30 A 100,10 60 1,1 40,30" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(1040, 890)">
+    <text x="0" y="-75" text-anchor="middle">rot=90</text>
+    <path d="M -40,-30 A 100,10 90 0,1 40,30" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -40,-30 A 100,10 90 1,1 40,30" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Near-full-circle arcs                             -->
+  <!-- ============================================================ -->
+  <text x="20" y="980" class="label">6. Near-full-circle arcs — endpoints very close together</text>
+
+  <g transform="translate(100, 1070)">
+    <text x="0" y="-65" text-anchor="middle">circle fa=1 fs=1</text>
+    <path d="M 0,-50 A 50,50 0 1,1 1,-50" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(300, 1070)">
+    <text x="0" y="-65" text-anchor="middle">circle fa=1 fs=0</text>
+    <path d="M 0,-50 A 50,50 0 1,0 1,-50" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(500, 1070)">
+    <text x="0" y="-65" text-anchor="middle">ellipse fa=1 fs=1</text>
+    <path d="M 0,-30 A 50,30 0 1,1 1,-30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(700, 1070)">
+    <text x="0" y="-65" text-anchor="middle">ellipse fa=1 fs=0</text>
+    <path d="M 0,-30 A 50,30 0 1,0 1,-30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(900, 1070)">
+    <text x="0" y="-65" text-anchor="middle">flat fa=1 fs=1</text>
+    <path d="M 0,-8 A 60,8 0 1,1 1,-8" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+</svg>

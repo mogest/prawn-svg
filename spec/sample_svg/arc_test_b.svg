@@ -1,0 +1,194 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="1200" height="1200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-size: 11px; font-family: sans-serif; }
+    .label { font-size: 13px; font-weight: bold; }
+  </style>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Very small arcs                                   -->
+  <!-- ============================================================ -->
+  <text x="20" y="30" class="label">7. Very small arcs — tiny sweep angles</text>
+
+  <g transform="translate(100, 100)">
+    <text x="0" y="-55" text-anchor="middle">tiny circle</text>
+    <path d="M 0,0 A 50,50 0 0,1 5,-1" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="0" cy="0" r="2" fill="red"/>
+    <circle cx="5" cy="-1" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(300, 100)">
+    <text x="0" y="-55" text-anchor="middle">tiny ellipse</text>
+    <path d="M 0,0 A 80,20 0 0,1 5,-1" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="0" cy="0" r="2" fill="red"/>
+    <circle cx="5" cy="-1" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(500, 100)">
+    <text x="0" y="-55" text-anchor="middle">tiny rotated</text>
+    <path d="M 0,0 A 80,20 45 0,1 5,-1" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="0" cy="0" r="2" fill="red"/>
+    <circle cx="5" cy="-1" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(700, 100)">
+    <text x="0" y="-55" text-anchor="middle">tiny flat</text>
+    <path d="M 0,0 A 100,5 0 0,1 5,-1" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="0" cy="0" r="2" fill="red"/>
+    <circle cx="5" cy="-1" r="2" fill="blue"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Quarter, semi, and three-quarter arcs             -->
+  <!-- ============================================================ -->
+  <text x="20" y="180" class="label">8. Quarter / semi / three-quarter arcs — circle r=50</text>
+
+  <g transform="translate(100, 280)">
+    <text x="0" y="-65" text-anchor="middle">quarter CW</text>
+    <path d="M 50,0 A 50,50 0 0,1 0,50" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="0" cy="50" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(250, 280)">
+    <text x="0" y="-65" text-anchor="middle">quarter CCW</text>
+    <path d="M 50,0 A 50,50 0 0,0 0,50" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="0" cy="50" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(420, 280)">
+    <text x="0" y="-65" text-anchor="middle">semi CW</text>
+    <path d="M 50,0 A 50,50 0 0,1 -50,0" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="-50" cy="0" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(590, 280)">
+    <text x="0" y="-65" text-anchor="middle">semi CCW</text>
+    <path d="M 50,0 A 50,50 0 0,0 -50,0" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="-50" cy="0" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(770, 280)">
+    <text x="0" y="-65" text-anchor="middle">3/4 CW</text>
+    <path d="M 50,0 A 50,50 0 1,1 0,-50" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="0" cy="-50" r="2" fill="blue"/>
+  </g>
+  <g transform="translate(950, 280)">
+    <text x="0" y="-65" text-anchor="middle">3/4 CCW</text>
+    <path d="M 50,0 A 50,50 0 1,0 0,-50" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="50" cy="0" r="2" fill="red"/>
+    <circle cx="0" cy="-50" r="2" fill="blue"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Elliptical quarter/semi/three-quarter             -->
+  <!-- ============================================================ -->
+  <text x="20" y="380" class="label">9. Quarter / semi / three-quarter — ellipse rx=70 ry=30</text>
+
+  <g transform="translate(100, 470)">
+    <text x="0" y="-55" text-anchor="middle">quarter CW</text>
+    <path d="M 70,0 A 70,30 0 0,1 0,30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(280, 470)">
+    <text x="0" y="-55" text-anchor="middle">quarter CCW</text>
+    <path d="M 70,0 A 70,30 0 0,0 0,30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(460, 470)">
+    <text x="0" y="-55" text-anchor="middle">semi CW</text>
+    <path d="M 70,0 A 70,30 0 0,1 -70,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(660, 470)">
+    <text x="0" y="-55" text-anchor="middle">semi CCW</text>
+    <path d="M 70,0 A 70,30 0 0,0 -70,0" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(860, 470)">
+    <text x="0" y="-55" text-anchor="middle">3/4 CW</text>
+    <path d="M 70,0 A 70,30 0 1,1 0,-30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(1060, 470)">
+    <text x="0" y="-55" text-anchor="middle">3/4 CCW</text>
+    <path d="M 70,0 A 70,30 0 1,0 0,-30" fill="none" stroke="black" stroke-width="2"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: Radius auto-scaling (endpoints too far apart)    -->
+  <!-- ============================================================ -->
+  <text x="20" y="560" class="label">10. Radius auto-scaling — rx/ry too small for endpoints</text>
+
+  <g transform="translate(100, 650)">
+    <text x="0" y="-65" text-anchor="middle">rx=ry=30 gap=120</text>
+    <path d="M -60,0 A 30,30 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 30,30 0 1,1 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(350, 650)">
+    <text x="0" y="-65" text-anchor="middle">rx=50 ry=10 gap=120</text>
+    <path d="M -60,0 A 50,10 0 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 50,10 0 1,1 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(600, 650)">
+    <text x="0" y="-65" text-anchor="middle">rx=50 ry=10 r45 gap=120</text>
+    <path d="M -60,0 A 50,10 45 0,1 60,0" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M -60,0 A 50,10 45 1,1 60,0" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 11: Continuous path with multiple arcs               -->
+  <!-- ============================================================ -->
+  <text x="20" y="740" class="label">11. Continuous path — chain of arcs (should be smooth)</text>
+
+  <g transform="translate(100, 820)">
+    <text x="200" y="-40" text-anchor="middle">alternating CW/CCW circle arcs</text>
+    <path d="M 0,0
+             A 30,30 0 0,1 60,0
+             A 30,30 0 0,0 120,0
+             A 30,30 0 0,1 180,0
+             A 30,30 0 0,0 240,0
+             A 30,30 0 0,1 300,0
+             A 30,30 0 0,0 360,0"
+          fill="none" stroke="black" stroke-width="2"/>
+  </g>
+  <g transform="translate(100, 890)">
+    <text x="200" y="-30" text-anchor="middle">alternating CW/CCW elliptical arcs</text>
+    <path d="M 0,0
+             A 50,20 0 0,1 60,0
+             A 50,20 0 0,0 120,0
+             A 50,20 0 0,1 180,0
+             A 50,20 0 0,0 240,0
+             A 50,20 0 0,1 300,0
+             A 50,20 0 0,0 360,0"
+          fill="none" stroke="black" stroke-width="2"/>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 12: Diagonal endpoints — various angles              -->
+  <!-- ============================================================ -->
+  <text x="20" y="960" class="label">12. Diagonal endpoints — arcs at various orientations</text>
+
+  <g transform="translate(100, 1050)">
+    <text x="0" y="-55" text-anchor="middle">NE</text>
+    <path d="M 0,0 A 50,50 0 0,1 40,-40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 50,50 0 1,1 40,-40" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(250, 1050)">
+    <text x="0" y="-55" text-anchor="middle">SE</text>
+    <path d="M 0,0 A 50,50 0 0,1 40,40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 50,50 0 1,1 40,40" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(400, 1050)">
+    <text x="0" y="-55" text-anchor="middle">SW</text>
+    <path d="M 0,0 A 50,50 0 0,1 -40,40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 50,50 0 1,1 -40,40" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(550, 1050)">
+    <text x="0" y="-55" text-anchor="middle">NW</text>
+    <path d="M 0,0 A 50,50 0 0,1 -40,-40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 50,50 0 1,1 -40,-40" fill="none" stroke="red" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(750, 1050)">
+    <text x="0" y="-55" text-anchor="middle">NE ellip rot30</text>
+    <path d="M 0,0 A 60,25 30 0,1 40,-40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 60,25 30 1,1 40,-40" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(950, 1050)">
+    <text x="0" y="-55" text-anchor="middle">SW ellip rot60</text>
+    <path d="M 0,0 A 60,25 60 0,0 -40,40" fill="none" stroke="black" stroke-width="2"/>
+    <path d="M 0,0 A 60,25 60 1,0 -40,40" fill="none" stroke="green" stroke-width="1.5"/>
+  </g>
+</svg>

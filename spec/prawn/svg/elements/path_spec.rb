@@ -322,9 +322,9 @@ describe Prawn::SVG::Elements::Path do
       it 'correctly parses them' do
         expect(subject).to eq [
           Prawn::SVG::Elements::Path::Move.new([100.0, 100.0]),
-          Prawn::SVG::Elements::Path::Curve.new([50.0, 150.0], [72.57081148225681, 100.0], [50.0, 122.57081148225681]),
+          Prawn::SVG::Elements::Path::Curve.new([50.0, 150.0], [72.57081148225683, 100.0], [50.0, 122.57081148225683]),
           Prawn::SVG::Elements::Path::Curve.new([99.99999999999999, 200.0], [50.0, 177.42918851774317],
-            [72.5708114822568, 200.0])
+            [72.57081148225681, 200.0])
         ]
       end
     end
