@@ -5,7 +5,7 @@ end
 require 'prawn/svg/elements/call_duplicator'
 
 %w[base direct_render_base root anchor container clip_path mask viewport text text_component text_node line polyline polygon circle ellipse
-   rect path use image gradient marker ignored].each do |filename|
+   rect path use image gradient pattern marker ignored].each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
 
@@ -30,6 +30,7 @@ module Prawn::SVG::Elements
     image:          Prawn::SVG::Elements::Image,
     linearGradient: Prawn::SVG::Elements::Gradient,
     radialGradient: Prawn::SVG::Elements::Gradient,
+    pattern:        Prawn::SVG::Elements::Pattern,
     marker:         Prawn::SVG::Elements::Marker,
     style:          Prawn::SVG::Elements::Ignored, # because it is pre-parsed by Document
     title:          Prawn::SVG::Elements::Ignored,

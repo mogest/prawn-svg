@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="500" viewBox="0 0 400 500">
+  <defs>
+    <!-- Simple pattern with userSpaceOnUse -->
+    <pattern id="checkerboard" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#cc0000"/>
+      <rect x="20" y="20" width="20" height="20" fill="#cc0000"/>
+      <rect x="20" width="20" height="20" fill="#0000cc"/>
+      <rect y="20" width="20" height="20" fill="#0000cc"/>
+    </pattern>
+
+    <!-- Pattern with objectBoundingBox units and content units -->
+    <pattern id="stripes" width="0.25" height="1" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox">
+      <rect width="0.25" height="1" fill="#ffcc00"/>
+      <rect width="0.125" height="1" fill="#009900"/>
+    </pattern>
+
+    <!-- Pattern with patternTransform -->
+    <pattern id="rotated" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="30" height="30" fill="#eee"/>
+      <circle cx="15" cy="15" r="10" fill="#6699cc"/>
+    </pattern>
+
+    <!-- Pattern with viewBox -->
+    <pattern id="scaled" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <rect width="10" height="10" fill="white"/>
+      <circle cx="5" cy="5" r="4" fill="#cc6600"/>
+    </pattern>
+
+    <!-- Pattern referencing another via href -->
+    <pattern id="inherited" href="#checkerboard" x="10" y="10"/>
+
+    <!-- Pattern with patternContentUnits=objectBoundingBox -->
+    <pattern id="obb-content" width="0.5" height="0.5" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox">
+      <rect width="0.5" height="0.5" fill="#993399"/>
+      <rect x="0.25" y="0.25" width="0.25" height="0.25" fill="#ff99ff"/>
+    </pattern>
+
+    <!-- Pattern with text -->
+    <pattern id="text-pattern" width="60" height="30" patternUnits="userSpaceOnUse">
+      <rect width="60" height="30" fill="#e8f4e8"/>
+      <text x="5" y="20" font-size="14" font-family="Helvetica" fill="#336633">Abc</text>
+    </pattern>
+
+    <!-- Pattern with image -->
+    <pattern id="image-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#fff0e0"/>
+      <image x="4" y="4" width="32" height="32" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIGZpbGw9IiNlNjZlMDAiLz48Y2lyY2xlIGN4PSIxMCIgY3k9IjEyIiByPSIzIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iMTIiIHI9IjMiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTggMjBxOCA4IDE2IDAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPjwvc3ZnPg=="/>
+    </pattern>
+  </defs>
+
+  <!-- Checkerboard fill -->
+  <rect x="10" y="10" width="180" height="80" fill="url(#checkerboard)" stroke="black"/>
+
+  <!-- Stripe fill (objectBoundingBox) -->
+  <rect x="210" y="10" width="180" height="80" fill="url(#stripes)" stroke="black"/>
+
+  <!-- Rotated pattern -->
+  <rect x="10" y="110" width="180" height="80" fill="url(#rotated)" stroke="black"/>
+
+  <!-- Scaled pattern with viewBox -->
+  <rect x="210" y="110" width="180" height="80" fill="url(#scaled)" stroke="black"/>
+
+  <!-- Inherited pattern -->
+  <rect x="10" y="210" width="180" height="80" fill="url(#inherited)" stroke="black"/>
+
+  <!-- Pattern stroke -->
+  <rect x="210" y="210" width="180" height="80" fill="none" stroke="url(#checkerboard)" stroke-width="8"/>
+
+  <!-- objectBoundingBox content units -->
+  <rect x="10" y="310" width="180" height="80" fill="url(#obb-content)" stroke="black"/>
+
+  <!-- Pattern on a circle -->
+  <circle cx="300" cy="350" r="40" fill="url(#checkerboard)" stroke="black"/>
+
+  <!-- Text pattern -->
+  <rect x="10" y="410" width="180" height="80" fill="url(#text-pattern)" stroke="black"/>
+
+  <!-- Image pattern -->
+  <rect x="210" y="410" width="180" height="80" fill="url(#image-pattern)" stroke="black"/>
+</svg>

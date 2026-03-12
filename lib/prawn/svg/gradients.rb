@@ -22,13 +22,16 @@ module Prawn::SVG
 
     private
 
+    PAINT_SERVER_CLASSES = [Elements::Gradient, Elements::Pattern].freeze
+
     def find_raw_gradient_element_by_id(id)
       raw_element = find_raw_element_by_id(id)
       raw_element if gradient_element?(raw_element)
     end
 
     def create_gradient_element(raw_element)
-      Elements::Gradient.new(@document, raw_element, [], new_state).tap(&:process)
+      element_class = Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]
+      element_class.new(@document, raw_element, [], new_state).tap(&:process)
     end
 
     def find_raw_element_by_id(id)
@@ -38,7 +41,7 @@ module Prawn::SVG
     def gradient_element?(raw_element)
       return false if raw_element.nil? || raw_element.name.nil?
 
-      Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym] == Elements::Gradient
+      PAINT_SERVER_CLASSES.include?(Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym])
     end
 
     def new_state

@@ -84,6 +84,10 @@ prawn-svg supports most but not all of the full SVG 1.1 specification.  It curre
  - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and
    `gradientTransform`
 
+ - `<pattern>` with attributes `patternUnits`, `patternContentUnits`, `patternTransform`, `viewBox`,
+   `preserveAspectRatio`, and `href` inheritance.  Patterns can be used for both fill and stroke.
+   Nested patterns (a pattern whose content references another pattern) are not supported.
+
  - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
    tags are always ignored.
 
@@ -122,7 +126,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 
-prawn-svg does not support patterns or filters.
+prawn-svg does not support filters.
 
 It does not support text in the clip area, but you can clip shapes and text by any shape.
 
