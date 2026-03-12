@@ -197,8 +197,7 @@ module Prawn
 
         when 'svg:render_pattern'
           type = arguments[0]
-          pattern_args = arguments[1]
-          PatternRenderer.new(prawn, type, self, **pattern_args).draw
+          PatternRenderer.new(prawn, type, self, **kwarguments).draw
           yield
 
         when 'svg:add_link'

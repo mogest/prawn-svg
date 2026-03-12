@@ -203,7 +203,7 @@ class Prawn::SVG::Elements::Base
           add_call 'svg:render_gradient', type.to_sym, **color.gradient_arguments(self)
         when Prawn::SVG::Elements::Pattern
           args = color.pattern_arguments(self)
-          add_call 'svg:render_pattern', type.to_sym, args if args
+          add_call 'svg:render_pattern', type.to_sym, **args if args
         when nil
           nil
         else
