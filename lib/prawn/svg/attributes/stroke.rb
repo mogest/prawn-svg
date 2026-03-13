@@ -30,7 +30,13 @@ module Prawn::SVG::Attributes::Stroke
         if values.inject(0) { |a, b| a + b }.zero?
           add_call('undash')
         else
-          add_call('dash', values)
+          options = {}
+          offset = computed_properties.stroke_dashoffset
+          if offset && offset != 0 && offset != 'inherit'
+            phase = pixels(offset)
+            options[:phase] = phase unless phase.zero?
+          end
+          add_call('dash', values, **options)
         end
       else
         raise "Unknown dasharray value: #{dasharray.inspect}"

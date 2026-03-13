@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <style>
+    text { font-size: 12px; fill: #333; }
+    line { stroke: #333; stroke-width: 3; stroke-dasharray: 20,10; }
+  </style>
+
+  <!-- Reference: no offset -->
+  <text x="10" y="30">No offset (reference)</text>
+  <line x1="220" y1="27" x2="480" y2="27"/>
+
+  <!-- Positive offset -->
+  <text x="10" y="70">Positive offset (10)</text>
+  <line x1="220" y1="67" x2="480" y2="67" stroke-dashoffset="10"/>
+
+  <!-- Negative offset -->
+  <text x="10" y="110">Negative offset (-10)</text>
+  <line x1="220" y1="107" x2="480" y2="107" stroke-dashoffset="-10"/>
+
+  <!-- Offset equal to dash length -->
+  <text x="10" y="150">Offset = dash length (20)</text>
+  <line x1="220" y1="147" x2="480" y2="147" stroke-dashoffset="20"/>
+
+  <!-- Offset equal to full pattern -->
+  <text x="10" y="190">Offset = full pattern (30)</text>
+  <line x1="220" y1="187" x2="480" y2="187" stroke-dashoffset="30"/>
+
+  <!-- Large offset -->
+  <text x="10" y="230">Large offset (100)</text>
+  <line x1="220" y1="227" x2="480" y2="227" stroke-dashoffset="100"/>
+
+  <!-- Percentage offset -->
+  <text x="10" y="270">Percentage offset (5%)</text>
+  <line x1="220" y1="267" x2="480" y2="267" stroke-dashoffset="5%"/>
+
+  <!-- Inherited offset -->
+  <text x="10" y="310">Inherited offset (15)</text>
+  <g stroke-dashoffset="15">
+    <line x1="220" y1="307" x2="480" y2="307"/>
+  </g>
+
+  <!-- CSS style attribute -->
+  <text x="10" y="350">CSS style (offset: 10)</text>
+  <line x1="220" y1="347" x2="480" y2="347" style="stroke-dashoffset: 10"/>
+
+  <!-- No dasharray with offset (should render solid) -->
+  <text x="10" y="390">No dasharray + offset</text>
+  <line x1="220" y1="387" x2="480" y2="387" stroke-dashoffset="10" style="stroke-dasharray: none"/>
+</svg>

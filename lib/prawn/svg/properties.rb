@@ -39,6 +39,7 @@ module Prawn::SVG
       'stop-opacity'      => Config.new(1.0, false, [:number]),
       'stroke'            => Config.new(Paint.none, true, [:paint]),
       'stroke-dasharray'  => Config.new('none', true, [:dasharray, 'none']),
+      'stroke-dashoffset' => Config.new(0, true, [:length, :percentage]),
       'stroke-linecap'    => Config.new('butt', true, %w[butt round square]),
       'stroke-linejoin'   => Config.new('miter', true, %w[miter round bevel]),
       'stroke-opacity'    => Config.new(1.0, true, [:number]),

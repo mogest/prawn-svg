@@ -90,7 +90,7 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
    tags are always ignored.
 
  - properties: `clip-path`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `opacity`, `overflow`,
-   `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-linejoin`, `stroke-opacity`, `stroke-width`,
+   `stroke`, `stroke-dasharray`, `stroke-dashoffset`, `stroke-linecap`, `stroke-linejoin`, `stroke-opacity`, `stroke-width`,
    `visibility`
 
  - properties on lines, polylines, polygons and paths: `marker-end`, `marker-mid`, `marker-start`
