@@ -181,23 +181,4 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       end
     end
   end
-
-  def percentage_or_proportion(string, default = 0)
-    string = string.to_s.strip
-    percentage = false
-
-    if string[-1] == '%'
-      percentage = true
-      string = string[0..-2]
-    end
-
-    value = Float(string, exception: false)
-    return default unless value
-
-    if percentage
-      value / 100.0
-    else
-      value
-    end
-  end
 end

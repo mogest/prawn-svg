@@ -3,6 +3,7 @@ module Prawn::SVG::Elements
 end
 
 require 'prawn/svg/elements/call_duplicator'
+require 'prawn/svg/elements/bbox_scaling'
 
 %w[base direct_render_base root anchor container clip_path mask viewport text text_component text_node text_path line polyline polygon circle ellipse
    rect path use image gradient pattern marker ignored].each do |filename|

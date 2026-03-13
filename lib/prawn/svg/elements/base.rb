@@ -2,6 +2,7 @@ class Prawn::SVG::Elements::Base
   extend Forwardable
 
   include Prawn::SVG::Elements::CallDuplicator
+  include Prawn::SVG::Elements::BboxScaling
 
   include Prawn::SVG::Calculators::Pixels
 
@@ -302,5 +303,10 @@ class Prawn::SVG::Elements::Base
     new_source = source.dup
     document.element_styles[new_source] = document.element_styles[source]
     new_source
+  end
+
+  def set_display_none
+    properties.display = 'none'
+    computed_properties.display = 'none'
   end
 end

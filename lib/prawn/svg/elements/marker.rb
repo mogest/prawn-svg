@@ -1,7 +1,6 @@
 class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
   def parse
-    properties.display = 'none'
-    computed_properties.display = 'none'
+    set_display_none
   end
 
   def container?

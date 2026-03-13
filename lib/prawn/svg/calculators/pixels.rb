@@ -39,4 +39,19 @@ module Prawn::SVG::Calculators::Pixels
     value && Measurement.to_pixels(value, state.viewport_sizing.viewport_height,
       font_size: computed_properties.numeric_font_size)
   end
+
+  def percentage_or_proportion(string, default = 0)
+    string = string.to_s.strip
+    percentage = false
+
+    if string[-1] == '%'
+      percentage = true
+      string = string[0..-2]
+    end
+
+    value = Float(string, exception: false)
+    return default unless value
+
+    percentage ? value / 100.0 : value
+  end
 end
