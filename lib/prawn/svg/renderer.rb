@@ -148,7 +148,8 @@ module Prawn
           yield
 
         when 'clip'
-          prawn.add_content 'W n' # clip to path
+          even_odd = kwarguments[:clip_rule] == :even_odd
+          prawn.add_content(even_odd ? 'W* n' : 'W n')
           yield
 
         when 'save'

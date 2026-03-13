@@ -15,6 +15,7 @@ module Prawn::SVG
 
     PROPERTIES = {
       'clip-path'         => Config.new('none', false, ['none', :funciri]),
+      'clip-rule'         => Config.new('nonzero', true, %w[nonzero evenodd]),
       'color'             => Config.new(Color.black, true, [:color]),
       'display'           => Config.new('inline', false, %w[inline none]),
       'dominant-baseline' => Config.new('auto', true, %w[auto middle central hanging alphabetic text-before-edge text-after-edge]),
