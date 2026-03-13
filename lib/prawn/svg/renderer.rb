@@ -143,6 +143,10 @@ module Prawn
           arguments[4] += left - ((left * arguments[0]) + (top * arguments[2]))
           arguments[5] += top - ((left * arguments[1]) + (top * arguments[3]))
 
+        when 'miter_limit'
+          prawn.add_content("#{arguments.first} M")
+          yield
+
         when 'clip'
           prawn.add_content 'W n' # clip to path
           yield

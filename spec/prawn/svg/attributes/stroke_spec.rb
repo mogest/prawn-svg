@@ -80,4 +80,47 @@ RSpec.describe Prawn::SVG::Attributes::Stroke do
       end
     end
   end
+
+  describe 'stroke-miterlimit' do
+    context 'with a miterlimit attribute' do
+      let(:svg) { '<line x1="0" y1="0" x2="100" y2="0" stroke="black" stroke-miterlimit="8"/>' }
+
+      it 'generates a miter_limit call' do
+        subject.process
+        call = subject.base_calls.detect { |c| c[0] == 'miter_limit' }
+        expect(call).to eq ['miter_limit', [8.0], {}, []]
+      end
+    end
+
+    context 'with miterlimit set via style attribute' do
+      let(:svg) { '<line x1="0" y1="0" x2="100" y2="0" stroke="black" style="stroke-miterlimit: 10"/>' }
+
+      it 'generates a miter_limit call' do
+        subject.process
+        call = subject.base_calls.detect { |c| c[0] == 'miter_limit' }
+        expect(call).to eq ['miter_limit', [10.0], {}, []]
+      end
+    end
+
+    context 'with miterlimit less than 1' do
+      let(:svg) { '<line x1="0" y1="0" x2="100" y2="0" stroke="black" stroke-miterlimit="0.5"/>' }
+
+      it 'rejects the invalid value' do
+        subject.process
+        call = subject.base_calls.detect { |c| c[0] == 'miter_limit' }
+        expect(call).to be_nil
+      end
+    end
+
+    context 'with inherited miterlimit' do
+      let(:svg) { '<g stroke-miterlimit="12"><line x1="0" y1="0" x2="100" y2="0" stroke="black"/></g>' }
+      let(:element) { Prawn::SVG::Elements::Container.new(document, document.root, [], fake_state) }
+
+      it 'inherits the miterlimit from the parent' do
+        element.process
+        call = flatten_calls(element.base_calls).detect { |c| c[0] == 'miter_limit' }
+        expect(call).to eq ['miter_limit', [12.0], {}]
+      end
+    end
+  end
 end

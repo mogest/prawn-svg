@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <style>
+    text { font-size: 12px; fill: #333; }
+    polyline { fill: none; stroke: #333; stroke-width: 8; stroke-linejoin: miter; }
+  </style>
+
+  <!-- Default miter limit (4) -->
+  <text x="10" y="30">Default miterlimit (4)</text>
+  <polyline points="220,50 260,15 300,50"/>
+  <polyline points="320,50 345,15 370,50"/>
+  <polyline points="390,50 400,15 410,50"/>
+
+  <!-- Miter limit 1 (all become bevel) -->
+  <text x="10" y="100">miterlimit=1 (all bevel)</text>
+  <polyline points="220,120 260,85 300,120" stroke-miterlimit="1"/>
+  <polyline points="320,120 345,85 370,120" stroke-miterlimit="1"/>
+  <polyline points="390,120 400,85 410,120" stroke-miterlimit="1"/>
+
+  <!-- Miter limit 1.414 (bevel below 90 degrees) -->
+  <text x="10" y="170">miterlimit=1.414</text>
+  <polyline points="220,190 260,155 300,190" stroke-miterlimit="1.414"/>
+  <polyline points="320,190 345,155 370,190" stroke-miterlimit="1.414"/>
+  <polyline points="390,190 400,155 410,190" stroke-miterlimit="1.414"/>
+
+  <!-- Miter limit 10 -->
+  <text x="10" y="240">miterlimit=10</text>
+  <polyline points="220,260 260,225 300,260" stroke-miterlimit="10"/>
+  <polyline points="320,260 345,225 370,260" stroke-miterlimit="10"/>
+  <polyline points="390,260 400,225 410,260" stroke-miterlimit="10"/>
+
+  <!-- Miter limit 100 -->
+  <text x="10" y="310">miterlimit=100</text>
+  <polyline points="220,330 260,295 300,330" stroke-miterlimit="100"/>
+  <polyline points="320,330 345,295 370,330" stroke-miterlimit="100"/>
+  <polyline points="390,330 400,295 410,330" stroke-miterlimit="100"/>
+
+  <!-- Inherited miter limit -->
+  <text x="10" y="380">Inherited (miterlimit=1)</text>
+  <g stroke-miterlimit="1">
+    <polyline points="220,400 260,365 300,400"/>
+    <polyline points="320,400 345,365 370,400"/>
+  </g>
+
+  <!-- Style attribute -->
+  <text x="10" y="440">style="stroke-miterlimit: 1"</text>
+  <polyline points="220,460 260,425 300,460" style="stroke-miterlimit: 1"/>
+  <polyline points="320,460 345,425 370,460" style="stroke-miterlimit: 1"/>
+</svg>

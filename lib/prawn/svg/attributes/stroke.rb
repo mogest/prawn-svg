@@ -17,6 +17,10 @@ module Prawn::SVG::Attributes::Stroke
       add_call('join_style', JOIN_STYLE_TRANSLATIONS.fetch(linejoin, :miter))
     end
 
+    if (miterlimit = properties.stroke_miterlimit) && miterlimit != 'inherit'
+      add_call('miter_limit', miterlimit)
+    end
+
     if (dasharray = properties.stroke_dasharray)
       case dasharray
       when 'inherit'

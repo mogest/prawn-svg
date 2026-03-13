@@ -42,6 +42,7 @@ module Prawn::SVG
       'stroke-dashoffset' => Config.new(0, true, [:length, :percentage]),
       'stroke-linecap'    => Config.new('butt', true, %w[butt round square]),
       'stroke-linejoin'   => Config.new('miter', true, %w[miter round bevel]),
+      'stroke-miterlimit' => Config.new(4.0, true, [:positive_number]),
       'stroke-opacity'    => Config.new(1.0, true, [:number]),
       'stroke-width'      => Config.new(1.0, true, [:positive_length, :positive_percentage]),
       'text-anchor'       => Config.new('start', true, %w[start middle end]),
@@ -182,6 +183,9 @@ module Prawn::SVG
         Length.parse(value)
       when :percentage
         Percentage.parse(value)
+      when :positive_number
+        value = Float(value, exception: false)
+        value if value && value >= 1
       when :positive_length
         Length.parse(value, positive_only: true)
       when :positive_percentage

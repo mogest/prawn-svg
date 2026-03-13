@@ -73,6 +73,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
           ['line_width', [1.0], {}, []],
           ['cap_style', [:butt], {}, []],
           ['join_style', [:miter], {}, []],
+          ['miter_limit', [4.0], {}, []],
           ['undash', [], {}, []],
           ['save', [], {}, []],
           ['fill', [], {}, [
