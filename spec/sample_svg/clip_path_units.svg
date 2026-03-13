@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+  <defs>
+    <!-- objectBoundingBox: clip to left half -->
+    <clipPath id="leftHalf" clipPathUnits="objectBoundingBox">
+      <rect x="0" y="0" width="0.5" height="1"/>
+    </clipPath>
+
+    <!-- objectBoundingBox: clip to right half -->
+    <clipPath id="rightHalf" clipPathUnits="objectBoundingBox">
+      <rect x="0.5" y="0" width="0.5" height="1"/>
+    </clipPath>
+
+    <!-- objectBoundingBox: circular clip -->
+    <clipPath id="circleClip" clipPathUnits="objectBoundingBox">
+      <circle cx="0.5" cy="0.5" r="0.5"/>
+    </clipPath>
+
+    <!-- objectBoundingBox: ellipse on non-square element -->
+    <clipPath id="ellipseClip" clipPathUnits="objectBoundingBox">
+      <ellipse cx="0.5" cy="0.5" rx="0.5" ry="0.5"/>
+    </clipPath>
+
+    <!-- objectBoundingBox: diagonal path -->
+    <clipPath id="diagonalClip" clipPathUnits="objectBoundingBox">
+      <path d="M0,0 L1,0 L1,1 Z"/>
+    </clipPath>
+
+    <!-- objectBoundingBox: centered small rect -->
+    <clipPath id="centerClip" clipPathUnits="objectBoundingBox">
+      <rect x="0.25" y="0.25" width="0.5" height="0.5"/>
+    </clipPath>
+
+    <!-- userSpaceOnUse (default): for comparison -->
+    <clipPath id="userSpaceClip">
+      <rect x="440" y="10" width="75" height="80"/>
+    </clipPath>
+
+    <!-- objectBoundingBox with multiple shapes -->
+    <clipPath id="multiShape" clipPathUnits="objectBoundingBox">
+      <rect x="0" y="0" width="0.4" height="1"/>
+      <rect x="0.6" y="0" width="0.4" height="1"/>
+    </clipPath>
+  </defs>
+
+  <!-- Labels -->
+  <text x="10" y="25" font-size="14" font-weight="bold">clipPathUnits Tests</text>
+
+  <!-- Row 1: Basic objectBoundingBox tests -->
+  <text x="10" y="55" font-size="11">Left half clip</text>
+  <rect x="10" y="60" width="150" height="80" fill="blue" clip-path="url(#leftHalf)"/>
+  <rect x="10" y="60" width="150" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="180" y="55" font-size="11">Right half clip</text>
+  <rect x="180" y="60" width="150" height="80" fill="green" clip-path="url(#rightHalf)"/>
+  <rect x="180" y="60" width="150" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="350" y="55" font-size="11">Circle clip (square)</text>
+  <rect x="350" y="60" width="80" height="80" fill="red" clip-path="url(#circleClip)"/>
+  <rect x="350" y="60" width="80" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="450" y="55" font-size="11">userSpaceOnUse (reference)</text>
+  <rect x="440" y="60" width="150" height="80" fill="purple" clip-path="url(#userSpaceClip)"/>
+  <rect x="440" y="60" width="150" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <!-- Row 2: More complex cases -->
+  <text x="10" y="175" font-size="11">Diagonal path clip</text>
+  <rect x="10" y="180" width="150" height="80" fill="orange" clip-path="url(#diagonalClip)"/>
+  <rect x="10" y="180" width="150" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="180" y="175" font-size="11">Center 50% clip</text>
+  <rect x="180" y="180" width="150" height="80" fill="teal" clip-path="url(#centerClip)"/>
+  <rect x="180" y="180" width="150" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="350" y="175" font-size="11">Ellipse on wide rect</text>
+  <rect x="350" y="180" width="200" height="80" fill="magenta" clip-path="url(#ellipseClip)"/>
+  <rect x="350" y="180" width="200" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <!-- Row 3: Reuse on different elements -->
+  <text x="10" y="295" font-size="11">Same clip, different sizes</text>
+  <rect x="10" y="300" width="80" height="80" fill="navy" clip-path="url(#leftHalf)"/>
+  <rect x="10" y="300" width="80" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <rect x="110" y="300" width="200" height="40" fill="navy" clip-path="url(#leftHalf)"/>
+  <rect x="110" y="300" width="200" height="40" fill="none" stroke="black" stroke-width="1"/>
+
+  <rect x="110" y="360" width="60" height="120" fill="navy" clip-path="url(#leftHalf)"/>
+  <rect x="110" y="360" width="60" height="120" fill="none" stroke="black" stroke-width="1"/>
+
+  <!-- Row 3 continued: Multi-shape clip -->
+  <text x="350" y="295" font-size="11">Multi-shape clip (two strips)</text>
+  <rect x="350" y="300" width="200" height="80" fill="crimson" clip-path="url(#multiShape)"/>
+  <rect x="350" y="300" width="200" height="80" fill="none" stroke="black" stroke-width="1"/>
+
+  <!-- Row 4: Clip on circle element -->
+  <text x="10" y="505" font-size="11">objectBoundingBox clip on circle</text>
+  <circle cx="80" cy="550" r="40" fill="gold" clip-path="url(#leftHalf)"/>
+  <circle cx="80" cy="550" r="40" fill="none" stroke="black" stroke-width="1"/>
+
+  <text x="180" y="505" font-size="11">objectBoundingBox clip on ellipse</text>
+  <ellipse cx="280" cy="550" rx="80" ry="40" fill="limegreen" clip-path="url(#diagonalClip)"/>
+  <ellipse cx="280" cy="550" rx="80" ry="40" fill="none" stroke="black" stroke-width="1"/>
+</svg>

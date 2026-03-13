@@ -8,8 +8,11 @@ module Prawn::SVG::Attributes::ClipPath
     if clip_path_element.nil?
       document.warnings << 'Could not resolve clip-path URI to a clipPath element'
     else
+      clip_calls = clip_path_element.build_clip_calls(self)
+      return if clip_calls.nil?
+
       add_call_and_enter 'save_graphics_state'
-      add_calls_from_element clip_path_element
+      @calls.concat clip_calls
 
       # SVG's clip-rule applies per-element (determining each shape's interior),
       # then elements are unioned. PDF's W* applies even-odd to the entire combined
