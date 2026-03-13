@@ -38,6 +38,8 @@ module Prawn::SVG
     end
 
     def build_text_node_queue(queue, component)
+      return unless component.children
+
       component.children.each do |element|
         case element
         when Elements::TextNode

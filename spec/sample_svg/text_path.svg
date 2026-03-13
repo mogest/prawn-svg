@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
+  <defs>
+    <path id="straight" d="M 20,50 L 480,50"/>
+    <path id="arc" d="M 50,200 C 100,100 400,100 450,200"/>
+    <path id="wave" d="M 20,320 C 80,280 160,360 220,320 C 280,280 360,360 480,320"/>
+  </defs>
+
+  <!-- Straight path -->
+  <path d="M 20,50 L 480,50" fill="none" stroke="#ccc" stroke-width="1"/>
+  <text font-size="20" fill="navy">
+    <textPath href="#straight">Text along a straight path</textPath>
+  </text>
+
+  <!-- Curved arc path -->
+  <path d="M 50,200 C 100,100 400,100 450,200" fill="none" stroke="#ccc" stroke-width="1"/>
+  <text font-size="18" fill="darkred">
+    <textPath href="#arc">Curving text on a bezier arc</textPath>
+  </text>
+
+  <!-- Wave path with startOffset -->
+  <path d="M 20,320 C 80,280 160,360 220,320 C 280,280 360,360 480,320" fill="none" stroke="#ccc" stroke-width="1"/>
+  <text font-size="16" fill="darkgreen">
+    <textPath href="#wave" startOffset="10%">Text flowing along a wavy path</textPath>
+  </text>
+</svg>

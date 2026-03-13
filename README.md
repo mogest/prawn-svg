@@ -58,9 +58,10 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
  - `<path>`
 
- - `<text>`, `<tspan>` and `<tref>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`, `lengthAdjust`,
-   and with extra properties `text-anchor`, `text-decoration`, `font`, `font-size`, `font-family`,
-   `font-weight`, `font-style`, `letter-spacing`, `dominant-baseline`
+ - `<text>`, `<tspan>`, `<tref>` and `<textPath>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`,
+   `lengthAdjust`, and with extra properties `text-anchor`, `text-decoration`, `font`, `font-size`, `font-family`,
+   `font-weight`, `font-style`, `letter-spacing`, `dominant-baseline`.
+   `<textPath>` supports `href`/`xlink:href` and `startOffset`.
 
  - `<svg>`, `<g>` and `<symbol>`
 

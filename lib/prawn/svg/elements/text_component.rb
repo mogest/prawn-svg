@@ -33,6 +33,8 @@ module Prawn::SVG
           case child.name
           when 'tspan', 'tref'
             build_child(child)
+          when 'textPath'
+            build_text_path(child)
           else
             warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
             []
@@ -128,6 +130,14 @@ module Prawn::SVG
     def build_child(child)
       component = self.class.new(document, child, [], state.dup, self)
       component.process
+      component
+    end
+
+    def build_text_path(child)
+      component = Elements::TextPath.new(document, child, [], state.dup, self)
+      component.process
+      return [] unless component.children
+
       component
     end
 
