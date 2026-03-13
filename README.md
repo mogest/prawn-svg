@@ -124,10 +124,16 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 ## Not supported
 
-prawn-svg will not support filters, as gaussian blur (the most common use of filters) is not something the PDF
-format was designed to support.
+prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-It does not support text in the clip area, but you can clip shapes and text by any shape.
+Not yet implemented but will consider if there is demand: clip-rule, clipPathUnits, text in clip paths/`<use>`,
+baseline-shift, alignment-baseline, word-spacing, writing-mode, RTL text (direction/unicode-bidi), kerning,
+font-stretch, bolder/lighter font-weight, `<switch>` conditional processing, `@font-face`, external `<use>` refs,
+marker shorthand, `<a>` target, `<view>`, CSS @import/@media, `:lang` pseudo-class.
+
+Will probably never be supported because either they don't make sense for PDF, they were deprecated in SVG 2, or
+they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering hints, ICC color
+profiles, color-interpolation, enable-background, deprecated CSS clip.
 
 ## Configuration
 
