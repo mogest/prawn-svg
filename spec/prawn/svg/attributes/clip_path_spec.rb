@@ -1,7 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe Prawn::SVG::Attributes::ClipPath do
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
+  let(:font_registry) { Prawn::SVG::FontRegistry.new('Helvetica' => { normal: nil }) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}, font_registry: font_registry) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
 
@@ -181,6 +182,64 @@ RSpec.describe Prawn::SVG::Attributes::ClipPath do
       it 'scales the circle to the element bounding box' do
         clip_call = flattened_calls.detect { |c| c[0] == 'clip' }
         expect(clip_call).not_to be_nil
+      end
+    end
+  end
+
+  describe 'text in clip paths' do
+    context 'with text inside a clipPath' do
+      let(:svg) do
+        <<~SVG
+          <svg width="200" height="200">
+            <defs>
+              <clipPath id="textClip">
+                <text x="10" y="50" font-size="40">Hello</text>
+              </clipPath>
+            </defs>
+            <rect width="200" height="200" fill="red" clip-path="url(#textClip)"/>
+          </svg>
+        SVG
+      end
+
+      it 'uses a soft_mask instead of a clip call' do
+        clip_call = flattened_calls.detect { |c| c[0] == 'clip' }
+        expect(clip_call).to be_nil
+
+        mask_call = flattened_calls.detect { |c| c[0] == 'soft_mask' }
+        expect(mask_call).not_to be_nil
+      end
+
+      it 'generates an svg:render call for the text element' do
+        render_call = flattened_calls.detect { |c| c[0] == 'svg:render' }
+        expect(render_call).not_to be_nil
+      end
+
+      it 'does not produce any warnings' do
+        expect(document.warnings).to be_empty
+      end
+    end
+
+    context 'with text and shapes mixed in a clipPath' do
+      let(:svg) do
+        <<~SVG
+          <svg width="200" height="200">
+            <defs>
+              <clipPath id="mixedClip">
+                <text x="10" y="50" font-size="40">Hello</text>
+                <circle cx="100" cy="100" r="50"/>
+              </clipPath>
+            </defs>
+            <rect width="200" height="200" fill="red" clip-path="url(#mixedClip)"/>
+          </svg>
+        SVG
+      end
+
+      it 'uses soft_mask when text is present' do
+        clip_call = flattened_calls.detect { |c| c[0] == 'clip' }
+        expect(clip_call).to be_nil
+
+        mask_call = flattened_calls.detect { |c| c[0] == 'soft_mask' }
+        expect(mask_call).not_to be_nil
       end
     end
   end

@@ -115,13 +115,15 @@ module Prawn::SVG
 
         width = chunk.fixed_width || chunk.base_width
 
-        decoration = component.computed_properties.text_decoration
-        unless decoration == 'none'
-          render_underline(prawn, size, cursor, y_offset, width) if decoration.include?('underline')
-          render_overline(prawn, size, cursor, y_offset, width) if decoration.include?('overline')
-          render_line_through(prawn, size, cursor, y_offset, width) if decoration.include?('line-through')
+        unless component.inside_clip_path
+          decoration = component.computed_properties.text_decoration
+          unless decoration == 'none'
+            render_underline(prawn, size, cursor, y_offset, width) if decoration.include?('underline')
+            render_overline(prawn, size, cursor, y_offset, width) if decoration.include?('overline')
+            render_line_through(prawn, size, cursor, y_offset, width) if decoration.include?('line-through')
+          end
+          render_link_annotation(prawn, size, cursor, y_offset, width)
         end
-        render_link_annotation(prawn, size, cursor, y_offset, width)
 
         opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: true }
         opts[:rotate] = chunk.rotate if chunk.rotate
@@ -144,6 +146,10 @@ module Prawn::SVG
           if spacing_enabled
             ((chunk.fixed_width - chunk.base_width) / (chunk.text.length - (parent_spacing ? 0 : 1))) + (component.letter_spacing_pixels || 0)
           end
+
+        # Inside clip paths, text renders white in a soft mask to define the
+        # clipping region. Override any fill color from the SVG element.
+        prawn.fill_color('ffffff') if component.inside_clip_path
 
         prawn.horizontal_text_scaling(scaling) do
           prawn.character_spacing(spacing || component.letter_spacing_pixels || prawn.character_spacing) do
@@ -265,6 +271,8 @@ module Prawn::SVG
     end
 
     def calculate_text_rendering_mode
+      return :fill if component.inside_clip_path
+
       fill = !component.computed_properties.fill.none? # rubocop:disable Style/InverseMethods
       stroke = !component.computed_properties.stroke.none? # rubocop:disable Style/InverseMethods
 

@@ -3,6 +3,7 @@ module Prawn::SVG
     attr_reader :children, :parent_component
     attr_reader :x_values, :y_values, :dx, :dy, :rotation, :text_length, :length_adjust
     attr_reader :font, :fallback_fonts
+    attr_reader :inside_clip_path
 
     def initialize(document, source, _calls, state, parent_component = nil)
       if parent_component.nil? && source.name != 'text'
@@ -14,7 +15,7 @@ module Prawn::SVG
     end
 
     def parse
-      raise SkipElementError, '<text> elements are not supported in clip paths' if state.inside_clip_path
+      @inside_clip_path = state.inside_clip_path
 
       @x_values = parse_wsp('x').map { |n| x(n) }
       @y_values = parse_wsp('y').map { |n| y(n) }

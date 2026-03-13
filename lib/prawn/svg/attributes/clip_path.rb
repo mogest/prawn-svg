@@ -12,18 +12,35 @@ module Prawn::SVG::Attributes::ClipPath
       return if clip_calls.nil?
 
       add_call_and_enter 'save_graphics_state'
-      @calls.concat clip_calls
 
-      # SVG's clip-rule applies per-element (determining each shape's interior),
-      # then elements are unioned. PDF's W* applies even-odd to the entire combined
-      # path, which incorrectly creates holes between separate shapes. Only use W*
-      # when there's a single child element, where self-intersection matters.
-      child_elements = clip_path_element.svg_child_elements
-      if child_elements.length == 1 && clip_path_element.computed_properties.clip_rule == 'evenodd'
-        add_call 'clip', clip_rule: :even_odd
+      if clip_path_contains_text?(clip_calls)
+        # Text in clip paths is implemented using a PDF soft mask. The text
+        # renders in white fill inside the mask to define the visible region.
+        # This correctly unions multiple text elements, unlike PDF text
+        # rendering mode 7 which intersects separate text objects.
+        @calls << ['soft_mask', [], {}, clip_calls]
       else
-        add_call 'clip'
+        @calls.concat clip_calls
+
+        # SVG's clip-rule applies per-element (determining each shape's interior),
+        # then elements are unioned. PDF's W* applies even-odd to the entire combined
+        # path, which incorrectly creates holes between separate shapes. Only use W*
+        # when there's a single child element, where self-intersection matters.
+        child_elements = clip_path_element.svg_child_elements
+        if child_elements.length == 1 && clip_path_element.computed_properties.clip_rule == 'evenodd'
+          add_call 'clip', clip_rule: :even_odd
+        else
+          add_call 'clip'
+        end
       end
+    end
+  end
+
+  private
+
+  def clip_path_contains_text?(calls)
+    calls.any? do |call, _arguments, _kwarguments, children|
+      call == 'svg:render' || clip_path_contains_text?(children)
     end
   end
 end

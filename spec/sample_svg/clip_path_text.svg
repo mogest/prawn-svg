@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="400" viewBox="0 0 500 400">
+  <defs>
+    <!-- Simple text clip path -->
+    <clipPath id="textClip1">
+      <text x="10" y="60" font-size="60" font-weight="bold" font-family="Helvetica, sans-serif">HELLO</text>
+    </clipPath>
+
+    <!-- Multi-line text clip path -->
+    <clipPath id="textClip2">
+      <text x="10" y="50" font-size="40" font-family="Helvetica, sans-serif">SVG</text>
+      <text x="10" y="90" font-size="40" font-family="Helvetica, sans-serif">Text</text>
+    </clipPath>
+
+    <!-- Small text clip path -->
+    <clipPath id="textClip3">
+      <text x="5" y="20" font-size="18" font-family="Helvetica, sans-serif">Clipped Region</text>
+    </clipPath>
+
+    <!-- Text clip with tspan -->
+    <clipPath id="textClip4">
+      <text font-size="50" font-family="Helvetica, sans-serif">
+        <tspan x="10" y="55">AB</tspan>
+      </text>
+    </clipPath>
+
+    <!-- Gradient for background -->
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="50%" stop-color="#4ecdc4"/>
+      <stop offset="100%" stop-color="#45b7d1"/>
+    </linearGradient>
+
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f093fb"/>
+      <stop offset="100%" stop-color="#f5576c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="400" fill="#f0f0f0"/>
+
+  <!-- Labels -->
+  <text x="10" y="20" font-size="14" font-family="Helvetica, sans-serif" fill="#666">Text in clip paths</text>
+
+  <!-- Test 1: Simple text clip on gradient -->
+  <g transform="translate(10, 30)">
+    <rect width="250" height="70" fill="url(#grad1)" clip-path="url(#textClip1)"/>
+    <text x="0" y="85" font-size="11" font-family="Helvetica, sans-serif" fill="#999">Gradient clipped to "HELLO"</text>
+  </g>
+
+  <!-- Test 2: Multi-line text clip on solid color -->
+  <g transform="translate(270, 30)">
+    <rect width="200" height="100" fill="url(#grad2)" clip-path="url(#textClip2)"/>
+    <text x="0" y="115" font-size="11" font-family="Helvetica, sans-serif" fill="#999">Multi-line text clip</text>
+  </g>
+
+  <!-- Test 3: Text clip on image-like pattern (stripes) -->
+  <g transform="translate(10, 150)">
+    <g clip-path="url(#textClip3)">
+      <rect width="200" height="30" fill="#e74c3c"/>
+      <rect y="0" width="200" height="5" fill="#c0392b"/>
+      <rect y="10" width="200" height="5" fill="#c0392b"/>
+      <rect y="20" width="200" height="5" fill="#c0392b"/>
+    </g>
+    <text x="0" y="45" font-size="11" font-family="Helvetica, sans-serif" fill="#999">Small text clip on stripes</text>
+  </g>
+
+  <!-- Test 4: Text clip with tspan -->
+  <g transform="translate(270, 140)">
+    <rect width="150" height="70" fill="#2ecc71" clip-path="url(#textClip4)"/>
+    <text x="0" y="85" font-size="11" font-family="Helvetica, sans-serif" fill="#999">Text clip with tspan</text>
+  </g>
+
+  <!-- Test 5: Text clip applied to a group with multiple elements -->
+  <g transform="translate(10, 230)">
+    <defs>
+      <clipPath id="textClip5">
+        <text x="5" y="50" font-size="55" font-weight="bold" font-family="Helvetica, sans-serif">PRAWN</text>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#textClip5)">
+      <rect width="300" height="60" fill="#3498db"/>
+      <rect y="15" width="300" height="15" fill="#2980b9"/>
+      <rect y="45" width="300" height="15" fill="#2980b9"/>
+      <circle cx="50" cy="30" r="25" fill="#e74c3c" opacity="0.5"/>
+      <circle cx="150" cy="30" r="25" fill="#f39c12" opacity="0.5"/>
+      <circle cx="250" cy="30" r="25" fill="#27ae60" opacity="0.5"/>
+    </g>
+    <text x="0" y="80" font-size="11" font-family="Helvetica, sans-serif" fill="#999">Group clipped to bold "PRAWN"</text>
+  </g>
+
+  <!-- Test 6: Nested transforms with text clip -->
+  <g transform="translate(10, 320)">
+    <defs>
+      <clipPath id="textClip6">
+        <text x="5" y="40" font-size="35" font-family="Helvetica, sans-serif">Clip Me</text>
+      </clipPath>
+    </defs>
+    <g transform="translate(0, 0)">
+      <rect width="200" height="50" fill="url(#grad1)" clip-path="url(#textClip6)"/>
+    </g>
+    <text x="0" y="65" font-size="11" font-family="Helvetica, sans-serif" fill="#999">With nested transform</text>
+  </g>
+</svg>
