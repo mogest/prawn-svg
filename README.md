@@ -33,6 +33,7 @@ Option      | Data type | Description
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
+:language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
 
 ## Examples
 
@@ -84,8 +85,8 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
    `preserveAspectRatio`, and `href` inheritance.  Patterns can be used for both fill and stroke.
    Nested patterns (a pattern whose content references another pattern) are not supported.
 
- - `<switch>` and `<foreignObject>`, although prawn-svg cannot handle any data that is not SVG so `<foreignObject>`
-   tags are always ignored.
+ - `<switch>` with conditional processing (`requiredFeatures`, `requiredExtensions`, `systemLanguage`).
+   `<foreignObject>` tags are always ignored as prawn-svg cannot handle non-SVG data.
 
  - properties: `clip-path`, `clip-rule`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `opacity`, `overflow`,
    `stroke`, `stroke-dasharray`, `stroke-dashoffset`, `stroke-linecap`, `stroke-linejoin`, `stroke-miterlimit`, `stroke-opacity`, `stroke-width`,
@@ -124,8 +125,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: `<switch>`
-conditional processing, `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
+Not yet implemented but intending to build: `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
 @import/@media, `:lang` pseudo-class.
 
 writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement

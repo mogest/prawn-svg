@@ -7,7 +7,7 @@ module Prawn
     class Interface
       VALID_OPTIONS = %i[
         at position vposition width height cache_images enable_web_requests
-        enable_file_requests_with_root fallback_font_name color_mode
+        enable_file_requests_with_root fallback_font_name color_mode language
       ].freeze
 
       INHERITABLE_OPTIONS = %i[
