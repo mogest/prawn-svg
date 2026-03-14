@@ -37,7 +37,7 @@ module Prawn::SVG
       'font-stretch'       => Config.new('normal', true, STRETCH_ORDER + %w[wider narrower]),
       'font-style'         => Config.new('normal', true, %w[normal italic oblique]),
       'font-variant'       => Config.new('normal', true, %w[normal small-caps]),
-      'font-weight'        => Config.new('normal', true, %w[normal bold 100 200 300 400 500 600 700 800 900]), # bolder/lighter not supported
+      'font-weight'        => Config.new('normal', true, %w[normal bold bolder lighter 100 200 300 400 500 600 700 800 900]),
       # font-kerning is SVG 2 / CSS Fonts Level 3, supported here for forwards compatibility
       # since modern browsers have deprecated the SVG 1.1 kerning property.
       'font-kerning'       => Config.new('auto', true, %w[auto normal none]),
@@ -118,7 +118,8 @@ module Prawn::SVG
     end
 
     def compute_properties(other)
-      parent_font_stretch = font_stretch
+      parent_font_stretch = @font_stretch_before_relative || font_stretch
+      parent_font_weight = font_weight
 
       PROPERTY_CONFIGS.each do |config|
         value = other.send(config.attr)
@@ -131,13 +132,50 @@ module Prawn::SVG
         end
       end
 
+      if ['wider', 'narrower'].include?(font_stretch)
+        @font_stretch_before_relative ||= parent_font_stretch
+      else
+        @font_stretch_before_relative = nil
+      end
+
       @font_stretch = resolve_font_stretch(parent_font_stretch)
+      @font_weight = resolve_font_weight(parent_font_weight)
       @important_ids += other.important_ids
       @numeric_font_size = calculate_numeric_font_size
       nil
     end
 
     private
+
+    BOLDER_MAP = {
+      '100' => '400', '200' => '400', '300' => '400',
+      '400' => '700', '500' => '700',
+      '600' => '900', '700' => '900', '800' => '900', '900' => '900'
+    }.freeze
+
+    LIGHTER_MAP = {
+      '100' => '100', '200' => '100', '300' => '100',
+      '400' => '100', '500' => '100',
+      '600' => '400', '700' => '400',
+      '800' => '700', '900' => '700'
+    }.freeze
+
+    FONT_WEIGHT_TO_NUMERIC = {
+      'normal' => '400', 'bold' => '700'
+    }.freeze
+
+    def resolve_font_weight(parent_weight)
+      case font_weight
+      when 'bolder'
+        numeric = FONT_WEIGHT_TO_NUMERIC[parent_weight] || parent_weight || '400'
+        BOLDER_MAP[numeric] || '900'
+      when 'lighter'
+        numeric = FONT_WEIGHT_TO_NUMERIC[parent_weight] || parent_weight || '400'
+        LIGHTER_MAP[numeric] || '100'
+      else
+        font_weight
+      end
+    end
 
     def resolve_font_stretch(parent_stretch)
       case font_stretch

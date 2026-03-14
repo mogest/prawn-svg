@@ -9,15 +9,33 @@ module Prawn::SVG
     }.freeze
 
     FONT_WEIGHT_FALLBACKS = {
-      light:     :normal,
-      normal:    nil,
-      semibold:  :bold,
-      bold:      :normal,
-      extrabold: :bold,
-      black:     :extrabold
+      thin:       :extralight,
+      extralight: :light,
+      light:      :normal,
+      normal:     nil,
+      medium:     :normal,
+      semibold:   :bold,
+      bold:       :normal,
+      extrabold:  :bold,
+      black:      :extrabold
     }.freeze
 
     FONT_WEIGHTS = FONT_WEIGHT_FALLBACKS.keys.freeze
+
+    FONT_WEIGHT_VALUES = {
+      thin: 100, extralight: 200, light: 300, normal: 400, medium: 500,
+      semibold: 600, bold: 700, extrabold: 800, black: 900
+    }.freeze
+
+    # Font files use various names for the same weight. Map common alternatives
+    # to the canonical weight names used in FONT_WEIGHTS.
+    FONT_WEIGHT_ALIASES = {
+      thin:       %i[hairline],
+      extralight: %i[ultralight ultra_light extra_light],
+      semibold:   %i[semi_bold demi_bold demibold],
+      extrabold:  %i[extra_bold ultra_bold ultrabold],
+      black:      %i[heavy]
+    }.freeze
 
     FONT_STRETCH_MAPPING = {
       'ultra-condensed' => :ultra_condensed,
@@ -30,6 +48,11 @@ module Prawn::SVG
       'extra-expanded'  => :extra_expanded,
       'ultra-expanded'  => :ultra_expanded
     }.freeze
+
+    FONT_STRETCHES = %i[
+      ultra_condensed extra_condensed condensed semi_condensed normal
+      semi_expanded expanded extra_expanded ultra_expanded
+    ].freeze
 
     DEFAULT_FONT_PATHS = [
       '/Library/Fonts',
@@ -77,19 +100,23 @@ module Prawn::SVG
       return unless (subfamilies = installed_fonts[name])
       return if subfamilies.empty?
 
-      if stretch && stretch != :normal
-        font = find_with_weight_fallback(name, weight, style, stretch)
+      css_stretch_matching_order(stretch).each do |s|
+        effective_stretch = s == :normal ? nil : s
+
+        font = if effective_stretch
+                 find_with_css_weight_matching(name, weight, style, effective_stretch)
+               else
+                 find_with_weight_fallback(name, weight, style)
+               end
         return font if font
 
-        font = find_with_weight_fallback(name, weight, nil, stretch) if style
-        return font if font
-      end
+        next unless style
 
-      font = find_with_weight_fallback(name, weight, style)
-      return font if font
-
-      if style
-        font = find_with_weight_fallback(name, weight, nil)
+        font = if effective_stretch
+                 find_with_css_weight_matching(name, weight, nil, effective_stretch)
+               else
+                 find_with_weight_fallback(name, weight, nil)
+               end
         return font if font
       end
 
@@ -102,9 +129,55 @@ module Prawn::SVG
         font = Font.new(name, current_weight, style, stretch)
         return font if installed?(font)
 
+        FONT_WEIGHT_ALIASES.fetch(current_weight, []).each do |alias_weight|
+          font = Font.new(name, alias_weight, style, stretch)
+          return font if installed?(font)
+        end
+
         current_weight = FONT_WEIGHT_FALLBACKS[current_weight]
       end
       nil
+    end
+
+    def find_with_css_weight_matching(name, weight, style, stretch)
+      css_weight_matching_order(weight).each do |w|
+        font = Font.new(name, w, style, stretch)
+        return font if installed?(font)
+
+        FONT_WEIGHT_ALIASES.fetch(w, []).each do |alias_weight|
+          font = Font.new(name, alias_weight, style, stretch)
+          return font if installed?(font)
+        end
+      end
+      nil
+    end
+
+    def css_stretch_matching_order(stretch)
+      return [:normal] if stretch.nil? || stretch == :normal
+
+      idx = FONT_STRETCHES.index(stretch) || FONT_STRETCHES.index(:normal)
+      normal_idx = FONT_STRETCHES.index(:normal)
+
+      narrower = FONT_STRETCHES[0...idx].reverse
+      wider = FONT_STRETCHES[(idx + 1)..]
+
+      if idx <= normal_idx
+        [stretch] + narrower + wider
+      else
+        [stretch] + wider + narrower
+      end
+    end
+
+    def css_weight_matching_order(desired)
+      value = FONT_WEIGHT_VALUES[desired] || 400
+      below = FONT_WEIGHTS.select { |w| FONT_WEIGHT_VALUES[w] < value }.sort_by { |w| -FONT_WEIGHT_VALUES[w] }
+      above = FONT_WEIGHTS.select { |w| FONT_WEIGHT_VALUES[w] > value }.sort_by { |w| FONT_WEIGHT_VALUES[w] }
+
+      if value <= 500
+        [desired] + below + above
+      else
+        [desired] + above + below
+      end
     end
 
     def installed?(font)
@@ -114,12 +187,15 @@ module Prawn::SVG
 
     def weight_for_css_font_weight(weight)
       case weight
-      when '100', '200', '300'    then :light
-      when '400', '500', 'normal' then :normal
-      when '600'                  then :semibold
-      when '700', 'bold'          then :bold
-      when '800'                  then :extrabold
-      when '900'                  then :black
+      when '100'          then :thin
+      when '200'          then :extralight
+      when '300'          then :light
+      when '400', 'normal' then :normal
+      when '500'          then :medium
+      when '600'          then :semibold
+      when '700', 'bold'  then :bold
+      when '800'          then :extrabold
+      when '900'          then :black
       else :normal # rubocop:disable Lint/DuplicateBranch
       end
     end
@@ -157,7 +233,10 @@ module Prawn::SVG
             ttc.fonts.each do |font|
               subfamily = (font[:subfamily] || 'normal').gsub(/\s+/, '_').downcase.to_sym
               subfamily = :normal if subfamily == :regular
-              (external_font_families[font[:family]] ||= {})[subfamily] ||= { file: filename, font: font[:index] }
+              family_hash = (external_font_families[font[:family]] ||= {})
+              font_data = { file: filename, font: font[:index] }
+              family_hash[subfamily] ||= font_data
+              register_by_weight_class(family_hash, font[:weight_class], subfamily, font_data)
             end
           else
             ttf = TTF.new(filename)
@@ -165,12 +244,30 @@ module Prawn::SVG
 
             subfamily = (ttf.subfamily || 'normal').gsub(/\s+/, '_').downcase.to_sym
             subfamily = :normal if subfamily == :regular
-            (external_font_families[ttf.family] ||= {})[subfamily] ||= filename
+            family_hash = (external_font_families[ttf.family] ||= {})
+            family_hash[subfamily] ||= filename
+            register_by_weight_class(family_hash, ttf.weight_class, subfamily, family_hash[subfamily])
           end
         end
       end
 
       private
+
+      WEIGHT_CLASS_TO_SYMBOL = {
+        100 => :thin, 200 => :extralight, 300 => :light, 400 => :normal, 500 => :medium,
+        600 => :semibold, 700 => :bold, 800 => :extrabold, 900 => :black
+      }.freeze
+
+      def register_by_weight_class(family_hash, weight_class, subfamily, font_data)
+        return unless weight_class
+
+        subfamily_str = subfamily.to_s
+        return if subfamily_str.include?('italic') || subfamily_str.include?('oblique') ||
+                  subfamily_str.include?('condensed') || subfamily_str.include?('expanded')
+
+        canonical = WEIGHT_CLASS_TO_SYMBOL[weight_class]
+        family_hash[canonical] = font_data if canonical
+      end
 
       def external_font_paths
         font_path

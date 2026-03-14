@@ -124,7 +124,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: bolder/lighter font-weight, `<switch>`
+Not yet implemented but intending to build: `<switch>`
 conditional processing, `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
 @import/@media, `:lang` pseudo-class.
 

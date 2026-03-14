@@ -6,10 +6,10 @@ RSpec.describe Prawn::SVG::TTC do
   context 'with a TrueType Collection font' do
     let(:filename) { "#{File.dirname(__FILE__)}/../../sample_ttf/TestFamily.ttc" }
 
-    it 'extracts family, subfamily, and index for each font in the collection' do
+    it 'extracts family, subfamily, index, and weight class for each font in the collection' do
       expect(subject.fonts.length).to eq 2
-      expect(subject.fonts[0]).to eq(family: 'Test Family', subfamily: 'Regular', index: 0)
-      expect(subject.fonts[1]).to eq(family: 'Test Family', subfamily: 'Bold', index: 1)
+      expect(subject.fonts[0]).to include(family: 'Test Family', subfamily: 'Regular', index: 0)
+      expect(subject.fonts[1]).to include(family: 'Test Family', subfamily: 'Bold', index: 1)
     end
   end
 

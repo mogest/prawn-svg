@@ -3,10 +3,32 @@ class Prawn::SVG::TTF
   LANGUAGE_IDS = [0, 0x409].freeze # English, US English
   UTF_16BE_PLATFORM_IDS = [0, 3].freeze # Unicode, Microsoft
 
-  attr_reader :family, :subfamily
+  attr_reader :family, :subfamily, :weight_class
 
   def initialize(filename)
     load_data_from_file(filename)
+  end
+
+  def self.read_weight_class(io, font_offset)
+    io.seek(font_offset)
+    offset_table = io.read(12)
+    return unless offset_table&.length == 12 && SFNT_VERSION_STRINGS.include?(offset_table[0..3])
+
+    table_count = (offset_table[4].ord * 256) + offset_table[5].ord
+    tables = io.read(table_count * 16)
+    return unless tables&.length == table_count * 16
+
+    table_count.times do |index|
+      start = index * 16
+      next unless tables[start..start + 3] == 'OS/2'
+
+      offset, = tables[start + 8..start + 15].unpack('NN')
+      io.seek(offset)
+      data = io.read(6)
+      return data[4..5].unpack1('n') if data&.length == 6
+    end
+
+    nil
   end
 
   def self.read_name_table(io, font_offset)
@@ -66,6 +88,7 @@ class Prawn::SVG::TTF
     File.open(filename, 'rb') do |f|
       result = self.class.read_name_table(f, 0)
       @family, @subfamily = result if result
+      @weight_class = self.class.read_weight_class(f, 0)
     end
   rescue Errno::ENOENT # in case the file disappears between the scan and the load, we don't want to crash
   end

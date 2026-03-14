@@ -205,6 +205,79 @@ RSpec.describe Prawn::SVG::Properties do
     end
   end
 
+  describe 'font-weight bolder/lighter' do
+    it 'accepts bolder and lighter' do
+      subject.set('font-weight', 'bolder')
+      expect(subject.font_weight).to eq 'bolder'
+
+      subject.set('font-weight', 'lighter')
+      expect(subject.font_weight).to eq 'lighter'
+    end
+
+    context 'bolder keyword' do
+      {
+        'normal' => '700', '100' => '400', '200' => '400', '300' => '400',
+        '400' => '700', '500' => '700', '600' => '900', '700' => '900',
+        '800' => '900', '900' => '900', 'bold' => '900'
+      }.each do |parent_weight, expected|
+        it "resolves bolder from #{parent_weight} to #{expected}" do
+          parent = Prawn::SVG::Properties.new
+          parent.set('font-weight', parent_weight)
+
+          child = Prawn::SVG::Properties.new
+          child.set('font-weight', 'bolder')
+
+          computed = Prawn::SVG::Properties.new
+          computed.compute_properties(parent)
+          computed.compute_properties(child)
+
+          expect(computed.font_weight).to eq expected
+        end
+      end
+    end
+
+    context 'lighter keyword' do
+      {
+        'normal' => '100', '100' => '100', '200' => '100', '300' => '100',
+        '400' => '100', '500' => '100', '600' => '400', '700' => '400',
+        '800' => '700', '900' => '700', 'bold' => '400'
+      }.each do |parent_weight, expected|
+        it "resolves lighter from #{parent_weight} to #{expected}" do
+          parent = Prawn::SVG::Properties.new
+          parent.set('font-weight', parent_weight)
+
+          child = Prawn::SVG::Properties.new
+          child.set('font-weight', 'lighter')
+
+          computed = Prawn::SVG::Properties.new
+          computed.compute_properties(parent)
+          computed.compute_properties(child)
+
+          expect(computed.font_weight).to eq expected
+        end
+      end
+    end
+
+    it 'children inherit the resolved weight, not the relative keyword' do
+      grandparent = Prawn::SVG::Properties.new
+      grandparent.set('font-weight', '400')
+
+      parent = Prawn::SVG::Properties.new
+      parent.set('font-weight', 'bolder')
+
+      child = Prawn::SVG::Properties.new
+      child.set('font-weight', 'bolder')
+
+      computed = Prawn::SVG::Properties.new
+      computed.compute_properties(grandparent)
+      computed.compute_properties(parent)
+      expect(computed.font_weight).to eq '700'
+
+      computed.compute_properties(child)
+      expect(computed.font_weight).to eq '900'
+    end
+  end
+
   describe 'font-stretch' do
     it 'accepts absolute stretch keywords' do
       %w[normal ultra-condensed extra-condensed condensed semi-condensed

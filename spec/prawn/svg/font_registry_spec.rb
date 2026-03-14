@@ -62,6 +62,7 @@ RSpec.describe Prawn::SVG::FontRegistry do
     end
 
     it 'converts CSS numeric weights to symbols' do
+      expect(font_registry.load('courier', '100').weight).to eq(:normal) # thin falls back to normal for Courier
       expect(font_registry.load('courier', '400').weight).to eq(:normal)
       expect(font_registry.load('courier', '700').weight).to eq(:bold)
     end
@@ -117,8 +118,17 @@ RSpec.describe Prawn::SVG::FontRegistry do
         expect(font.subfamily).to eq(:expanded)
       end
 
-      it 'falls back to normal when stretch variant is not available' do
+      it 'falls back to nearest narrower stretch when exact stretch is not available' do
         font = font_registry.load('TestFont', :normal, nil, 'semi-condensed')
+        expect(font.subfamily).to eq(:condensed)
+      end
+
+      it 'falls back to normal when no stretch variant is available' do
+        allow(font_registry).to receive(:installed_fonts).and_return({
+          'TestFont' => { normal: 'test.ttf', bold: 'test-bold.ttf' }
+        })
+
+        font = font_registry.load('TestFont', :normal, nil, 'condensed')
         expect(font.subfamily).to eq(:normal)
       end
 
@@ -136,6 +146,18 @@ RSpec.describe Prawn::SVG::FontRegistry do
         font = font_registry.load('TestFont', :bold, :italic, 'condensed')
         expect(font.subfamily).to eq(:condensed_italic)
       end
+
+      it 'picks closest heavier weight in stretch when exact weight is unavailable' do
+        allow(font_registry).to receive(:installed_fonts).and_return({
+          'TestFont' => {
+            normal:         'test.ttf',
+            condensed_bold: 'test-condensed-bold.ttf'
+          }
+        })
+
+        font = font_registry.load('TestFont', :normal, nil, 'condensed')
+        expect(font.subfamily).to eq(:condensed_bold)
+      end
     end
 
     describe 'weight fallbacks' do
@@ -147,8 +169,18 @@ RSpec.describe Prawn::SVG::FontRegistry do
         allow(font_registry).to receive(:correctly_cased_font_name).and_return('TestFont')
       end
 
+      it 'falls back from thin through to normal' do
+        font = font_registry.load('TestFont', :thin)
+        expect(font.weight).to eq(:normal)
+      end
+
       it 'falls back from light to normal' do
         font = font_registry.load('TestFont', :light)
+        expect(font.weight).to eq(:normal)
+      end
+
+      it 'falls back from medium to normal' do
+        font = font_registry.load('TestFont', :medium)
         expect(font.weight).to eq(:normal)
       end
 
@@ -189,21 +221,56 @@ RSpec.describe Prawn::SVG::FontRegistry do
         before do
           allow(font_registry).to receive(:installed_fonts).and_return({
             'TestFont' => {
-              light:     'test-light.ttf',
-              normal:    'test.ttf',
-              semibold:  'test-semibold.ttf',
-              bold:      'test-bold.ttf',
-              extrabold: 'test-extrabold.ttf',
-              black:     'test-black.ttf'
+              thin:       'test-thin.ttf',
+              extralight: 'test-extralight.ttf',
+              light:      'test-light.ttf',
+              normal:     'test.ttf',
+              medium:     'test-medium.ttf',
+              semibold:   'test-semibold.ttf',
+              bold:       'test-bold.ttf',
+              extrabold:  'test-extrabold.ttf',
+              black:      'test-black.ttf'
             }
           })
         end
 
         it 'returns exact weight matches without fallback' do
+          expect(font_registry.load('TestFont', :thin).weight).to eq(:thin)
+          expect(font_registry.load('TestFont', :extralight).weight).to eq(:extralight)
           expect(font_registry.load('TestFont', :light).weight).to eq(:light)
+          expect(font_registry.load('TestFont', :medium).weight).to eq(:medium)
           expect(font_registry.load('TestFont', :semibold).weight).to eq(:semibold)
           expect(font_registry.load('TestFont', :extrabold).weight).to eq(:extrabold)
           expect(font_registry.load('TestFont', :black).weight).to eq(:black)
+        end
+      end
+
+      context 'weight aliases' do
+        it 'matches ultralight when looking for extralight' do
+          allow(font_registry).to receive(:installed_fonts).and_return({
+            'TestFont' => { ultralight: 'test-ul.ttf', normal: 'test.ttf' }
+          })
+
+          font = font_registry.load('TestFont', :extralight)
+          expect(font.subfamily).to eq(:ultralight)
+        end
+
+        it 'matches heavy when looking for black' do
+          allow(font_registry).to receive(:installed_fonts).and_return({
+            'TestFont' => { normal: 'test.ttf', heavy: 'test-heavy.ttf' }
+          })
+
+          font = font_registry.load('TestFont', :black)
+          expect(font.subfamily).to eq(:heavy)
+        end
+
+        it 'matches demi_bold when looking for semibold' do
+          allow(font_registry).to receive(:installed_fonts).and_return({
+            'TestFont' => { normal: 'test.ttf', demi_bold: 'test-db.ttf' }
+          })
+
+          font = font_registry.load('TestFont', :semibold)
+          expect(font.subfamily).to eq(:demi_bold)
         end
       end
     end
@@ -211,8 +278,8 @@ RSpec.describe Prawn::SVG::FontRegistry do
 
   describe '#installed_fonts' do
     let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
-    let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic') }
-    let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular') }
+    let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic', weight_class: 400) }
+    let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular', weight_class: 400) }
     before { Prawn::SVG::FontRegistry.external_font_families.clear }
 
     let(:pdf) do
@@ -246,8 +313,8 @@ RSpec.describe Prawn::SVG::FontRegistry do
 
     context 'with TTF files' do
       let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
-      let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic') }
-      let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular') }
+      let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic', weight_class: 400) }
+      let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular', weight_class: 400) }
 
       it 'scans the font path and loads in some fonts' do
         expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
@@ -267,9 +334,9 @@ RSpec.describe Prawn::SVG::FontRegistry do
     context 'with TTC files' do
       let(:ttc) do
         instance_double(Prawn::SVG::TTC, fonts: [
-          { family: 'Collection Font', subfamily: 'Regular', index: 0 },
-          { family: 'Collection Font', subfamily: 'Bold', index: 1 }
-        ])
+                          { family: 'Collection Font', subfamily: 'Regular', index: 0 },
+                          { family: 'Collection Font', subfamily: 'Bold', index: 1 }
+                        ])
       end
 
       it 'stores fonts with file and index hash' do
@@ -291,9 +358,9 @@ RSpec.describe Prawn::SVG::FontRegistry do
     context 'with a TTC containing multiple font families' do
       let(:ttc) do
         instance_double(Prawn::SVG::TTC, fonts: [
-          { family: 'Font A', subfamily: 'Regular', index: 0 },
-          { family: 'Font B', subfamily: 'Regular', index: 1 }
-        ])
+                          { family: 'Font A', subfamily: 'Regular', index: 0 },
+                          { family: 'Font B', subfamily: 'Regular', index: 1 }
+                        ])
       end
 
       it 'registers each family separately' do
@@ -315,12 +382,12 @@ RSpec.describe Prawn::SVG::FontRegistry do
     context 'when TTC fonts would override existing entries' do
       let(:ttc) do
         instance_double(Prawn::SVG::TTC, fonts: [
-          { family: 'Existing Font', subfamily: 'Regular', index: 0 },
-          { family: 'Existing Font', subfamily: 'Bold', index: 1 }
-        ])
+                          { family: 'Existing Font', subfamily: 'Regular', index: 0 },
+                          { family: 'Existing Font', subfamily: 'Bold', index: 1 }
+                        ])
       end
       let(:ttc2)  { instance_double(Prawn::SVG::TTC, fonts: []) }
-      let(:ttf) { instance_double(Prawn::SVG::TTF, family: 'Existing Font', subfamily: 'Regular') }
+      let(:ttf) { instance_double(Prawn::SVG::TTF, family: 'Existing Font', subfamily: 'Regular', weight_class: 400) }
 
       it 'does not override the first entry with a later one' do
         expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])

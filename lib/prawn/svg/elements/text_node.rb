@@ -212,14 +212,14 @@ module Prawn::SVG
     end
 
     def split_into_font_runs(prawn, text, fallback_fonts)
-      original_font = prawn.font.family
+      primary_font = prawn.font
       runs = []
       current_font = nil
       current_text = +''
 
       prawn.save_font do
         text.each_char do |char|
-          font_for_char = font_for_glyph(prawn, char, original_font, fallback_fonts)
+          font_for_char = font_for_glyph(prawn, char, primary_font, fallback_fonts)
 
           if font_for_char != current_font && !current_text.empty?
             runs << [current_font, current_text]
@@ -234,9 +234,8 @@ module Prawn::SVG
       runs
     end
 
-    def font_for_glyph(prawn, char, original_font, fallback_fonts)
-      prawn.font(original_font)
-      return nil if prawn.font.glyph_present?(char)
+    def font_for_glyph(prawn, char, primary_font, fallback_fonts)
+      return nil if primary_font.glyph_present?(char)
 
       fallback_fonts.each do |fb|
         prawn.font(fb)

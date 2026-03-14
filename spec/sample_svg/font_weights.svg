@@ -1,0 +1,140 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="12cm" height="14cm" viewBox="0 0 700 820" xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <style>text { font-family: 'Helvetica Neue'; font-size: 18px; }</style>
+
+  <!-- Section 1: All numeric weights -->
+  <text x="20" y="25" font-size="14" fill="gray">Numeric font-weight values</text>
+  <text x="20" y="50" font-weight="100">Weight 100 (thin/light)</text>
+  <text x="20" y="72" font-weight="200">Weight 200 (thin/light)</text>
+  <text x="20" y="94" font-weight="300">Weight 300 (light)</text>
+  <text x="20" y="116" font-weight="400">Weight 400 (normal)</text>
+  <text x="20" y="138" font-weight="500">Weight 500 (normal/medium)</text>
+  <text x="20" y="160" font-weight="600">Weight 600 (semibold)</text>
+  <text x="20" y="182" font-weight="700">Weight 700 (bold)</text>
+  <text x="20" y="204" font-weight="800">Weight 800 (extrabold)</text>
+  <text x="20" y="226" font-weight="900">Weight 900 (black)</text>
+
+  <!-- Section 2: Named weights -->
+  <text x="380" y="25" font-size="14" fill="gray">Named weights</text>
+  <text x="380" y="50" font-weight="normal">font-weight: normal</text>
+  <text x="380" y="72" font-weight="bold">font-weight: bold</text>
+
+  <!-- Section 3: Weight + style combos -->
+  <text x="380" y="116" font-size="14" fill="gray">Weight + style combinations</text>
+  <text x="380" y="138" font-weight="100" font-style="italic">100 italic</text>
+  <text x="380" y="160" font-weight="300" font-style="italic">300 italic (light italic)</text>
+  <text x="380" y="182" font-style="italic">normal italic</text>
+  <text x="380" y="204" font-weight="500" font-style="italic">500 italic (medium italic)</text>
+  <text x="380" y="226" font-weight="bold" font-style="italic">bold italic</text>
+
+  <!-- Section 4: bolder keyword -->
+  <text x="20" y="270" font-size="14" fill="gray">bolder keyword (relative to parent)</text>
+  <text x="20" y="295" fill="black">
+    Normal, <tspan font-weight="bolder" fill="blue">bolder (700)</tspan>
+  </text>
+  <text x="20" y="317" font-weight="bold" fill="black">
+    Bold, <tspan font-weight="bolder" fill="blue">bolder (900)</tspan>
+  </text>
+  <text x="20" y="339" font-weight="100" fill="black">
+    100, <tspan font-weight="bolder" fill="blue">bolder (400)</tspan>
+  </text>
+  <text x="20" y="361" fill="black">
+    Normal, <tspan font-weight="bolder" fill="blue">bolder, <tspan font-weight="bolder" fill="green">bolder again</tspan></tspan>
+  </text>
+
+  <!-- Section 5: lighter keyword -->
+  <text x="380" y="270" font-size="14" fill="gray">lighter keyword (relative to parent)</text>
+  <text x="380" y="295" fill="black">
+    Normal, <tspan font-weight="lighter" fill="red">lighter (100)</tspan>
+  </text>
+  <text x="380" y="317" font-weight="bold" fill="black">
+    Bold, <tspan font-weight="lighter" fill="red">lighter (400)</tspan>
+  </text>
+  <text x="380" y="339" font-weight="900" fill="black">
+    900, <tspan font-weight="lighter" fill="red">lighter (700)</tspan>
+  </text>
+  <text x="380" y="361" font-weight="900" fill="black">
+    900, <tspan font-weight="lighter" fill="red">lighter, <tspan font-weight="lighter" fill="purple">lighter again</tspan></tspan>
+  </text>
+
+  <!-- Section 6: bolder/lighter round-trip -->
+  <text x="20" y="405" font-size="14" fill="gray">bolder/lighter round-trip and inheritance</text>
+  <text x="20" y="430" fill="black">
+    Normal, <tspan font-weight="bolder" fill="blue">bolder, <tspan font-weight="lighter" fill="red">lighter (back to normal)</tspan></tspan>
+  </text>
+  <text x="20" y="452" fill="black">
+    Normal, <tspan font-weight="bolder" fill="blue">bolder, <tspan fill="green">inherited (still bold)</tspan></tspan>
+  </text>
+  <text x="20" y="474" font-weight="bold" fill="black">
+    Bold, <tspan font-weight="lighter" fill="red">lighter, <tspan font-weight="bolder" fill="blue">bolder (back to bold)</tspan></tspan>
+  </text>
+
+  <!-- Section 7: bolder/lighter with italic -->
+  <text x="20" y="518" font-size="14" fill="gray">bolder/lighter with italic</text>
+  <text x="20" y="543" font-style="italic" fill="black">
+    Italic normal, <tspan font-weight="bolder" fill="blue">bolder italic</tspan>
+  </text>
+  <text x="20" y="565" font-style="italic" fill="black">
+    Italic normal, <tspan font-weight="lighter" fill="red">lighter italic</tspan>
+  </text>
+  <text x="20" y="587" font-weight="bold" font-style="italic" fill="black">
+    Bold italic, <tspan font-weight="lighter" fill="red">lighter italic</tspan>
+  </text>
+
+  <!-- Section 8: CSS style attribute -->
+  <text x="380" y="405" font-size="14" fill="gray">Via CSS style attribute</text>
+  <text x="380" y="430" fill="black">
+    Normal, <tspan style="font-weight: bolder" fill="blue">bolder via style</tspan>
+  </text>
+  <text x="380" y="452" fill="black">
+    Normal, <tspan style="font-weight: lighter" fill="red">lighter via style</tspan>
+  </text>
+  <text x="380" y="474" fill="black">
+    Normal, <tspan style="font-weight: 900" fill="blue">weight 900 via style</tspan>
+  </text>
+
+  <!-- Section 9: font shorthand -->
+  <text x="380" y="518" font-size="14" fill="gray">Via font shorthand</text>
+  <text x="380" y="543" fill="black">
+    Normal, <tspan style="font: bold 18px 'Helvetica Neue'" fill="blue">bold via shorthand</tspan>
+  </text>
+  <text x="380" y="565" fill="black">
+    Normal, <tspan style="font: italic bold 18px 'Helvetica Neue'" fill="blue">italic bold shorthand</tspan>
+  </text>
+
+  <!-- Section 10: Edge cases -->
+  <text x="20" y="630" font-size="14" fill="gray">Edge cases</text>
+  <text x="20" y="655" font-weight="900" fill="black">
+    900, <tspan font-weight="bolder" fill="blue">bolder (capped at 900)</tspan>
+  </text>
+  <text x="20" y="677" font-weight="100" fill="black">
+    100, <tspan font-weight="lighter" fill="red">lighter (capped at 100)</tspan>
+  </text>
+  <text x="20" y="699" fill="black">
+    Normal, <tspan font-weight="bolder"><tspan font-weight="bolder"><tspan font-weight="bolder" fill="blue">triple bolder (900)</tspan></tspan></tspan>
+  </text>
+
+  <!-- Section 11: Mixed font families -->
+  <text x="380" y="630" font-size="14" fill="gray">Mixed with other fonts</text>
+  <text x="380" y="655" font-family="serif" fill="black">
+    Serif normal, <tspan font-weight="bolder" fill="blue">bolder</tspan>
+  </text>
+  <text x="380" y="677" font-family="serif" fill="black">
+    Serif normal, <tspan font-weight="lighter" fill="red">lighter</tspan>
+  </text>
+  <text x="380" y="699" font-family="monospace" fill="black">
+    Mono, <tspan font-weight="bolder" fill="blue">bolder</tspan>
+  </text>
+
+  <!-- Section 12: font-stretch + weight -->
+  <text x="20" y="743" font-size="14" fill="gray">font-stretch + weight</text>
+  <text x="20" y="768" font-stretch="condensed" fill="black">
+    Condensed, <tspan font-weight="bolder" fill="blue">bolder</tspan>
+  </text>
+  <text x="20" y="790" font-stretch="condensed" font-weight="bold" fill="black">
+    Condensed bold, <tspan font-weight="lighter" fill="red">lighter</tspan>
+  </text>
+
+  <rect x="1" y="1" width="698" height="818" fill="none" stroke="gray" stroke-width="1"/>
+</svg>
