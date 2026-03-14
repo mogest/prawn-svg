@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="500" height="400" viewBox="0 0 500 400">
+  <style>
+    text { font-family: sans-serif; font-size: 12px; fill: #333; }
+  </style>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-size="16" font-weight="bold">External &lt;use&gt; References</text>
+
+  <!-- Row 1: Symbols from external file -->
+  <text x="20" y="60">Symbols from external file:</text>
+
+  <!-- Star symbols at different sizes -->
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-star" x="20" y="70" width="60" height="60"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-star" x="100" y="70" width="80" height="80"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-star" x="200" y="70" width="40" height="40"/>
+
+  <!-- Target symbols -->
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-target" x="280" y="70" width="70" height="70"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-target" x="370" y="70" width="50" height="50"/>
+
+  <!-- Row 2: Non-symbol elements from external file -->
+  <text x="20" y="180">Non-symbol elements (group and rect):</text>
+
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-arrow" x="20" y="190"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-arrow" x="120" y="190"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-arrow" x="220" y="190"/>
+
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-badge" x="20" y="250"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-badge" x="80" y="250"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-badge" x="140" y="250"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-badge" x="200" y="250"/>
+
+  <!-- Row 3: Mixed local and external refs -->
+  <text x="20" y="310">Mixed local and external references:</text>
+
+  <defs>
+    <rect id="local-rect" width="40" height="40" fill="#9b59b6" rx="5"/>
+  </defs>
+
+  <use xlink:href="#local-rect" x="20" y="320"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-star" x="80" y="320" width="40" height="40"/>
+  <use xlink:href="#local-rect" x="140" y="320"/>
+  <use xlink:href="sample_svg/use_external_icons.svg#icon-target" x="200" y="320" width="40" height="40"/>
+  <use xlink:href="#local-rect" x="260" y="320"/>
+
+  <!-- Row 4: Using href attribute (without xlink) -->
+  <text x="20" y="385">Using href (no xlink prefix):</text>
+  <use href="sample_svg/use_external_icons.svg#icon-star" x="250" y="370" width="30" height="30"/>
+  <use href="sample_svg/use_external_icons.svg#icon-target" x="300" y="370" width="30" height="30"/>
+</svg>

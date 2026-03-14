@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="30">
+  <style>
+    .icon-fill { fill: #4a90d9; }
+    .icon-accent { fill: #e74c3c; }
+  </style>
+  <text x="10" y="20" font-family="sans-serif" font-size="14" fill="#666">This is an external icon library referenced by use_external.svg</text>
+  <defs>
+    <!-- Simple star shape -->
+    <symbol id="icon-star" viewBox="0 0 100 100">
+      <polygon class="icon-fill" points="50,5 63,38 98,38 70,60 80,95 50,73 20,95 30,60 2,38 37,38"/>
+    </symbol>
+
+    <!-- Circle with inner pattern -->
+    <symbol id="icon-target" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#333" stroke-width="3"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#666" stroke-width="2"/>
+      <circle cx="50" cy="50" r="15" class="icon-accent"/>
+    </symbol>
+
+    <!-- Arrow pointing right -->
+    <g id="icon-arrow">
+      <line x1="10" y1="25" x2="70" y2="25" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+      <polyline points="55,10 70,25 55,40" fill="none" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Simple rectangle badge -->
+    <rect id="icon-badge" x="5" y="5" width="40" height="20" rx="4" fill="#2ecc71" stroke="#27ae60" stroke-width="1"/>
+  </defs>
+</svg>

@@ -16,7 +16,8 @@ class Prawn::SVG::Document
     :url_loader,
     :elements_by_id, :gradients,
     :element_styles,
-    :color_mode
+    :color_mode,
+    :external_svg_cache
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {})
     begin
@@ -29,6 +30,7 @@ class Prawn::SVG::Document
     @options = options
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
+    @external_svg_cache = {}
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
     @color_mode = load_color_mode
