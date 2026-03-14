@@ -32,6 +32,10 @@ module Prawn::SVG
       'font-style'         => Config.new('normal', true, %w[normal italic oblique]),
       'font-variant'       => Config.new('normal', true, %w[normal small-caps]),
       'font-weight'        => Config.new('normal', true, %w[normal bold 100 200 300 400 500 600 700 800 900]), # bolder/lighter not supported
+      # font-kerning is SVG 2 / CSS Fonts Level 3, supported here for forwards compatibility
+      # since modern browsers have deprecated the SVG 1.1 kerning property.
+      'font-kerning'       => Config.new('auto', true, %w[auto normal none]),
+      'kerning'            => Config.new('auto', true, [:length, 'auto']),
       'letter-spacing'     => Config.new('normal', true, [:length, 'normal']),
       'word-spacing'       => Config.new('normal', true, [:length, 'normal']),
       'marker-end'         => Config.new('none', true, [:funciri, 'none']),

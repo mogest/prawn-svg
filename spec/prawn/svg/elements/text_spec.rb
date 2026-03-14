@@ -170,6 +170,109 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'kerning' do
+    context 'when set to auto (default)' do
+      let(:svg) { '<text>kerned text</text>' }
+
+      it 'enables font kerning' do
+        allow(prawn).to receive(:width_of).and_call_original
+        expect(prawn).to receive(:width_of).with('kerned text', hash_including(kerning: true)).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: true)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'when set to 0' do
+      let(:svg) { '<text kerning="0">no kerning</text>' }
+
+      it 'disables font kerning' do
+        allow(prawn).to receive(:width_of).and_call_original
+        expect(prawn).to receive(:width_of).with('no kerning', hash_including(kerning: false)).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: false)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'when set to a length value' do
+      let(:svg) { '<text kerning="3">spaced</text>' }
+
+      it 'disables font kerning and applies kerning as character spacing' do
+        allow(prawn).to receive(:width_of).and_call_original
+        allow(prawn).to receive(:character_spacing).and_call_original
+        expect(prawn).to receive(:width_of).with('spaced', hash_including(kerning: false)).and_call_original
+        expect(prawn).to receive(:character_spacing).with(3.0).at_least(:once).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: false)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'when combined with letter-spacing' do
+      let(:svg) { '<text kerning="2" letter-spacing="3">combined</text>' }
+
+      it 'adds kerning value to letter-spacing' do
+        allow(prawn).to receive(:width_of).and_call_original
+        allow(prawn).to receive(:character_spacing).and_call_original
+        expect(prawn).to receive(:character_spacing).with(5.0).at_least(:once).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: false)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'inherited by tspan' do
+      let(:svg) { '<text kerning="4">hello <tspan>world</tspan></text>' }
+
+      it 'inherits kerning to child elements' do
+        allow(prawn).to receive(:width_of).and_call_original
+        allow(prawn).to receive(:character_spacing).and_call_original
+        expect(prawn).to receive(:character_spacing).with(4.0).at_least(:once).and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with font-kerning="none" (SVG 2)' do
+      let(:svg) { '<text font-kerning="none">no kerning</text>' }
+
+      it 'disables font kerning' do
+        allow(prawn).to receive(:width_of).and_call_original
+        expect(prawn).to receive(:width_of).with('no kerning', hash_including(kerning: false)).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: false)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with font-kerning="normal" (SVG 2)' do
+      let(:svg) { '<text font-kerning="normal">kerned</text>' }
+
+      it 'enables font kerning' do
+        allow(prawn).to receive(:width_of).and_call_original
+        expect(prawn).to receive(:width_of).with('kerned', hash_including(kerning: true)).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: true)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'when kerning property overrides font-kerning' do
+      let(:svg) { '<text kerning="2" font-kerning="normal">overridden</text>' }
+
+      it 'uses the kerning property value' do
+        allow(prawn).to receive(:width_of).and_call_original
+        allow(prawn).to receive(:character_spacing).and_call_original
+        expect(prawn).to receive(:character_spacing).with(2.0).at_least(:once).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(kerning: false)).and_call_original
+
+        process_and_render
+      end
+    end
+  end
+
   describe 'text-decoration' do
     describe 'underline' do
       let(:svg) { '<text text-decoration="underline">underlined</text>' }

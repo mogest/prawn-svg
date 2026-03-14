@@ -108,6 +108,25 @@ module Prawn::SVG
       end
     end
 
+    # Resolves the effective kerning setting from the SVG 1.1 kerning property and the
+    # SVG 2 font-kerning property. kerning takes precedence when non-default; otherwise
+    # font-kerning is used.
+    def kerning_enabled?
+      if computed_properties.kerning == 'auto'
+        computed_properties.font_kerning != 'none'
+      else
+        false
+      end
+    end
+
+    def kerning_pixels
+      if computed_properties.kerning == 'auto'
+        nil
+      else
+        x_pixels(computed_properties.kerning)
+      end
+    end
+
     def letter_spacing_pixels
       if computed_properties.letter_spacing == 'normal'
         nil

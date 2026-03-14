@@ -1,16 +1,14 @@
 # prawn-svg
 
 [![Gem Version](https://badge.fury.io/rb/prawn-svg.svg)](https://badge.fury.io/rb/prawn-svg)
-![Build Status](https://github.com/mogest/prawn-svg/actions/workflows/test.yml/badge.svg?branch=master)
+![Build Status](https://github.com/mogest/prawn-svg/actions/workflows/test.yml/badge.svg?branch=main)
 
-An SVG renderer for the Prawn PDF library.
+An SVG renderer for the [Prawn PDF library](https://github.com/prawnpdf/prawn).
 
-This will take an SVG document as input and render it into your PDF.  Find out more about the Prawn PDF library at:
+This will take an SVG document as input and render it into your PDF, along with whatever else you build with Prawn.
 
-  http://github.com/prawnpdf/prawn
-
-prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series.
-The minimum Ruby version required is 2.7.
+prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series, although
+you'll need version 2.2.0 onwards if you want color gradients.  The minimum Ruby version required is 2.7.
 
 ## Using prawn-svg
 
@@ -60,7 +58,7 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
  - `<text>`, `<tspan>`, `<tref>` and `<textPath>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`,
    `lengthAdjust`, and with extra properties `text-anchor`, `text-decoration`, `font`, `font-size`, `font-family`,
-   `font-weight`, `font-style`, `letter-spacing`, `word-spacing`, `dominant-baseline`, `alignment-baseline`, `baseline-shift`.
+   `font-weight`, `font-style`, `kerning`, `letter-spacing`, `word-spacing`, `dominant-baseline`, `alignment-baseline`, `baseline-shift`.
    `<textPath>` supports `href`/`xlink:href` and `startOffset`.
 
  - `<svg>`, `<g>` and `<symbol>`
@@ -126,9 +124,12 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but will consider if there is demand: writing-mode, RTL text (direction/unicode-bidi), kerning,
-font-stretch, bolder/lighter font-weight, `<switch>` conditional processing, `@font-face`, external `<use>` refs,
-marker shorthand, `<a>` target, `<view>`, CSS @import/@media, `:lang` pseudo-class.
+Not yet implemented but intending to build: font-stretch, bolder/lighter font-weight, `<switch>`
+conditional processing, `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
+@import/@media, `:lang` pseudo-class.
+
+writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement
+non-LTR directions, and no-one has asked for it yet.
 
 Will probably never be supported because either they don't make sense for PDF, they were deprecated in SVG 2, or
 they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering hints, ICC color

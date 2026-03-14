@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="650" viewBox="0 0 600 650">
+  <!-- The kerning property is SVG 1.1. font-kerning is SVG 2 / CSS Fonts Level 3.
+       Modern browsers support font-kerning but have deprecated the kerning attribute. -->
+  <style>
+    text { font-family: serif; font-size: 24px; }
+    .label { font-family: sans-serif; font-size: 12px; fill: #888; }
+    .heading { font-family: sans-serif; font-size: 14px; font-weight: bold; }
+  </style>
+
+  <!-- SVG 1.1: kerning property (browsers ignore this, check PDF) -->
+  <text class="heading" x="10" y="20">SVG 1.1: kerning property (browsers ignore, check PDF)</text>
+
+  <text class="label" x="10" y="50">kerning="auto" (default, font kerning enabled):</text>
+  <text x="10" y="75">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="110">kerning="0" (font kerning disabled):</text>
+  <text x="10" y="135" kerning="0">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="170">kerning="3" (3px spacing replaces font kerning):</text>
+  <text x="10" y="195" kerning="3">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="230">kerning="-1" (negative spacing, tighter):</text>
+  <text x="10" y="255" kerning="-1">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="290">kerning="2" letter-spacing="3" (combined = 5px):</text>
+  <text x="10" y="315" kerning="2" letter-spacing="3">AVATAR WAY Typography</text>
+
+  <!-- SVG 2: font-kerning property (browsers support this) -->
+  <text class="heading" x="10" y="365">SVG 2: font-kerning property (browsers support this)</text>
+
+  <text class="label" x="10" y="395">font-kerning: auto (default):</text>
+  <text x="10" y="420" style="font-kerning: auto">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="455">font-kerning: normal (kerning enabled):</text>
+  <text x="10" y="480" style="font-kerning: normal">AVATAR WAY Typography</text>
+
+  <text class="label" x="10" y="515">font-kerning: none (kerning disabled):</text>
+  <text x="10" y="540" style="font-kerning: none">AVATAR WAY Typography</text>
+
+  <!-- Inheritance test -->
+  <text class="heading" x="10" y="590">Inheritance</text>
+
+  <text class="label" x="10" y="615">parent kerning="5", child inherits:</text>
+  <text x="10" y="640" kerning="5">Parent <tspan fill="blue">Inherited</tspan> text</text>
+</svg>

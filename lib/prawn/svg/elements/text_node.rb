@@ -73,14 +73,16 @@ module Prawn::SVG
 
         text_to_draw = remaining ? remaining_text[0..0] : remaining_text
 
-        opts = { size: component.computed_properties.numeric_font_size, kerning: true }
+        kerning = component.kerning_enabled?
+        opts = { size: component.computed_properties.numeric_font_size, kerning: kerning }
 
         fallback_fonts = component.fallback_fonts
         font_runs = fallback_fonts&.any? ? split_into_font_runs(prawn, text_to_draw, fallback_fonts) : nil
 
+        kerning_spacing = text_to_draw.length > 1 ? (component.kerning_pixels || 0) * (text_to_draw.length - 1) : 0
         letter_spacing = text_to_draw.length > 1 ? (component.letter_spacing_pixels || 0) * (text_to_draw.length - 1) : 0
         word_spacing = (component.word_spacing_pixels || 0) * text_to_draw.count(' ')
-        base_width = width_of_text(prawn, text_to_draw, font_runs, opts) + letter_spacing + word_spacing
+        base_width = width_of_text(prawn, text_to_draw, font_runs, opts) + kerning_spacing + letter_spacing + word_spacing
 
         offset = dx ? [0, dx].max : 0
 
@@ -126,7 +128,8 @@ module Prawn::SVG
           render_link_annotation(prawn, size, cursor, y_offset, width)
         end
 
-        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: true }
+        kerning = component.kerning_enabled?
+        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: kerning }
         opts[:rotate] = chunk.rotate if chunk.rotate
 
         scaling =
@@ -145,15 +148,16 @@ module Prawn::SVG
         parent_spacing = spacing_enabled && !component.text_length
         spacing =
           if spacing_enabled
-            ((chunk.fixed_width - chunk.base_width) / (chunk.text.length - (parent_spacing ? 0 : 1))) + (component.letter_spacing_pixels || 0)
+            ((chunk.fixed_width - chunk.base_width) / (chunk.text.length - (parent_spacing ? 0 : 1))) + (component.kerning_pixels || 0) + (component.letter_spacing_pixels || 0)
           end
 
         # Inside clip paths, text renders white in a soft mask to define the
         # clipping region. Override any fill color from the SVG element.
         prawn.fill_color('ffffff') if component.inside_clip_path
 
+        combined_spacing = spacing || combined_kerning_and_letter_spacing
         prawn.horizontal_text_scaling(scaling) do
-          prawn.character_spacing(spacing || component.letter_spacing_pixels || prawn.character_spacing) do
+          prawn.character_spacing(combined_spacing || prawn.character_spacing) do
             prawn.word_spacing(component.word_spacing_pixels || prawn.word_spacing) do
               prawn.text_rendering_mode(calculate_text_rendering_mode) do
                 render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
@@ -190,17 +194,18 @@ module Prawn::SVG
       if font_runs.nil?
         prawn.draw_text(text, **opts)
       else
+        kerning = opts[:kerning]
         x = opts[:at][0]
         font_runs.each do |font_name, run_text|
           run_opts = opts.merge(at: [x, opts[:at][1]])
           if font_name
             prawn.font(font_name) do
               prawn.draw_text(run_text, **run_opts)
-              x += prawn.width_of(run_text, size: opts[:size], kerning: true)
+              x += prawn.width_of(run_text, size: opts[:size], kerning: kerning)
             end
           else
             prawn.draw_text(run_text, **run_opts)
-            x += prawn.width_of(run_text, size: opts[:size], kerning: true)
+            x += prawn.width_of(run_text, size: opts[:size], kerning: kerning)
           end
         end
       end
@@ -271,6 +276,17 @@ module Prawn::SVG
 
     def scaled_font_size(prawn, method_name, size)
       (prawn.font.public_send(method_name) / prawn.font_size) * size
+    end
+
+    def combined_kerning_and_letter_spacing
+      kerning = component.kerning_pixels
+      letter = component.letter_spacing_pixels
+
+      if kerning && letter
+        kerning + letter
+      else
+        kerning || letter
+      end
     end
 
     def calculate_text_rendering_mode
