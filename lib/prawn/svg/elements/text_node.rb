@@ -78,8 +78,9 @@ module Prawn::SVG
         fallback_fonts = component.fallback_fonts
         font_runs = fallback_fonts&.any? ? split_into_font_runs(prawn, text_to_draw, fallback_fonts) : nil
 
-        total_spacing = text_to_draw.length > 1 ? (component.letter_spacing_pixels || 0) * (text_to_draw.length - 1) : 0
-        base_width = width_of_text(prawn, text_to_draw, font_runs, opts) + total_spacing
+        letter_spacing = text_to_draw.length > 1 ? (component.letter_spacing_pixels || 0) * (text_to_draw.length - 1) : 0
+        word_spacing = (component.word_spacing_pixels || 0) * text_to_draw.count(' ')
+        base_width = width_of_text(prawn, text_to_draw, font_runs, opts) + letter_spacing + word_spacing
 
         offset = dx ? [0, dx].max : 0
 
@@ -153,8 +154,10 @@ module Prawn::SVG
 
         prawn.horizontal_text_scaling(scaling) do
           prawn.character_spacing(spacing || component.letter_spacing_pixels || prawn.character_spacing) do
-            prawn.text_rendering_mode(calculate_text_rendering_mode) do
-              render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
+            prawn.word_spacing(component.word_spacing_pixels || prawn.word_spacing) do
+              prawn.text_rendering_mode(calculate_text_rendering_mode) do
+                render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
+              end
             end
           end
         end

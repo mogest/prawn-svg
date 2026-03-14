@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <rect width="600" height="400" fill="#f8f8f8" stroke="#ccc"/>
+
+  <text x="10" y="30" font-size="14" font-weight="bold" fill="#333">word-spacing property tests</text>
+
+  <!-- Normal (default) word spacing -->
+  <text x="10" y="60" font-size="14" fill="black">normal: the quick brown fox jumps over</text>
+
+  <!-- Positive word spacing -->
+  <text x="10" y="90" font-size="14" fill="black" word-spacing="10">+10: the quick brown fox jumps over</text>
+
+  <!-- Larger positive word spacing -->
+  <text x="10" y="120" font-size="14" fill="black" word-spacing="20">+20: the quick brown fox jumps over</text>
+
+  <!-- Negative word spacing -->
+  <text x="10" y="150" font-size="14" fill="black" word-spacing="-3">-3: the quick brown fox jumps over</text>
+
+  <!-- Word spacing with letter spacing combined -->
+  <text x="10" y="180" font-size="14" fill="black" word-spacing="15" letter-spacing="2">word+letter: hello world test</text>
+
+  <!-- Inheritance through tspan -->
+  <text x="10" y="220" font-size="14" fill="black" word-spacing="12">
+    parent spacing <tspan fill="red">inherited child</tspan> back to parent
+  </text>
+
+  <!-- tspan overriding parent word-spacing -->
+  <text x="10" y="250" font-size="14" fill="black" word-spacing="15">
+    wide spacing <tspan word-spacing="0" fill="blue">normal here</tspan> wide again
+  </text>
+
+  <!-- Single word (no spaces, no effect) -->
+  <text x="10" y="280" font-size="14" fill="black" word-spacing="50">SingleWordNoEffect</text>
+
+  <!-- CSS style attribute -->
+  <text x="10" y="310" font-size="14" fill="black" style="word-spacing: 8">via style attribute: hello world</text>
+
+  <!-- Edge case: multiple consecutive spaces with xml:space preserve -->
+  <text x="10" y="340" font-size="14" fill="black" word-spacing="5" xml:space="preserve">preserved:  double  spaces  here</text>
+
+  <!-- Reference lines for visual comparison -->
+  <line x1="0" y1="60" x2="600" y2="60" stroke="#eee" stroke-width="0.5"/>
+  <line x1="0" y1="90" x2="600" y2="90" stroke="#eee" stroke-width="0.5"/>
+  <line x1="0" y1="120" x2="600" y2="120" stroke="#eee" stroke-width="0.5"/>
+  <line x1="0" y1="150" x2="600" y2="150" stroke="#eee" stroke-width="0.5"/>
+</svg>

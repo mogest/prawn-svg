@@ -122,6 +122,54 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'word-spacing' do
+    let(:svg) { '<text word-spacing="10">hello world</text>' }
+
+    it 'calls word_spacing with the requested size' do
+      allow(prawn).to receive(:word_spacing).and_call_original
+      expect(prawn).to receive(:word_spacing).with(10.0).at_least(:once).and_call_original
+      expect(prawn).to receive(:draw_text).with(anything, hash_including(size: 16, at: anything)).and_call_original
+
+      process_and_render
+    end
+
+    context 'when set to normal' do
+      let(:svg) { '<text word-spacing="normal">hello world</text>' }
+
+      it 'uses default word spacing' do
+        allow(prawn).to receive(:word_spacing).and_call_original
+        expect(prawn).to receive(:word_spacing).with(0).at_least(:once).and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with negative value' do
+      let(:svg) { '<text word-spacing="-3">hello world test</text>' }
+
+      it 'accepts negative values' do
+        allow(prawn).to receive(:word_spacing).and_call_original
+        expect(prawn).to receive(:word_spacing).with(-3.0).at_least(:once).and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'inherited by tspan' do
+      let(:svg) { '<text word-spacing="8">hello <tspan>world</tspan></text>' }
+
+      it 'inherits word-spacing to child elements' do
+        allow(prawn).to receive(:word_spacing).and_call_original
+        expect(prawn).to receive(:word_spacing).with(8.0).at_least(:once).and_call_original
+        allow(prawn).to receive(:draw_text).and_call_original
+
+        process_and_render
+      end
+    end
+  end
+
   describe 'text-decoration' do
     describe 'underline' do
       let(:svg) { '<text text-decoration="underline">underlined</text>' }

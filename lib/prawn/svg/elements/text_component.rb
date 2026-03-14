@@ -116,6 +116,14 @@ module Prawn::SVG
       end
     end
 
+    def word_spacing_pixels
+      if computed_properties.word_spacing == 'normal'
+        nil
+      else
+        x_pixels(computed_properties.word_spacing)
+      end
+    end
+
     protected
 
     def build_text_node(child)
