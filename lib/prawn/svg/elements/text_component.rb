@@ -62,7 +62,7 @@ module Prawn::SVG
       end
     end
 
-    def render_component(prawn, renderer, cursor, translate_x = nil)
+    def render_component(prawn, renderer, cursor, translate_x = nil, accumulated_baseline_shift = 0)
       raise SkipElementQuietly if computed_properties.display == 'none'
 
       add_yield_call do
@@ -70,16 +70,19 @@ module Prawn::SVG
 
         size = computed_properties.numeric_font_size
 
-        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size)
+        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size) || 0
 
         with_svg_fonts(prawn) do
+          total_baseline_shift = accumulated_baseline_shift + baseline_shift_offset(prawn, size)
+          y_offset += total_baseline_shift
+
           children.each do |child|
             case child
             when Elements::TextNode
               child.render(prawn, size, cursor, y_offset)
             when self.class
               prawn.save_graphics_state
-              child.render_component(prawn, renderer, cursor)
+              child.render_component(prawn, renderer, cursor, nil, total_baseline_shift)
               prawn.restore_graphics_state
             else
               raise
@@ -267,6 +270,30 @@ module Prawn::SVG
       ascender = (prawn.font.ascender / prawn.font_size) * size
       descender = (prawn.font.descender / prawn.font_size) * size
       [ascender, descender]
+    end
+
+    def baseline_shift_offset(prawn, font_size)
+      value = computed_properties.baseline_shift
+      return 0 if value.nil? || value == 'baseline'
+
+      case value
+      when 'super'
+        sub_super_offset(prawn, font_size)
+      when 'sub'
+        -sub_super_offset(prawn, font_size)
+      when Percentage
+        parent_font_size = parent_component&.computed_properties&.numeric_font_size || font_size
+        value.to_factor * parent_font_size
+      when Length
+        value.to_pixels(nil, font_size)
+      else
+        0
+      end
+    end
+
+    def sub_super_offset(prawn, font_size)
+      ascender_ratio = prawn.font.ascender / prawn.font_size
+      ascender_ratio * font_size / 1.2
     end
 
     def normalize_length(length)

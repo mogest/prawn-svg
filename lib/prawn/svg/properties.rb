@@ -14,6 +14,7 @@ module Prawn::SVG
     }.freeze
 
     PROPERTIES = {
+      'baseline-shift'    => Config.new('baseline', false, ['baseline', 'sub', 'super', :length, :percentage]),
       'clip-path'         => Config.new('none', false, ['none', :funciri]),
       'clip-rule'         => Config.new('nonzero', true, %w[nonzero evenodd]),
       'color'             => Config.new(Color.black, true, [:color]),

@@ -1,0 +1,55 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="12cm" height="10cm" viewBox="0 0 1200 1000" xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <!-- Basic super and sub -->
+  <text x="50" y="80" font-size="36" fill="black">
+    H<tspan baseline-shift="sub" font-size="24">2</tspan>O is water
+  </text>
+
+  <text x="50" y="150" font-size="36" fill="black">
+    E = mc<tspan baseline-shift="super" font-size="24">2</tspan>
+  </text>
+
+  <!-- Percentage values -->
+  <text x="50" y="250" font-size="36" fill="black">
+    Shift <tspan baseline-shift="50%" fill="blue">up 50%</tspan> and <tspan baseline-shift="-50%" fill="red">down 50%</tspan> of font-size
+  </text>
+
+  <!-- Length values -->
+  <text x="50" y="350" font-size="36" fill="black">
+    Shift <tspan baseline-shift="15px" fill="blue">up 15px</tspan> and <tspan baseline-shift="-15px" fill="red">down 15px</tspan>
+  </text>
+
+  <!-- Nested baseline-shifts accumulate -->
+  <text x="50" y="470" font-size="36" fill="black">
+    Base<tspan baseline-shift="super" font-size="28" fill="blue">sup<tspan baseline-shift="super" font-size="22" fill="red">sup2</tspan></tspan> back
+  </text>
+
+  <!-- Subscript nesting -->
+  <text x="50" y="570" font-size="36" fill="black">
+    X<tspan baseline-shift="sub" font-size="28" fill="blue">i<tspan baseline-shift="sub" font-size="22" fill="red">j</tspan></tspan> done
+  </text>
+
+  <!-- Mixed super and sub nesting -->
+  <text x="50" y="670" font-size="36" fill="black">
+    A<tspan baseline-shift="super" font-size="28" fill="blue">sup<tspan baseline-shift="sub" font-size="22" fill="red">sub</tspan></tspan> end
+  </text>
+
+  <!-- Em units -->
+  <text x="50" y="770" font-size="36" fill="black">
+    Shift <tspan baseline-shift="0.5em" fill="green">up 0.5em</tspan> and <tspan baseline-shift="-0.5em" fill="purple">down 0.5em</tspan>
+  </text>
+
+  <!-- baseline value (no shift) -->
+  <text x="50" y="870" font-size="36" fill="black">
+    No shift: <tspan baseline-shift="baseline" fill="gray">baseline</tspan> stays level
+  </text>
+
+  <!-- Practical example: chemical formula -->
+  <text x="50" y="950" font-size="36" fill="black">
+    Ca(OH)<tspan baseline-shift="sub" font-size="24">2</tspan> + H<tspan baseline-shift="sub" font-size="24">2</tspan>SO<tspan baseline-shift="sub" font-size="24">4</tspan> = CaSO<tspan baseline-shift="sub" font-size="24">4</tspan> + 2H<tspan baseline-shift="sub" font-size="24">2</tspan>O
+  </text>
+
+  <!-- Border for reference -->
+  <rect x="1" y="1" width="1198" height="998" fill="none" stroke="gray" stroke-width="2"/>
+</svg>

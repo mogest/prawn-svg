@@ -22,14 +22,17 @@ module Prawn::SVG
       super
     end
 
-    def render_component(prawn, renderer, _cursor, _translate_x = nil)
+    def render_component(prawn, renderer, _cursor, _translate_x = nil, accumulated_baseline_shift = 0)
       raise SkipElementQuietly if computed_properties.display == 'none'
 
       add_yield_call do
         size = computed_properties.numeric_font_size
-        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size)
+        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size) || 0
 
         with_svg_fonts(prawn) do
+          total_baseline_shift = accumulated_baseline_shift + baseline_shift_offset(prawn, size)
+          y_offset += total_baseline_shift
+
           current_distance = @start_offset
           render_children_along_path(prawn, children, size, y_offset, current_distance)
         end

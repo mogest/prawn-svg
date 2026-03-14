@@ -364,6 +364,127 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'baseline-shift' do
+    let(:svg) do
+      <<~SVG
+        <text font-size="20">Normal<tspan baseline-shift="super">super</tspan>after</text>
+      SVG
+    end
+
+    it 'shifts superscript text upward' do
+      positions = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        positions << [text, opts[:at]]
+        method.call(text, **opts)
+      end
+
+      process_and_render
+
+      normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+      super_y = positions.find { |t, _| t == 'super' }[1][1]
+      after_y = positions.find { |t, _| t == 'after' }[1][1]
+
+      expect(super_y).to be > normal_y
+      expect(after_y).to eq normal_y
+    end
+
+    context 'with sub' do
+      let(:svg) do
+        <<~SVG
+          <text font-size="20">Normal<tspan baseline-shift="sub">sub</tspan>after</text>
+        SVG
+      end
+
+      it 'shifts subscript text downward' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        sub_y = positions.find { |t, _| t == 'sub' }[1][1]
+        after_y = positions.find { |t, _| t == 'after' }[1][1]
+
+        expect(sub_y).to be < normal_y
+        expect(after_y).to eq normal_y
+      end
+    end
+
+    context 'with a percentage value' do
+      let(:svg) do
+        <<~SVG
+          <text font-size="20">Normal<tspan baseline-shift="50%">shifted</tspan>after</text>
+        SVG
+      end
+
+      it 'shifts text by the percentage of font size' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        shifted_y = positions.find { |t, _| t == 'shifted' }[1][1]
+
+        expect(shifted_y - normal_y).to be_within(0.01).of(10.0)
+      end
+    end
+
+    context 'with a negative length value' do
+      let(:svg) do
+        <<~SVG
+          <text font-size="20">Normal<tspan baseline-shift="-5px">shifted</tspan>after</text>
+        SVG
+      end
+
+      it 'shifts text down by the specified amount' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        shifted_y = positions.find { |t, _| t == 'shifted' }[1][1]
+
+        expect(shifted_y - normal_y).to be_within(0.01).of(-5.0)
+      end
+    end
+
+    context 'with nested baseline-shifts' do
+      let(:svg) do
+        <<~SVG
+          <text font-size="20">Normal<tspan baseline-shift="super"><tspan baseline-shift="super">double</tspan></tspan>after</text>
+        SVG
+      end
+
+      it 'accumulates shifts' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        double_y = positions.find { |t, _| t == 'double' }[1][1]
+
+        # Both tspans inherit 20px font-size; shift = ascender_ratio * 20 / 1.2 each
+        single_shift = (prawn.font.ascender / prawn.font_size) * 20 / 1.2
+        expect(double_y - normal_y).to be_within(0.1).of(single_shift * 2)
+      end
+    end
+  end
+
   describe 'when a use element references a tspan element' do
     let(:svg) do
       <<~SVG
