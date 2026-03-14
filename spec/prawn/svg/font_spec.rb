@@ -8,6 +8,16 @@ describe Prawn::SVG::Font do
       expect(font.weight).to eq(:bold)
       expect(font.style).to eq(:italic)
     end
+
+    it 'sets stretch when provided' do
+      font = Prawn::SVG::Font.new('Arial', :bold, :italic, :condensed)
+      expect(font.stretch).to eq(:condensed)
+    end
+
+    it 'defaults stretch to nil' do
+      font = Prawn::SVG::Font.new('Arial', :bold, :italic)
+      expect(font.stretch).to be_nil
+    end
   end
 
   describe '#subfamily' do
@@ -34,6 +44,33 @@ describe Prawn::SVG::Font do
     it 'returns :normal when both weight and style are nil' do
       font = Prawn::SVG::Font.new('Arial', nil, nil)
       expect(font.subfamily).to eq(:normal)
+    end
+
+    context 'with stretch' do
+      it 'returns stretch alone when weight is normal and no style' do
+        font = Prawn::SVG::Font.new('Arial', :normal, nil, :condensed)
+        expect(font.subfamily).to eq(:condensed)
+      end
+
+      it 'returns stretch with style when weight is normal' do
+        font = Prawn::SVG::Font.new('Arial', :normal, :italic, :condensed)
+        expect(font.subfamily).to eq(:condensed_italic)
+      end
+
+      it 'returns stretch with weight' do
+        font = Prawn::SVG::Font.new('Arial', :bold, nil, :condensed)
+        expect(font.subfamily).to eq(:condensed_bold)
+      end
+
+      it 'returns stretch with weight and style' do
+        font = Prawn::SVG::Font.new('Arial', :bold, :italic, :condensed)
+        expect(font.subfamily).to eq(:condensed_bold_italic)
+      end
+
+      it 'ignores :normal stretch' do
+        font = Prawn::SVG::Font.new('Arial', :bold, nil, :normal)
+        expect(font.subfamily).to eq(:bold)
+      end
     end
   end
 end

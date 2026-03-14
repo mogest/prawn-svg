@@ -203,10 +203,11 @@ module Prawn::SVG
     def select_fonts
       font_style = :italic if computed_properties.font_style == 'italic'
       font_weight = computed_properties.font_weight
+      font_stretch = computed_properties.font_stretch
       fonts = []
 
       font_family_names.each do |name|
-        font = document.font_registry.load(name, font_weight, font_style)
+        font = document.font_registry.load(name, font_weight, font_style, font_stretch)
         next unless font
         next if fonts.any? { |existing| existing.name == font.name && existing.subfamily == font.subfamily }
 

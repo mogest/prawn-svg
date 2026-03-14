@@ -81,6 +81,63 @@ RSpec.describe Prawn::SVG::FontRegistry do
       expect(font.name).to eq('Courier')
     end
 
+    describe 'font-stretch matching' do
+      before do
+        allow(font_registry).to receive(:installed_fonts).and_return({
+          'TestFont' => {
+            normal:           'test.ttf',
+            bold:             'test-bold.ttf',
+            italic:           'test-italic.ttf',
+            condensed:        'test-condensed.ttf',
+            condensed_bold:   'test-condensed-bold.ttf',
+            condensed_italic: 'test-condensed-italic.ttf',
+            expanded:         'test-expanded.ttf'
+          }
+        })
+        allow(font_registry).to receive(:correctly_cased_font_name).and_return('TestFont')
+      end
+
+      it 'selects a condensed font when font-stretch is condensed' do
+        font = font_registry.load('TestFont', :normal, nil, 'condensed')
+        expect(font.subfamily).to eq(:condensed)
+      end
+
+      it 'selects a condensed bold font' do
+        font = font_registry.load('TestFont', :bold, nil, 'condensed')
+        expect(font.subfamily).to eq(:condensed_bold)
+      end
+
+      it 'selects a condensed italic font' do
+        font = font_registry.load('TestFont', :normal, :italic, 'condensed')
+        expect(font.subfamily).to eq(:condensed_italic)
+      end
+
+      it 'selects an expanded font' do
+        font = font_registry.load('TestFont', :normal, nil, 'expanded')
+        expect(font.subfamily).to eq(:expanded)
+      end
+
+      it 'falls back to normal when stretch variant is not available' do
+        font = font_registry.load('TestFont', :normal, nil, 'semi-condensed')
+        expect(font.subfamily).to eq(:normal)
+      end
+
+      it 'ignores stretch when set to normal' do
+        font = font_registry.load('TestFont', :bold, nil, 'normal')
+        expect(font.subfamily).to eq(:bold)
+      end
+
+      it 'uses weight fallback within stretch' do
+        font = font_registry.load('TestFont', :extrabold, nil, 'condensed')
+        expect(font.subfamily).to eq(:condensed_bold)
+      end
+
+      it 'falls back through weight within stretch before dropping style' do
+        font = font_registry.load('TestFont', :bold, :italic, 'condensed')
+        expect(font.subfamily).to eq(:condensed_italic)
+      end
+    end
+
     describe 'weight fallbacks' do
       before do
         # Mock a font family with only normal and bold available

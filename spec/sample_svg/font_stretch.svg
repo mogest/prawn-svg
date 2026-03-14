@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700" viewBox="0 0 500 700">
+  <style>
+    text { font-size: 16px; font-family: sans-serif; }
+    .label { font-size: 11px; fill: #888; }
+  </style>
+
+  <text x="20" y="30" font-weight="bold" style="font-size: 9px">font-stretch property (not a useful test as few fonts have variants that support stretching/condensing)</text>
+
+  <!-- Absolute stretch keywords -->
+  <text class="label" x="20" y="65">Absolute keywords:</text>
+
+  <text x="20" y="90" font-stretch="ultra-condensed">ultra-condensed: The quick brown fox</text>
+  <text x="20" y="115" font-stretch="extra-condensed">extra-condensed: The quick brown fox</text>
+  <text x="20" y="140" font-stretch="condensed">condensed: The quick brown fox</text>
+  <text x="20" y="165" font-stretch="semi-condensed">semi-condensed: The quick brown fox</text>
+  <text x="20" y="190" font-stretch="normal">normal: The quick brown fox</text>
+  <text x="20" y="215" font-stretch="semi-expanded">semi-expanded: The quick brown fox</text>
+  <text x="20" y="240" font-stretch="expanded">expanded: The quick brown fox</text>
+  <text x="20" y="265" font-stretch="extra-expanded">extra-expanded: The quick brown fox</text>
+  <text x="20" y="290" font-stretch="ultra-expanded">ultra-expanded: The quick brown fox</text>
+
+  <!-- Inheritance -->
+  <text class="label" x="20" y="330">Inheritance:</text>
+
+  <g font-stretch="condensed">
+    <text x="20" y="355">Parent condensed, child inherits: condensed</text>
+    <text x="20" y="380" font-stretch="expanded">Parent condensed, child expanded: expanded</text>
+  </g>
+
+  <!-- Relative keywords: wider / narrower -->
+  <text class="label" x="20" y="420">Relative keywords (wider/narrower):</text>
+
+  <g font-stretch="condensed">
+    <text x="20" y="445">Base: condensed</text>
+    <text x="20" y="470" font-stretch="wider">wider from condensed = semi-condensed</text>
+    <text x="20" y="495" font-stretch="narrower">narrower from condensed = extra-condensed</text>
+  </g>
+
+  <g font-stretch="normal">
+    <text x="20" y="530">Base: normal</text>
+    <text x="20" y="555" font-stretch="wider">wider from normal = semi-expanded</text>
+    <text x="20" y="580" font-stretch="narrower">narrower from normal = semi-condensed</text>
+  </g>
+
+  <!-- Edge cases: capping at extremes -->
+  <text class="label" x="20" y="620">Edge cases (capping at extremes):</text>
+
+  <g font-stretch="ultra-expanded">
+    <text x="20" y="645" font-stretch="wider">wider from ultra-expanded = ultra-expanded (capped)</text>
+  </g>
+  <g font-stretch="ultra-condensed">
+    <text x="20" y="670" font-stretch="narrower">narrower from ultra-condensed = ultra-condensed (capped)</text>
+  </g>
+</svg>

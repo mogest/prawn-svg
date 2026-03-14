@@ -60,11 +60,13 @@ RSpec.describe Prawn::SVG::Properties do
         subject.set('font-weight', 'bold')
         subject.set('font-style', 'italic')
         subject.set('font-variant', 'small-caps')
+        subject.set('font-stretch', 'condensed')
 
         subject.set('font', '12px fontname')
         expect(subject.font_style).to eq 'normal'
         expect(subject.font_weight).to eq 'normal'
         expect(subject.font_variant).to eq 'normal'
+        expect(subject.font_stretch).to eq 'normal'
         expect(subject.font_size).to eq Prawn::SVG::Length.parse('12px')
         expect(subject.font_family).to eq 'fontname'
       end
@@ -74,6 +76,7 @@ RSpec.describe Prawn::SVG::Properties do
         expect(subject.font_style).to eq 'inherit'
         expect(subject.font_weight).to eq 'inherit'
         expect(subject.font_variant).to eq 'inherit'
+        expect(subject.font_stretch).to eq 'inherit'
         expect(subject.font_size).to eq 'inherit'
         expect(subject.font_family).to eq 'inherit'
       end
@@ -83,6 +86,7 @@ RSpec.describe Prawn::SVG::Properties do
         expect(subject.font_style).to eq 'normal'
         expect(subject.font_weight).to eq 'normal'
         expect(subject.font_variant).to eq 'normal'
+        expect(subject.font_stretch).to eq 'normal'
         expect(subject.font_size).to eq 'medium'
         expect(subject.font_family).to eq 'sans-serif'
       end
@@ -197,6 +201,102 @@ RSpec.describe Prawn::SVG::Properties do
         properties.compute_properties(b)
 
         expect(properties.numeric_font_size.round(1)).to eq 28.8
+      end
+    end
+  end
+
+  describe 'font-stretch' do
+    it 'accepts absolute stretch keywords' do
+      %w[normal ultra-condensed extra-condensed condensed semi-condensed
+         semi-expanded expanded extra-expanded ultra-expanded].each do |value|
+        subject.set('font-stretch', value)
+        expect(subject.font_stretch).to eq value
+      end
+    end
+
+    it 'accepts wider and narrower' do
+      subject.set('font-stretch', 'wider')
+      expect(subject.font_stretch).to eq 'wider'
+
+      subject.set('font-stretch', 'narrower')
+      expect(subject.font_stretch).to eq 'narrower'
+    end
+
+    it 'rejects invalid values' do
+      subject.set('font-stretch', 'invalid')
+      expect(subject.font_stretch).to be_nil
+    end
+
+    it 'is inherited' do
+      parent = Prawn::SVG::Properties.new
+      parent.set('font-stretch', 'condensed')
+
+      child = Prawn::SVG::Properties.new
+
+      computed = Prawn::SVG::Properties.new
+      computed.compute_properties(parent)
+      computed.compute_properties(child)
+
+      expect(computed.font_stretch).to eq 'condensed'
+    end
+
+    context 'wider keyword' do
+      it 'resolves to the next expanded value from the parent' do
+        parent = Prawn::SVG::Properties.new
+        parent.set('font-stretch', 'normal')
+
+        child = Prawn::SVG::Properties.new
+        child.set('font-stretch', 'wider')
+
+        computed = Prawn::SVG::Properties.new
+        computed.compute_properties(parent)
+        computed.compute_properties(child)
+
+        expect(computed.font_stretch).to eq 'semi-expanded'
+      end
+
+      it 'caps at ultra-expanded' do
+        parent = Prawn::SVG::Properties.new
+        parent.set('font-stretch', 'ultra-expanded')
+
+        child = Prawn::SVG::Properties.new
+        child.set('font-stretch', 'wider')
+
+        computed = Prawn::SVG::Properties.new
+        computed.compute_properties(parent)
+        computed.compute_properties(child)
+
+        expect(computed.font_stretch).to eq 'ultra-expanded'
+      end
+    end
+
+    context 'narrower keyword' do
+      it 'resolves to the next condensed value from the parent' do
+        parent = Prawn::SVG::Properties.new
+        parent.set('font-stretch', 'normal')
+
+        child = Prawn::SVG::Properties.new
+        child.set('font-stretch', 'narrower')
+
+        computed = Prawn::SVG::Properties.new
+        computed.compute_properties(parent)
+        computed.compute_properties(child)
+
+        expect(computed.font_stretch).to eq 'semi-condensed'
+      end
+
+      it 'caps at ultra-condensed' do
+        parent = Prawn::SVG::Properties.new
+        parent.set('font-stretch', 'ultra-condensed')
+
+        child = Prawn::SVG::Properties.new
+        child.set('font-stretch', 'narrower')
+
+        computed = Prawn::SVG::Properties.new
+        computed.compute_properties(parent)
+        computed.compute_properties(child)
+
+        expect(computed.font_stretch).to eq 'ultra-condensed'
       end
     end
   end

@@ -1,21 +1,20 @@
 module Prawn::SVG
   class Font
-    attr_reader :name, :weight, :style
+    attr_reader :name, :weight, :style, :stretch
 
-    def initialize(name, weight, style)
+    def initialize(name, weight, style, stretch = nil)
       @name = name
       @weight = weight
       @style = style
+      @stretch = stretch
     end
 
     def subfamily
-      if weight == :normal && style
-        style
-      elsif weight || style
-        [weight, style].compact.join('_').to_sym
-      else
-        :normal
-      end
+      parts = []
+      parts << stretch if stretch && stretch != :normal
+      parts << weight if weight && weight != :normal
+      parts << style if style
+      parts.empty? ? :normal : parts.join('_').to_sym
     end
   end
 end

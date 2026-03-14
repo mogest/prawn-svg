@@ -19,6 +19,18 @@ module Prawn::SVG
 
     FONT_WEIGHTS = FONT_WEIGHT_FALLBACKS.keys.freeze
 
+    FONT_STRETCH_MAPPING = {
+      'ultra-condensed' => :ultra_condensed,
+      'extra-condensed' => :extra_condensed,
+      'condensed'       => :condensed,
+      'semi-condensed'  => :semi_condensed,
+      'normal'          => :normal,
+      'semi-expanded'   => :semi_expanded,
+      'expanded'        => :expanded,
+      'extra-expanded'  => :extra_expanded,
+      'ultra-expanded'  => :ultra_expanded
+    }.freeze
+
     DEFAULT_FONT_PATHS = [
       '/Library/Fonts',
       '/System/Library/Fonts',
@@ -43,20 +55,21 @@ module Prawn::SVG
       @font_case_mapping[name.downcase]
     end
 
-    def load(family, weight = nil, style = nil)
+    def load(family, weight = nil, style = nil, stretch = nil)
       weight = weight_for_css_font_weight(weight) unless FONT_WEIGHTS.include?(weight)
+      stretch = stretch_for_css_font_stretch(stretch)
 
       CSS::FontFamilyParser.parse(family).detect do |name|
         name = name.gsub(/\s{2,}/, ' ')
 
-        font = find_suitable_font(name, weight, style)
+        font = find_suitable_font(name, weight, style, stretch)
         break font if font
       end
     end
 
     private
 
-    def find_suitable_font(name, weight, style)
+    def find_suitable_font(name, weight, style, stretch)
       name = correctly_cased_font_name(name) || name
 
       name = GENERIC_CSS_FONT_MAPPING[name] if GENERIC_CSS_FONT_MAPPING.key?(name) && !installed_fonts.key?(name)
@@ -64,18 +77,34 @@ module Prawn::SVG
       return unless (subfamilies = installed_fonts[name])
       return if subfamilies.empty?
 
-      while weight
-        font = Font.new(name, weight, style)
-        return font if installed?(font)
+      if stretch && stretch != :normal
+        font = find_with_weight_fallback(name, weight, style, stretch)
+        return font if font
 
-        weight = FONT_WEIGHT_FALLBACKS[weight]
+        font = find_with_weight_fallback(name, weight, nil, stretch) if style
+        return font if font
       end
+
+      font = find_with_weight_fallback(name, weight, style)
+      return font if font
 
       if style
-        find_suitable_font(name, weight, nil) unless style.nil?
-      else
-        Font.new(name, subfamilies.keys.first, nil)
+        font = find_with_weight_fallback(name, weight, nil)
+        return font if font
       end
+
+      Font.new(name, subfamilies.keys.first, nil)
+    end
+
+    def find_with_weight_fallback(name, weight, style, stretch = nil)
+      current_weight = weight
+      while current_weight
+        font = Font.new(name, current_weight, style, stretch)
+        return font if installed?(font)
+
+        current_weight = FONT_WEIGHT_FALLBACKS[current_weight]
+      end
+      nil
     end
 
     def installed?(font)
@@ -93,6 +122,12 @@ module Prawn::SVG
       when '900'                  then :black
       else :normal # rubocop:disable Lint/DuplicateBranch
       end
+    end
+
+    def stretch_for_css_font_stretch(stretch)
+      return nil if stretch.nil?
+
+      FONT_STRETCH_MAPPING[stretch] || :normal
     end
 
     def merge_external_fonts

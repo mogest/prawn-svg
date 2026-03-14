@@ -3,6 +3,11 @@ module Prawn::SVG
     Config = Struct.new(:default, :inheritable?, :valid_values, :attr, :ivar, :id)
 
     EM = 16
+    STRETCH_ORDER = %w[
+      ultra-condensed extra-condensed condensed semi-condensed normal
+      semi-expanded expanded extra-expanded ultra-expanded
+    ].freeze
+
     FONT_SIZES = {
       'xx-small' => EM / 4,
       'x-small'  => EM / 4 * 2,
@@ -29,6 +34,7 @@ module Prawn::SVG
       # Only the computed (numeric) value of font-size is inherited, not the value itself
       'font-size'          => Config.new(nil, false,
         [:positive_length, :positive_percentage, 'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', 'larger', 'smaller']),
+      'font-stretch'       => Config.new('normal', true, STRETCH_ORDER + %w[wider narrower]),
       'font-style'         => Config.new('normal', true, %w[normal italic oblique]),
       'font-variant'       => Config.new('normal', true, %w[normal small-caps]),
       'font-weight'        => Config.new('normal', true, %w[normal bold 100 200 300 400 500 600 700 800 900]), # bolder/lighter not supported
@@ -112,6 +118,8 @@ module Prawn::SVG
     end
 
     def compute_properties(other)
+      parent_font_stretch = font_stretch
+
       PROPERTY_CONFIGS.each do |config|
         value = other.send(config.attr)
 
@@ -123,12 +131,26 @@ module Prawn::SVG
         end
       end
 
+      @font_stretch = resolve_font_stretch(parent_font_stretch)
       @important_ids += other.important_ids
       @numeric_font_size = calculate_numeric_font_size
       nil
     end
 
     private
+
+    def resolve_font_stretch(parent_stretch)
+      case font_stretch
+      when 'wider'
+        index = STRETCH_ORDER.index(parent_stretch || 'normal') || 4
+        STRETCH_ORDER[[index + 1, STRETCH_ORDER.length - 1].min]
+      when 'narrower'
+        index = STRETCH_ORDER.index(parent_stretch || 'normal') || 4
+        STRETCH_ORDER[[index - 1, 0].max]
+      else
+        font_stretch
+      end
+    end
 
     def calculate_numeric_font_size
       case font_size
@@ -223,15 +245,17 @@ module Prawn::SVG
       if value.strip.match(/\s/).nil?
         case value.strip.downcase
         when 'inherit'
-          load_hash('font-style' => 'inherit', 'font-variant' => 'inherit', 'font-weight' => 'inherit', 'font-size' => 'inherit', 'font-family' => 'inherit')
+          load_hash('font-style' => 'inherit', 'font-variant' => 'inherit', 'font-weight' => 'inherit',
+            'font-stretch' => 'inherit', 'font-size' => 'inherit', 'font-family' => 'inherit')
         when 'caption', 'icon', 'menu', 'message-box', 'small-caption', 'status-bar'
-          load_hash('font-style' => 'normal', 'font-variant' => 'normal', 'font-weight' => 'normal', 'font-size' => 'medium', 'font-family' => 'sans-serif')
+          load_hash('font-style' => 'normal', 'font-variant' => 'normal', 'font-weight' => 'normal',
+            'font-stretch' => 'normal', 'font-size' => 'medium', 'font-family' => 'sans-serif')
         end
 
         return
       end
 
-      properties = ['font-style', 'font-variant', 'font-weight'].each.with_object({}) do |property, result|
+      properties = ['font-style', 'font-variant', 'font-weight', 'font-stretch'].each.with_object({}) do |property, result|
         result[property] = PROPERTIES[property].default
       end
 

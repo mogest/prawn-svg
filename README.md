@@ -58,7 +58,7 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
  - `<text>`, `<tspan>`, `<tref>` and `<textPath>` with attributes `x`, `y`, `dx`, `dy`, `rotate`, `textLength`,
    `lengthAdjust`, and with extra properties `text-anchor`, `text-decoration`, `font`, `font-size`, `font-family`,
-   `font-weight`, `font-style`, `kerning`, `letter-spacing`, `word-spacing`, `dominant-baseline`, `alignment-baseline`, `baseline-shift`.
+   `font-weight`, `font-style`, `font-stretch`, `kerning`, `letter-spacing`, `word-spacing`, `dominant-baseline`, `alignment-baseline`, `baseline-shift`.
    `<textPath>` supports `href`/`xlink:href` and `startOffset`.
 
  - `<svg>`, `<g>` and `<symbol>`
@@ -124,7 +124,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: font-stretch, bolder/lighter font-weight, `<switch>`
+Not yet implemented but intending to build: bolder/lighter font-weight, `<switch>`
 conditional processing, `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
 @import/@media, `:lang` pseudo-class.
 
