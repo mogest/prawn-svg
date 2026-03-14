@@ -94,6 +94,58 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe '@font-face extraction' do
+    let(:svg) do
+      <<~SVG
+        <svg>
+          <style>
+            @font-face {
+              font-family: "CustomFont";
+              src: url("custom.ttf") format("truetype");
+              font-weight: bold;
+            }
+            rect { fill: red; }
+          </style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+    end
+
+    it 'extracts @font-face rules separately from element styles' do
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg))
+      element_styles = stylesheets.load
+
+      expect(stylesheets.font_face_rules.length).to eq(1)
+
+      rule = stylesheets.font_face_rules.first
+      decl_hash = {}
+      rule.each { |name, value, _| decl_hash[name] = value }
+
+      expect(decl_hash['font-family']).to eq('"CustomFont"')
+      expect(decl_hash['src']).to eq('url("custom.ttf") format("truetype")')
+      expect(decl_hash['font-weight']).to eq('bold')
+
+      width_and_styles = element_styles.map { |k, v| [k.attributes['width'].to_i, v] }
+      expect(width_and_styles).to eq([[1, [['fill', 'red', false]]]])
+    end
+
+    it 'handles multiple @font-face rules' do
+      svg_with_two = <<~SVG
+        <svg>
+          <style>
+            @font-face { font-family: "Font1"; src: url("font1.ttf"); }
+            @font-face { font-family: "Font2"; src: url("font2.ttf"); font-weight: bold; }
+          </style>
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg_with_two))
+      stylesheets.load
+
+      expect(stylesheets.font_face_rules.length).to eq(2)
+    end
+  end
+
   describe 'style tag parsing' do
     let(:svg) do
       <<~SVG

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <style>
+    @font-face {
+      font-family: "OpenSansSBI";
+      src: url("sample_ttf/OpenSans-SemiboldItalic.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "NotoJP";
+      src: url("sample_ttf/NotoSansJP-Regular.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "WoffSkipped";
+      src: url("nonexistent.woff2") format("woff2"), url("sample_ttf/OpenSans-SemiboldItalic.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "LocalAlias";
+      src: local("Helvetica");
+    }
+  </style>
+
+  <rect width="400" height="400" fill="#f0f0f0"/>
+
+  <!-- Background labels -->
+  <text x="10" y="20" font-size="10" fill="#999">@font-face CSS support test</text>
+
+  <!-- Test 1: Basic @font-face with TTF URL -->
+  <text x="10" y="60" font-family="OpenSansSBI" font-size="18" fill="#333">
+    1. OpenSans SemiBold Italic via @font-face
+  </text>
+
+  <!-- Test 2: Japanese font via @font-face -->
+  <text x="10" y="100" font-family="NotoJP" font-size="18" fill="#333">
+    2. NotoSansJP: こんにちは世界
+  </text>
+
+  <!-- Test 3: Format filtering (woff2 skipped, falls back to ttf) -->
+  <text x="10" y="140" font-family="WoffSkipped" font-size="18" fill="#333">
+    3. WOFF2 skipped, TTF fallback used
+  </text>
+
+  <!-- Test 4: local() alias -->
+  <text x="10" y="180" font-family="LocalAlias" font-size="18" fill="#333">
+    4. Local alias for Helvetica
+  </text>
+
+  <!-- Test 5: Fallback when @font-face font not found -->
+  <text x="10" y="220" font-family="NonexistentFace, serif" font-size="18" fill="#333">
+    5. Fallback to serif (no @font-face match)
+  </text>
+
+  <!-- Test 6: Mixed @font-face and regular fonts -->
+  <text x="10" y="260" font-size="14" fill="#333">
+    <tspan font-family="OpenSansSBI">@font-face font</tspan>
+    <tspan font-family="Helvetica"> mixed with </tspan>
+    <tspan font-family="OpenSansSBI">@font-face again</tspan>
+  </text>
+
+  <!-- Test 7: @font-face with different sizes -->
+  <text x="10" y="300" font-family="OpenSansSBI" fill="#333">
+    <tspan font-size="10">10px </tspan>
+    <tspan font-size="14">14px </tspan>
+    <tspan font-size="18">18px </tspan>
+    <tspan font-size="24">24px </tspan>
+    <tspan font-size="30">30px</tspan>
+  </text>
+
+  <!-- Test 8: Styled text using @font-face -->
+  <text x="10" y="350" font-family="NotoJP" font-size="14" fill="#333">
+    <tspan fill="red">Red</tspan>
+    <tspan fill="green">Green</tspan>
+    <tspan fill="blue">Blue</tspan>
+    <tspan text-decoration="underline">Underlined</tspan>
+  </text>
+</svg>

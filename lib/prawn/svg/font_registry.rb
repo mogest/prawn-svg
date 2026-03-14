@@ -90,6 +90,40 @@ module Prawn::SVG
       end
     end
 
+    def register_font_face(family_name, css_weight, css_style, css_stretch, font_data)
+      merge_external_fonts
+
+      weight = css_weight ? weight_for_css_font_weight(css_weight) : :normal
+      style = %w[italic oblique].include?(css_style) ? :italic : nil
+      stretch = stretch_for_css_font_stretch(css_stretch)
+      effective_stretch = stretch == :normal ? nil : stretch
+
+      font = Font.new(family_name, weight, style, effective_stretch)
+      family = (@font_families[family_name] ||= {})
+      family[font.subfamily] = font_data
+      @font_case_mapping[family_name.downcase] = family_name
+    end
+
+    def find_local_font_data(local_name, css_weight, css_style, css_stretch)
+      merge_external_fonts
+
+      name = correctly_cased_font_name(local_name) || local_name
+      name = GENERIC_CSS_FONT_MAPPING[name] if GENERIC_CSS_FONT_MAPPING.key?(name) && !@font_families.key?(name)
+
+      subfamilies = @font_families[name]
+      return unless subfamilies&.any?
+
+      weight = css_weight ? weight_for_css_font_weight(css_weight) : :normal
+      style = %w[italic oblique].include?(css_style) ? :italic : nil
+      stretch = stretch_for_css_font_stretch(css_stretch)
+      effective_stretch = stretch == :normal ? nil : stretch
+
+      font = find_suitable_font(name, weight, style, effective_stretch)
+      return unless font
+
+      subfamilies[font.subfamily]
+    end
+
     private
 
     def find_suitable_font(name, weight, style, stretch)

@@ -1,11 +1,12 @@
 module Prawn::SVG::CSS
   class Stylesheets
-    attr_reader :css_parser, :root, :media
+    attr_reader :css_parser, :root, :media, :font_face_rules
 
     def initialize(css_parser, root, media = :all)
       @css_parser = css_parser
       @root = root
       @media = media
+      @font_face_rules = []
     end
 
     def load
@@ -32,6 +33,11 @@ module Prawn::SVG::CSS
         rule_set.each_declaration { |*data| declarations << data }
 
         rule_set.selectors.each do |selector_text|
+          if selector_text.strip == '@font-face'
+            @font_face_rules << declarations
+            next
+          end
+
           next unless (selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text))
 
           xpath = css_selector_to_xpath(selector)

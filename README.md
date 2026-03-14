@@ -28,8 +28,8 @@ Option      | Data type | Description
 :vposition  | :top, :center, :bottom, integer | If :at not specified, specifies the vertical position to show the SVG.  Defaults to current cursor position.
 :width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
-:enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images.  Defaults to true.
-:enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs from your local disk if the file is located under the specified directory. It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
+:enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images and `@font-face` fonts.  Defaults to true.
+:enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs from your local disk if the file is located under the specified directory.  Also required for `@font-face` fonts loaded via relative or absolute file paths. It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
@@ -110,6 +110,10 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
  - fonts: generic CSS fonts, built-in PDF fonts, and any TTF or TTC fonts in your fonts path, specified in any of
    the measurements above plus `em` or `rem`
 
+ - `@font-face` in `<style>` blocks: `url()` sources (TTF/OTF formats) and `local()` references, with `font-weight`,
+   `font-style` and `font-stretch` descriptors.  Font loading is subject to the `enable_web_requests` and
+   `enable_file_requests_with_root` options.
+
 ## CSS
 
 prawn-svg supports CSS, both in `<style>` blocks and `style` attributes.
@@ -125,7 +129,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: `@font-face`, external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
+Not yet implemented but intending to build: external `<use>` refs, marker shorthand, `<a>` target, `<view>`, CSS
 @import/@media, `:lang` pseudo-class.
 
 writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement

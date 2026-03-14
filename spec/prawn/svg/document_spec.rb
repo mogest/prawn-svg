@@ -44,6 +44,148 @@ describe Prawn::SVG::Document do
       end
     end
 
+    context 'with @font-face rules' do
+      let(:sample_ttf_dir) { File.expand_path('../../sample_ttf', __dir__) }
+      let(:font_filename) { 'OpenSans-SemiboldItalic.ttf' }
+      let(:font_path) { File.join(sample_ttf_dir, font_filename) }
+      let(:file_options) { { enable_file_requests_with_root: sample_ttf_dir } }
+
+      it 'registers @font-face fonts with the font registry' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "TestFont";
+                src: url("#{font_path}");
+                font-weight: bold;
+                font-style: italic;
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        Prawn::SVG::Document.new(svg, bounds, file_options, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['TestFont']).to be_a(Hash)
+        expect(font_registry.installed_fonts['TestFont'][:bold_italic]).to be_a(String)
+      end
+
+      it 'skips unsupported font formats' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "WoffFont";
+                src: url("font.woff2") format("woff2");
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        Prawn::SVG::Document.new(svg, bounds, options, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['WoffFont']).to be_nil
+      end
+
+      it 'tries multiple sources and uses the first successful one' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "MultiFont";
+                src: url("nonexistent.ttf"), url("#{font_path}");
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        document = Prawn::SVG::Document.new(svg, bounds, file_options, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['MultiFont']).to be_a(Hash)
+        expect(font_registry.installed_fonts['MultiFont'][:normal]).to be_a(String)
+        expect(document.warnings).to include(/Failed to load.*nonexistent\.ttf/)
+      end
+
+      it 'supports local() font references' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "AliasFont";
+                src: local("ExistingFont");
+                font-weight: bold;
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({
+          'ExistingFont' => { normal: '/path/to/existing.ttf', bold: '/path/to/bold.ttf' }
+        })
+        Prawn::SVG::Document.new(svg, bounds, options, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['AliasFont']).to be_a(Hash)
+        expect(font_registry.installed_fonts['AliasFont'][:bold]).to eq('/path/to/bold.ttf')
+      end
+
+      it 'does not load file URLs when enable_file_requests_with_root is not set' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "FileFont";
+                src: url("#{font_path}");
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        document = Prawn::SVG::Document.new(svg, bounds, {}, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['FileFont']).to be_nil
+        expect(document.warnings).to include(/Failed to load/)
+      end
+
+      it 'does not load web URLs when enable_web_requests is false' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                font-family: "WebFont";
+                src: url("https://example.com/font.ttf");
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        document = Prawn::SVG::Document.new(svg, bounds, { enable_web_requests: false }, font_registry: font_registry)
+
+        expect(font_registry.installed_fonts['WebFont']).to be_nil
+        expect(document.warnings).to include(/Failed to load/)
+      end
+
+      it 'skips @font-face rules without font-family' do
+        svg = <<~SVG
+          <svg>
+            <style>
+              @font-face {
+                src: url("font.ttf");
+              }
+            </style>
+          </svg>
+        SVG
+
+        font_registry = Prawn::SVG::FontRegistry.new({})
+        Prawn::SVG::Document.new(svg, bounds, options, font_registry: font_registry)
+        expect(font_registry.installed_fonts).not_to have_key(nil)
+      end
+    end
+
     context 'when the user passes in a filename instead of SVG data' do
       let(:svg) { 'some_file.svg' }
 

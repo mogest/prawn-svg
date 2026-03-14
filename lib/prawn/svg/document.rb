@@ -1,3 +1,5 @@
+require 'tempfile'
+
 class Prawn::SVG::Document
   Error = Class.new(StandardError)
   InvalidSVGData = Class.new(Error)
@@ -30,6 +32,7 @@ class Prawn::SVG::Document
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
     @color_mode = load_color_mode
+    @font_face_tempfiles = []
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],
@@ -43,7 +46,9 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    @element_styles = Prawn::SVG::CSS::Stylesheets.new(css_parser, root).load
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root)
+    @element_styles = stylesheets.load
+    process_font_face_rules(stylesheets.font_face_rules)
 
     yield self if block_given?
   end
@@ -63,6 +68,76 @@ class Prawn::SVG::Document
   end
 
   private
+
+  def process_font_face_rules(rules)
+    return unless font_registry
+
+    rules.each do |declarations|
+      decl_hash = {}
+      declarations.each { |name, value, _| decl_hash[name] = value }
+
+      family = unquote_css_string(decl_hash['font-family'])
+      next unless family
+
+      src = decl_hash['src']
+      next unless src
+
+      weight = decl_hash['font-weight']
+      style = decl_hash['font-style']
+      stretch = decl_hash['font-stretch']
+
+      load_font_face_source(family, weight, style, stretch, src)
+    end
+  end
+
+  def load_font_face_source(family, weight, style, stretch, src)
+    sources = Prawn::SVG::CSS::FontFaceParser.parse_src(src)
+
+    sources.detect do |source|
+      case source[:type]
+      when :local
+        load_local_font_face(family, weight, style, stretch, source[:name])
+      when :url
+        load_url_font_face(family, weight, style, stretch, source)
+      end
+    end
+  end
+
+  def load_local_font_face(family, weight, style, stretch, local_name)
+    font_data = font_registry.find_local_font_data(local_name, weight, style, stretch)
+    return unless font_data
+
+    font_registry.register_font_face(family, weight, style, stretch, font_data)
+    true
+  end
+
+  def load_url_font_face(family, weight, style, stretch, source)
+    return if source[:format] && !Prawn::SVG::CSS::FontFaceParser::SUPPORTED_FORMATS.include?(source[:format])
+
+    data = url_loader.load(source[:url])
+    tempfile = Tempfile.new(['prawn-svg-font', '.ttf'])
+    tempfile.binmode
+    tempfile.write(data)
+    tempfile.close
+    @font_face_tempfiles << tempfile
+
+    font_registry.register_font_face(family, weight, style, stretch, tempfile.path)
+    true
+  rescue Prawn::SVG::UrlLoader::Error => e
+    warnings << "Failed to load @font-face font from #{source[:url]}: #{e.message}"
+    false
+  end
+
+  def unquote_css_string(value)
+    return unless value
+
+    value = value.strip
+    if (value.start_with?('"') && value.end_with?('"')) || (value.start_with?("'") && value.end_with?("'"))
+      value[1..-2]
+    else
+      value
+    end
+  end
 
   def load_color_mode
     case @options[:color_mode]
