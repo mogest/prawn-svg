@@ -210,6 +210,7 @@ RSpec.describe Prawn::SVG::FontRegistry do
   end
 
   describe '#installed_fonts' do
+    let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
     let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic') }
     let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular') }
     before { Prawn::SVG::FontRegistry.external_font_families.clear }
@@ -227,6 +228,7 @@ RSpec.describe Prawn::SVG::FontRegistry do
     it 'does not override existing entries in pdf when loading external fonts' do
       expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
       expect(Dir).to receive(:[]).with('x/**/*').and_return(['file.ttf', 'second.ttf'])
+      expect(Prawn::SVG::TTC).to receive(:new).twice.and_return(ttc)
       expect(Prawn::SVG::TTF).to receive(:new).with('file.ttf').and_return(ttf)
       expect(Prawn::SVG::TTF).to receive(:new).with('second.ttf').and_return(ttf2)
       expect(File).to receive(:file?).at_least(:once).and_return(true)
@@ -240,22 +242,99 @@ RSpec.describe Prawn::SVG::FontRegistry do
   end
 
   describe '::load_external_fonts' do
-    let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic') }
-    let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular') }
-
     before { Prawn::SVG::FontRegistry.external_font_families.clear }
 
-    it 'scans the font path and loads in some fonts' do
-      expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
-      expect(Dir).to receive(:[]).with('x/**/*').and_return(['file.ttf', 'second.ttf'])
-      expect(Prawn::SVG::TTF).to receive(:new).with('file.ttf').and_return(ttf)
-      expect(Prawn::SVG::TTF).to receive(:new).with('second.ttf').and_return(ttf2)
-      expect(File).to receive(:file?).at_least(:once).and_return(true)
+    context 'with TTF files' do
+      let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
+      let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic') }
+      let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular') }
 
-      Prawn::SVG::FontRegistry.load_external_fonts
+      it 'scans the font path and loads in some fonts' do
+        expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
+        expect(Dir).to receive(:[]).with('x/**/*').and_return(['file.ttf', 'second.ttf'])
+        expect(Prawn::SVG::TTC).to receive(:new).twice.and_return(ttc)
+        expect(Prawn::SVG::TTF).to receive(:new).with('file.ttf').and_return(ttf)
+        expect(Prawn::SVG::TTF).to receive(:new).with('second.ttf').and_return(ttf2)
+        expect(File).to receive(:file?).at_least(:once).and_return(true)
 
-      result = Prawn::SVG::FontRegistry.external_font_families
-      expect(result).to eq('Awesome Font' => { italic: 'file.ttf', normal: 'second.ttf' })
+        Prawn::SVG::FontRegistry.load_external_fonts
+
+        result = Prawn::SVG::FontRegistry.external_font_families
+        expect(result).to eq('Awesome Font' => { italic: 'file.ttf', normal: 'second.ttf' })
+      end
+    end
+
+    context 'with TTC files' do
+      let(:ttc) do
+        instance_double(Prawn::SVG::TTC, fonts: [
+          { family: 'Collection Font', subfamily: 'Regular', index: 0 },
+          { family: 'Collection Font', subfamily: 'Bold', index: 1 }
+        ])
+      end
+
+      it 'stores fonts with file and index hash' do
+        expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
+        expect(Dir).to receive(:[]).with('x/**/*').and_return(['collection.ttc'])
+        expect(Prawn::SVG::TTC).to receive(:new).with('collection.ttc').and_return(ttc)
+        expect(File).to receive(:file?).at_least(:once).and_return(true)
+
+        Prawn::SVG::FontRegistry.load_external_fonts
+
+        result = Prawn::SVG::FontRegistry.external_font_families
+        expect(result).to eq('Collection Font' => {
+          normal: { file: 'collection.ttc', font: 0 },
+          bold:   { file: 'collection.ttc', font: 1 }
+        })
+      end
+    end
+
+    context 'with a TTC containing multiple font families' do
+      let(:ttc) do
+        instance_double(Prawn::SVG::TTC, fonts: [
+          { family: 'Font A', subfamily: 'Regular', index: 0 },
+          { family: 'Font B', subfamily: 'Regular', index: 1 }
+        ])
+      end
+
+      it 'registers each family separately' do
+        expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
+        expect(Dir).to receive(:[]).with('x/**/*').and_return(['multi.ttc'])
+        expect(Prawn::SVG::TTC).to receive(:new).with('multi.ttc').and_return(ttc)
+        expect(File).to receive(:file?).at_least(:once).and_return(true)
+
+        Prawn::SVG::FontRegistry.load_external_fonts
+
+        result = Prawn::SVG::FontRegistry.external_font_families
+        expect(result).to eq(
+          'Font A' => { normal: { file: 'multi.ttc', font: 0 } },
+          'Font B' => { normal: { file: 'multi.ttc', font: 1 } }
+        )
+      end
+    end
+
+    context 'when TTC fonts would override existing entries' do
+      let(:ttc) do
+        instance_double(Prawn::SVG::TTC, fonts: [
+          { family: 'Existing Font', subfamily: 'Regular', index: 0 },
+          { family: 'Existing Font', subfamily: 'Bold', index: 1 }
+        ])
+      end
+      let(:ttc2)  { instance_double(Prawn::SVG::TTC, fonts: []) }
+      let(:ttf) { instance_double(Prawn::SVG::TTF, family: 'Existing Font', subfamily: 'Regular') }
+
+      it 'does not override the first entry with a later one' do
+        expect(Prawn::SVG::FontRegistry).to receive(:font_path).and_return(['x'])
+        expect(Dir).to receive(:[]).with('x/**/*').and_return(['first.ttc', 'second.ttf'])
+        expect(Prawn::SVG::TTC).to receive(:new).with('first.ttc').and_return(ttc)
+        expect(Prawn::SVG::TTC).to receive(:new).with('second.ttf').and_return(ttc2)
+        expect(Prawn::SVG::TTF).to receive(:new).with('second.ttf').and_return(ttf)
+        expect(File).to receive(:file?).at_least(:once).and_return(true)
+
+        Prawn::SVG::FontRegistry.load_external_fonts
+
+        result = Prawn::SVG::FontRegistry.external_font_families
+        expect(result['Existing Font'][:normal]).to eq(file: 'first.ttc', font: 0)
+      end
     end
   end
 end

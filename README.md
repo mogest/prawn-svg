@@ -106,8 +106,8 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
  - measurements specified in `pt`, `cm`, `dm`, `ft`, `in`, `m`, `mm`, `yd`, `pc`, `%`
 
- - fonts: generic CSS fonts, built-in PDF fonts, and any TTF fonts in your fonts path, specified in any of the
-   measurements above plus `em` or `rem`
+ - fonts: generic CSS fonts, built-in PDF fonts, and any TTF or TTC fonts in your fonts path, specified in any of
+   the measurements above plus `em` or `rem`
 
 ## CSS
 

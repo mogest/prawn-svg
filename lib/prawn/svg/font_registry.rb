@@ -152,12 +152,21 @@ module Prawn::SVG
         @external_font_families = {}
 
         external_font_paths.each do |filename|
-          ttf = TTF.new(filename)
-          next unless ttf.family
+          ttc = TTC.new(filename)
+          if ttc.fonts.any?
+            ttc.fonts.each do |font|
+              subfamily = (font[:subfamily] || 'normal').gsub(/\s+/, '_').downcase.to_sym
+              subfamily = :normal if subfamily == :regular
+              (external_font_families[font[:family]] ||= {})[subfamily] ||= { file: filename, font: font[:index] }
+            end
+          else
+            ttf = TTF.new(filename)
+            next unless ttf.family
 
-          subfamily = (ttf.subfamily || 'normal').gsub(/\s+/, '_').downcase.to_sym
-          subfamily = :normal if subfamily == :regular
-          (external_font_families[ttf.family] ||= {})[subfamily] ||= filename
+            subfamily = (ttf.subfamily || 'normal').gsub(/\s+/, '_').downcase.to_sym
+            subfamily = :normal if subfamily == :regular
+            (external_font_families[ttf.family] ||= {})[subfamily] ||= filename
+          end
         end
       end
 
