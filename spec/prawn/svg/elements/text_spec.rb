@@ -485,6 +485,149 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'alignment-baseline' do
+    context 'with middle value on a tspan' do
+      let(:svg) { '<text font-size="20">Normal<tspan alignment-baseline="middle">mid</tspan>after</text>' }
+
+      it 'shifts text when alignment-baseline is set' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        mid_y = positions.find { |t, _| t == 'mid' }[1][1]
+        after_y = positions.find { |t, _| t == 'after' }[1][1]
+
+        expect(mid_y).to be < normal_y
+        expect(after_y).to eq normal_y
+      end
+    end
+
+    context 'with auto value' do
+      let(:svg) { '<text font-size="20">Normal<tspan alignment-baseline="auto">same</tspan></text>' }
+
+      it 'does not shift text' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        same_y = positions.find { |t, _| t == 'same' }[1][1]
+
+        expect(same_y).to eq normal_y
+      end
+    end
+
+    context 'when overriding dominant-baseline' do
+      let(:svg) { '<text font-size="20" dominant-baseline="hanging">Hanging<tspan alignment-baseline="alphabetic">alpha</tspan></text>' }
+
+      it 'uses alignment-baseline instead of inherited dominant-baseline' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        hanging_y = positions.find { |t, _| t == 'Hanging' }[1][1]
+        alpha_y = positions.find { |t, _| t == 'alpha' }[1][1]
+
+        expect(alpha_y).to be > hanging_y
+      end
+    end
+
+    context 'with hanging value' do
+      let(:svg) { '<text font-size="20">Normal<tspan alignment-baseline="hanging">hang</tspan></text>' }
+
+      it 'shifts text entirely below the baseline' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        hang_y = positions.find { |t, _| t == 'hang' }[1][1]
+
+        # hanging shifts down by the full ascender (same as text-before-edge)
+        expect(hang_y).to be < normal_y
+        ascender_shift = (prawn.font.ascender / prawn.font_size) * 20
+        expect(normal_y - hang_y).to be_within(0.01).of(ascender_shift)
+      end
+    end
+
+    context 'with mathematical value' do
+      let(:svg) { '<text font-size="20">Normal<tspan alignment-baseline="mathematical">math</tspan></text>' }
+
+      it 'shifts text down by half the em box height' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        math_y = positions.find { |t, _| t == 'math' }[1][1]
+
+        # mathematical = (ascender + descender) / 2
+        expected_shift = ((prawn.font.ascender + prawn.font.descender) / prawn.font_size) * 20 / 2.0
+        expect(normal_y - math_y).to be_within(0.01).of(expected_shift)
+      end
+    end
+
+    context 'with ideographic value' do
+      let(:svg) { '<text font-size="20">Normal<tspan alignment-baseline="ideographic">ideo</tspan></text>' }
+
+      it 'shifts text up so all glyphs are above the baseline' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        normal_y = positions.find { |t, _| t == 'Normal' }[1][1]
+        ideo_y = positions.find { |t, _| t == 'ideo' }[1][1]
+
+        # ideographic shifts up by descender amount
+        expect(ideo_y).to be > normal_y
+      end
+    end
+
+    context 'when not inherited by child elements' do
+      let(:svg) { '<text font-size="20"><tspan alignment-baseline="middle">parent<tspan>child</tspan></tspan></text>' }
+
+      it 'does not apply to nested children' do
+        positions = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          positions << [text, opts[:at]]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        parent_y = positions.find { |t, _| t == 'parent' }[1][1]
+        child_y = positions.find { |t, _| t == 'child' }[1][1]
+
+        expect(child_y).to_not eq parent_y
+      end
+    end
+  end
+
   describe 'when a use element references a tspan element' do
     let(:svg) do
       <<~SVG

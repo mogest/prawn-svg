@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <!-- Reference lines -->
+  <line x1="0" y1="50" x2="800" y2="50" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="120" x2="800" y2="120" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="190" x2="800" y2="190" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="260" x2="800" y2="260" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="330" x2="800" y2="330" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="400" x2="800" y2="400" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="470" x2="800" y2="470" stroke="#ccc" stroke-dasharray="4,4"/>
+  <line x1="0" y1="540" x2="800" y2="540" stroke="#ccc" stroke-dasharray="4,4"/>
+
+  <!-- 1. Default (auto) alignment-baseline -->
+  <text x="10" y="50" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="auto" fill="blue">auto (no shift)</tspan>
+    <tspan fill="black">after</tspan>
+  </text>
+
+  <!-- 2. alignment-baseline="middle" -->
+  <text x="10" y="120" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="middle" fill="red">middle</tspan>
+    <tspan fill="black">after</tspan>
+  </text>
+
+  <!-- 3. alignment-baseline="central" -->
+  <text x="10" y="190" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="central" fill="green">central</tspan>
+    <tspan fill="black">after</tspan>
+  </text>
+
+  <!-- 4. alignment-baseline="hanging" -->
+  <text x="10" y="260" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="hanging" fill="purple">hanging</tspan>
+    <tspan fill="black">after</tspan>
+  </text>
+
+  <!-- 5. alignment-baseline="text-before-edge" and "text-after-edge" -->
+  <text x="10" y="330" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="text-before-edge" fill="orange">before-edge</tspan>
+    <tspan alignment-baseline="text-after-edge" fill="brown">after-edge</tspan>
+  </text>
+
+  <!-- 6. alignment-baseline overrides inherited dominant-baseline -->
+  <text x="10" y="400" font-size="24" fill="black" dominant-baseline="hanging">Hanging parent
+    <tspan alignment-baseline="alphabetic" fill="blue">alphabetic override</tspan>
+  </text>
+
+  <!-- 7. alignment-baseline not inherited -->
+  <text x="10" y="470" font-size="24" fill="black">
+    <tspan alignment-baseline="middle" fill="red">middle parent
+      <tspan fill="green">child (not inherited)</tspan>
+    </tspan>
+  </text>
+
+  <!-- 8. alignment-baseline with mathematical, ideographic, before-edge, after-edge -->
+  <text x="10" y="540" font-size="24" fill="black">Normal
+    <tspan alignment-baseline="mathematical" fill="teal">mathematical</tspan>
+    <tspan alignment-baseline="ideographic" fill="navy">ideographic</tspan>
+    <tspan alignment-baseline="before-edge" fill="maroon">before</tspan>
+    <tspan alignment-baseline="after-edge" fill="darkgreen">after</tspan>
+  </text>
+</svg>

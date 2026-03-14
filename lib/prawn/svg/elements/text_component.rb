@@ -250,26 +250,33 @@ module Prawn::SVG
     end
 
     def dominant_baseline_offset(prawn, size)
-      case computed_properties.dominant_baseline
+      baseline = effective_baseline
+      return nil if baseline.nil?
+
+      case baseline
       when 'middle'
         -FontMetrics.x_height_in_points(prawn, size) / 2.0
+      when 'mathematical'
+        -((prawn.font.ascender + prawn.font.descender) / prawn.font_size) * size / 2.0
       when 'central'
-        -(prawn.font.ascender / prawn.font_size) * size / 2.0
+        -((prawn.font.ascender - prawn.font.descender) / prawn.font_size) * size / 2.0
       when 'hanging'
         -(prawn.font.ascender / prawn.font_size) * size
-      when 'text-before-edge'
-        ascender, descender = scaled_ascender_descender(prawn, size)
-        -(ascender * size) / (ascender + descender)
-      when 'text-after-edge'
-        ascender, descender = scaled_ascender_descender(prawn, size)
-        (descender * size) / (ascender + descender)
+      when 'text-before-edge', 'before-edge'
+        (-(prawn.font.ascender / prawn.font_size) * size) - half_leading(prawn, size)
+      when 'text-after-edge', 'after-edge', 'ideographic'
+        ((prawn.font.descender / prawn.font_size) * size) + half_leading(prawn, size)
       end
     end
 
-    def scaled_ascender_descender(prawn, size)
-      ascender = (prawn.font.ascender / prawn.font_size) * size
-      descender = (prawn.font.descender / prawn.font_size) * size
-      [ascender, descender]
+    def effective_baseline
+      ab = computed_properties.alignment_baseline
+      if ab && ab != 'auto' && ab != 'baseline'
+        ab
+      else
+        db = computed_properties.dominant_baseline
+        db unless ['auto', 'alphabetic'].include?(db)
+      end
     end
 
     def baseline_shift_offset(prawn, font_size)
@@ -289,6 +296,10 @@ module Prawn::SVG
       else
         0
       end
+    end
+
+    def half_leading(prawn, size)
+      (size - ((prawn.font.ascender + prawn.font.descender) / prawn.font_size * size)) / 2.0
     end
 
     def sub_super_offset(prawn, font_size)
