@@ -118,6 +118,31 @@ RSpec.describe Prawn::SVG::Properties do
         expect(subject.font_family).to be nil
       end
     end
+
+    context 'when setting the marker shorthand property' do
+      it 'sets marker-start, marker-mid, and marker-end to the same value' do
+        subject.set('marker', 'url(#arrow)')
+        expected = Prawn::SVG::FuncIRI.new('#arrow')
+        expect(subject.marker_start).to eq expected
+        expect(subject.marker_mid).to eq expected
+        expect(subject.marker_end).to eq expected
+      end
+
+      it 'sets all three to none' do
+        subject.set('marker-start', 'url(#arrow)')
+        subject.set('marker', 'none')
+        expect(subject.marker_start).to eq 'none'
+        expect(subject.marker_mid).to eq 'none'
+        expect(subject.marker_end).to eq 'none'
+      end
+
+      it 'does nothing for invalid values' do
+        subject.set('marker', 'invalid')
+        expect(subject.marker_start).to be nil
+        expect(subject.marker_mid).to be nil
+        expect(subject.marker_end).to be nil
+      end
+    end
   end
 
   describe '#load_hash' do

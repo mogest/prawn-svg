@@ -92,7 +92,7 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
    `stroke`, `stroke-dasharray`, `stroke-dashoffset`, `stroke-linecap`, `stroke-linejoin`, `stroke-miterlimit`, `stroke-opacity`, `stroke-width`,
    `visibility`
 
- - properties on lines, polylines, polygons and paths: `marker-end`, `marker-mid`, `marker-start`
+ - properties on lines, polylines, polygons and paths: `marker`, `marker-end`, `marker-mid`, `marker-start`
 
  - attributes on all elements: `class`, `id`, `style`, `transform`, `xml:space`
 
@@ -129,7 +129,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: marker shorthand, `<a>` target, `<view>`, CSS @import/@media, `:lang`
+Not yet implemented but intending to build: `<a>` target, `<view>`, CSS @import/@media, `:lang`
 pseudo-class.
 
 writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement
