@@ -88,6 +88,9 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
  - `<switch>` with conditional processing (`requiredFeatures`, `requiredExtensions`, `systemLanguage`).
    `<foreignObject>` tags are always ignored as prawn-svg cannot handle non-SVG data.
 
+ - `<view>` element for defining named views.  Fragment identifiers (`#viewId` and `#svgView(...)`) on
+   `<image>` hrefs select which view to render an external SVG with.
+
  - properties: `clip-path`, `clip-rule`, `color`, `display`, `fill`, `fill-opacity`, `fill-rule`, `opacity`, `overflow`,
    `stroke`, `stroke-dasharray`, `stroke-dashoffset`, `stroke-linecap`, `stroke-linejoin`, `stroke-miterlimit`, `stroke-opacity`, `stroke-width`,
    `visibility`
@@ -129,8 +132,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: `<a>` target, `<view>`, CSS @import/@media, `:lang`
-pseudo-class.
+Not yet implemented but intending to build: CSS @import/@media, `:lang` pseudo-class.
 
 writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement
 non-LTR directions, and no-one has asked for it yet.

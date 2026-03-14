@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300" viewBox="0 0 400 300">
+  <!-- view elements define named views into the SVG -->
+  <view id="topLeft" viewBox="0 0 200 200"/>
+  <view id="bottomRight" viewBox="200 200 200 200"/>
+  <view id="center" viewBox="100 100 200 200" preserveAspectRatio="xMidYMid meet"/>
+
+  <!-- Background -->
+  <rect width="400" height="300" fill="#f8f8f8"/>
+
+  <text x="200" y="20" text-anchor="middle" font-size="14" fill="#333">view element test</text>
+
+  <!-- Full SVG content (4 quadrants) -->
+  <text x="100" y="45" text-anchor="middle" font-size="10" fill="#666">Full view (200x200 viewBox)</text>
+  <svg x="0" y="50" width="200" height="200" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#f0f0f0" stroke="#ccc"/>
+    <line x1="100" y1="0" x2="100" y2="200" stroke="#ccc" stroke-dasharray="4"/>
+    <line x1="0" y1="100" x2="200" y2="100" stroke="#ccc" stroke-dasharray="4"/>
+    <rect x="10" y="10" width="80" height="80" fill="#e74c3c" rx="5"/>
+    <text x="50" y="55" text-anchor="middle" font-size="10" fill="white">TL</text>
+    <rect x="110" y="10" width="80" height="80" fill="#3498db" rx="5"/>
+    <text x="150" y="55" text-anchor="middle" font-size="10" fill="white">TR</text>
+    <rect x="10" y="110" width="80" height="80" fill="#2ecc71" rx="5"/>
+    <text x="50" y="155" text-anchor="middle" font-size="10" fill="white">BL</text>
+    <rect x="110" y="110" width="80" height="80" fill="#9b59b6" rx="5"/>
+    <text x="150" y="155" text-anchor="middle" font-size="10" fill="white">BR</text>
+  </svg>
+
+  <!-- Simulated "topLeft" view: viewBox="0 0 100 100" zooms into top-left quadrant -->
+  <text x="300" y="45" text-anchor="middle" font-size="10" fill="#666">Top-left view (0 0 100 100)</text>
+  <svg x="200" y="50" width="200" height="200" viewBox="0 0 100 100">
+    <rect width="200" height="200" fill="#f0f0f0" stroke="#ccc"/>
+    <line x1="100" y1="0" x2="100" y2="200" stroke="#ccc" stroke-dasharray="4"/>
+    <line x1="0" y1="100" x2="200" y2="100" stroke="#ccc" stroke-dasharray="4"/>
+    <rect x="10" y="10" width="80" height="80" fill="#e74c3c" rx="5"/>
+    <text x="50" y="55" text-anchor="middle" font-size="10" fill="white">TL</text>
+    <rect x="110" y="10" width="80" height="80" fill="#3498db" rx="5"/>
+    <text x="150" y="55" text-anchor="middle" font-size="10" fill="white">TR</text>
+    <rect x="10" y="110" width="80" height="80" fill="#2ecc71" rx="5"/>
+    <text x="50" y="155" text-anchor="middle" font-size="10" fill="white">BL</text>
+    <rect x="110" y="110" width="80" height="80" fill="#9b59b6" rx="5"/>
+    <text x="150" y="155" text-anchor="middle" font-size="10" fill="white">BR</text>
+  </svg>
+
+  <!-- Note: view element itself is a non-rendering definition.
+       Fragment identifiers (#viewId) are used in image/use hrefs
+       to select which view to render an external SVG with. -->
+  <text x="200" y="280" text-anchor="middle" font-size="9" fill="#999">Left: full view. Right: top-left quadrant zoomed via viewBox.</text>
+</svg>

@@ -21,6 +21,8 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     @url = href_attribute
     raise SkipElementError, 'image tag must have an href or xlink:href' if @url.nil?
 
+    @url, @fragment = extract_fragment(@url)
+
     x = x(attributes['x'] || 0)
     y = y(attributes['y'] || 0)
     width = x_pixels(attributes['width'])
@@ -83,9 +85,17 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       ImageData.new([image.width.to_f, image.height.to_f], nil)
 
     elsif potentially_svg?(data)
+      attribute_overrides = {}
+      attribute_overrides['preserveAspectRatio'] = preserve_aspect_ratio if preserve_aspect_ratio
+
+      if @fragment
+        view_attrs = resolve_svg_fragment(data, @fragment)
+        attribute_overrides.merge!(view_attrs) if view_attrs
+      end
+
       document = Prawn::SVG::Document.new(
         data, [width, height], { width: width, height: height },
-        attribute_overrides: { 'preserveAspectRatio' => preserve_aspect_ratio }
+        attribute_overrides: attribute_overrides
       )
 
       dimensions = [document.sizing.output_width, document.sizing.output_height]
@@ -96,6 +106,58 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     end
   rescue Prawn::SVG::Document::InvalidSVGData
     raise_invalid_image_type
+  end
+
+  def extract_fragment(url)
+    return [url, nil] if url.start_with?('data:')
+
+    if url.include?('#')
+      index = url.rindex('#')
+      [url[0...index], url[(index + 1)..]]
+    else
+      [url, nil]
+    end
+  end
+
+  def resolve_svg_fragment(data, fragment)
+    if fragment.start_with?('svgView(') && fragment.end_with?(')')
+      parse_svg_view_specification(fragment)
+    else
+      find_view_element_attributes(data, fragment)
+    end
+  end
+
+  SVG_VIEW_PARAM_REGEXP = /(\w+)\(([^)]*)\)/.freeze
+
+  def parse_svg_view_specification(fragment)
+    spec = fragment[8..-2]
+    attrs = {}
+
+    spec.split(';').each do |part|
+      next unless (match = part.strip.match(SVG_VIEW_PARAM_REGEXP))
+
+      case match[1]
+      when 'viewBox' then attrs['viewBox'] = match[2]
+      when 'preserveAspectRatio' then attrs['preserveAspectRatio'] = match[2]
+      end
+    end
+
+    attrs.empty? ? nil : attrs
+  end
+
+  def find_view_element_attributes(data, fragment)
+    root = REXML::Document.new(data).root
+    return unless root
+
+    element = REXML::XPath.match(root, %(//*[@id="#{fragment.gsub('"', '\\"')}"])).first
+    return unless element&.name == 'view'
+
+    attrs = {}
+    attrs['viewBox'] = element.attributes['viewBox'] if element.attributes['viewBox']
+    attrs['preserveAspectRatio'] = element.attributes['preserveAspectRatio'] if element.attributes['preserveAspectRatio']
+    attrs.empty? ? nil : attrs
+  rescue REXML::ParseException
+    nil
   end
 
   def find_image_handler(data)

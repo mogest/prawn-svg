@@ -40,6 +40,7 @@ module Prawn::SVG::Elements
     foreignObject:  Prawn::SVG::Elements::Ignored,
     'font-face':    Prawn::SVG::Elements::Ignored,
     filter:         Prawn::SVG::Elements::Ignored, # unsupported
-    mask:           Prawn::SVG::Elements::Mask
+    mask:           Prawn::SVG::Elements::Mask,
+    view:           Prawn::SVG::Elements::Ignored
   }.freeze
 end
