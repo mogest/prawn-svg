@@ -166,12 +166,14 @@ module Prawn
 
         when 'fill_and_stroke'
           yield
-          # prawn (as at 2.0.1 anyway) uses 'b' for its fill_and_stroke.  'b' is 'h' (closepath) + 'B', and we
-          # never want closepath to be automatically run as it stuffs up many drawing operations, such as dashes
-          # and line caps, and makes paths close that we didn't ask to be closed when fill is specified.
+          # Using separate fill and stroke operations instead of the combined B operator.
+          # Chromium's PDF renderer (PDFium) doesn't correctly apply stroke alpha (CA) with
+          # the B operator when fill and stroke have different opacities.
+          # Also avoids Prawn's 'b' which includes closepath (h) that breaks dashes and line caps.
           even_odd = kwarguments[:fill_rule] == :even_odd
-          content  = even_odd ? 'B*' : 'B'
-          prawn.add_content content
+          prawn.add_content(even_odd ? 'f*' : 'f')
+          issue_prawn_command(prawn, children)
+          prawn.add_content('S')
 
         when 'noop'
           yield

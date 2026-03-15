@@ -70,10 +70,12 @@ describe Prawn::SVG::Interface do
               prawn, { enable_web_requests: false })
           end
 
-          it "adds content 'B'" do
+          it "adds content 'f' then 'S'" do
             expect_rectangle
+            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10) # path replayed for stroke
             expect(prawn).to receive(:add_content).with('W n')
-            expect(prawn).to receive(:add_content).with('B')
+            expect(prawn).to receive(:add_content).with('f')
+            expect(prawn).to receive(:add_content).with('S')
             interface.draw
           end
         end
@@ -85,10 +87,12 @@ describe Prawn::SVG::Interface do
             )
           end
 
-          it "adds content 'B*'" do
+          it "adds content 'f*' then 'S'" do
             expect_rectangle
+            expect(prawn).to receive(:rectangle).with([0, 100], 10, 10) # path replayed for stroke
             expect(prawn).to receive(:add_content).with('W n')
-            expect(prawn).to receive(:add_content).with('B*')
+            expect(prawn).to receive(:add_content).with('f*')
+            expect(prawn).to receive(:add_content).with('S')
             interface.draw
           end
         end
