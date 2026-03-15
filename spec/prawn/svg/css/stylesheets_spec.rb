@@ -146,6 +146,149 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe '@import' do
+    let(:url_loader) { instance_double(Prawn::SVG::UrlLoader) }
+    let(:warnings) { [] }
+
+    it 'loads @import url() rules via the url_loader' do
+      imported_css = 'rect { stroke: blue; }'
+      allow(url_loader).to receive(:load).with('external.css').and_return(imported_css)
+
+      svg = <<~SVG
+        <svg>
+          <style>
+            @import url("external.css");
+            rect { fill: red; }
+          </style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg),
+        url_loader: url_loader, warnings: warnings
+      )
+      result = stylesheets.load
+
+      styles = result.values.first
+      expect(styles).to include(['stroke', 'blue', false])
+      expect(styles).to include(['fill', 'red', false])
+    end
+
+    it 'loads @import with bare string syntax' do
+      imported_css = 'circle { fill: green; }'
+      allow(url_loader).to receive(:load).with('styles.css').and_return(imported_css)
+
+      svg = <<~SVG
+        <svg>
+          <style>
+            @import "styles.css";
+            rect { fill: red; }
+          </style>
+          <rect width="1" height="1" />
+          <circle width="2" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg),
+        url_loader: url_loader, warnings: warnings
+      )
+      result = stylesheets.load
+
+      circle_styles = result.detect { |k, _| k.name == 'circle' }&.last
+      expect(circle_styles).to include(['fill', 'green', false])
+    end
+
+    it 'handles nested @import rules' do
+      allow(url_loader).to receive(:load).with('base.css').and_return('@import url("nested.css"); rect { stroke: blue; }')
+      allow(url_loader).to receive(:load).with('nested.css').and_return('rect { stroke-width: 2; }')
+
+      svg = <<~SVG
+        <svg>
+          <style>@import url("base.css");</style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg),
+        url_loader: url_loader, warnings: warnings
+      )
+      result = stylesheets.load
+
+      styles = result.values.first
+      expect(styles).to include(['stroke-width', '2', false])
+      expect(styles).to include(['stroke', 'blue', false])
+    end
+
+    it 'prevents circular @import references' do
+      allow(url_loader).to receive(:load).with('a.css').and_return('@import url("b.css"); rect { fill: red; }')
+      allow(url_loader).to receive(:load).with('b.css').and_return('@import url("a.css"); rect { stroke: blue; }')
+
+      svg = <<~SVG
+        <svg>
+          <style>@import url("a.css");</style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg),
+        url_loader: url_loader, warnings: warnings
+      )
+      result = stylesheets.load
+
+      styles = result.values.first
+      expect(styles).to include(['fill', 'red', false])
+      expect(styles).to include(['stroke', 'blue', false])
+    end
+
+    it 'warns and continues when @import fails to load' do
+      allow(url_loader).to receive(:load).with('missing.css').and_raise(Prawn::SVG::UrlLoader::Error, 'not found')
+
+      svg = <<~SVG
+        <svg>
+          <style>
+            @import url("missing.css");
+            rect { fill: red; }
+          </style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg),
+        url_loader: url_loader, warnings: warnings
+      )
+      result = stylesheets.load
+
+      expect(warnings).to include('Failed to load @import CSS from missing.css: not found')
+      styles = result.values.first
+      expect(styles).to include(['fill', 'red', false])
+    end
+
+    it 'does not attempt @import when no url_loader is provided' do
+      svg = <<~SVG
+        <svg>
+          <style>
+            @import url("external.css");
+            rect { fill: red; }
+          </style>
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(
+        CssParser::Parser.new, REXML::Document.new(svg)
+      )
+      result = stylesheets.load
+
+      styles = result.values.first
+      expect(styles).to include(['fill', 'red', false])
+    end
+  end
+
   describe 'style tag parsing' do
     let(:svg) do
       <<~SVG

@@ -1,0 +1,4 @@
+@import url("sample_css/import_nested.css");
+
+.imported { fill: #336699; stroke: #003366; stroke-width: 2; }
+.base-only { fill: #cc6600; }

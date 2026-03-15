@@ -186,6 +186,61 @@ describe Prawn::SVG::Document do
       end
     end
 
+    context 'with @import rules' do
+      let(:sample_css_dir) { File.expand_path('../../sample_css', __dir__) }
+
+      def svg_with_import(url)
+        <<~SVG
+          <svg>
+            <style>
+              @import url("#{url}");
+              rect { fill: red; }
+            </style>
+            <rect width="1" height="1" />
+          </svg>
+        SVG
+      end
+
+      it 'loads @import CSS from files when enable_file_requests_with_root is set' do
+        css_path = File.join(sample_css_dir, 'import_nested.css')
+        document = Prawn::SVG::Document.new(
+          svg_with_import(css_path), bounds,
+          { enable_file_requests_with_root: sample_css_dir }
+        )
+
+        expect(document.warnings).to be_empty
+      end
+
+      it 'does not load @import file URLs when enable_file_requests_with_root is not set' do
+        css_path = File.join(sample_css_dir, 'import_nested.css')
+        document = Prawn::SVG::Document.new(svg_with_import(css_path), bounds, {})
+
+        expect(document.warnings).to include(/Failed to load @import CSS.*No handler available/)
+      end
+
+      it 'does not load @import files outside the root path' do
+        other_dir = File.expand_path('../../sample_ttf', __dir__)
+        css_path = File.join(sample_css_dir, 'import_nested.css')
+        document = Prawn::SVG::Document.new(
+          svg_with_import(css_path), bounds,
+          { enable_file_requests_with_root: other_dir }
+        )
+
+        expect(document.warnings).to include(/Failed to load @import CSS.*not inside the root path/)
+      end
+
+      it 'does not load @import web URLs when enable_web_requests is false' do
+        expect(Net::HTTP).not_to receive(:new)
+
+        document = Prawn::SVG::Document.new(
+          svg_with_import('https://invalid.test/styles.css'), bounds,
+          { enable_web_requests: false }
+        )
+
+        expect(document.warnings).to include(/Failed to load @import CSS.*No handler available/)
+      end
+    end
+
     context 'when the user passes in a filename instead of SVG data' do
       let(:svg) { 'some_file.svg' }
 

@@ -121,6 +121,9 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
 prawn-svg supports CSS, both in `<style>` blocks and `style` attributes.
 
+`@import` rules are supported for loading external stylesheets (requires `enable_web_requests` or
+`enable_file_requests_with_root` options enabled).
+
 In CSS selectors you can use element names, IDs, classes, attributes (existence, `=`, `^=`, `$=`, `*=`, `~=`, `|=`)
 and all combinators (` `, `>`, `+`, `~`).
 The pseudo-classes `:first-child`, `:last-child` and `:nth-child(n)` (where n is a number) also work.
@@ -132,7 +135,7 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-Not yet implemented but intending to build: CSS @import/@media, `:lang` pseudo-class.
+Not yet implemented but intending to build: CSS @media, `:lang` pseudo-class.
 
 writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement
 non-LTR directions, and no-one has asked for it yet.

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350">
+  <style>
+    @import url("sample_css/import_base.css");
+
+    .inline { fill: #993366; stroke: #660033; stroke-width: 2; }
+    text { font-size: 12px; fill: #333333; }
+    text.heading { font-size: 14px; font-weight: bold; fill: #000000; }
+  </style>
+
+  <!-- Title -->
+  <text class="heading" x="10" y="20">CSS @import Test</text>
+
+  <!-- Row 1: Styles from the imported base stylesheet -->
+  <text x="10" y="50">Imported styles (blue):</text>
+  <rect class="imported" x="10" y="60" width="80" height="40" rx="5"/>
+  <rect class="imported" x="100" y="60" width="60" height="40"/>
+  <circle class="imported" cx="210" cy="80" r="20"/>
+  <ellipse class="imported" cx="280" cy="80" rx="30" ry="20"/>
+
+  <!-- Row 2: Styles from the nested import -->
+  <text x="10" y="130">Nested import styles (green):</text>
+  <rect class="nested" x="10" y="140" width="80" height="40" rx="5"/>
+  <rect class="nested" x="100" y="140" width="60" height="40"/>
+  <circle class="nested" cx="210" cy="160" r="20"/>
+  <polygon class="nested" points="260,140 310,140 310,180 260,180"/>
+
+  <!-- Row 3: Inline styles defined in the SVG -->
+  <text x="10" y="210">Inline styles (purple):</text>
+  <rect class="inline" x="10" y="220" width="80" height="40" rx="5"/>
+  <circle class="inline" cx="130" cy="240" r="20"/>
+  <ellipse class="inline" cx="200" cy="240" rx="30" ry="20"/>
+
+  <!-- Row 4: Combined - base-only from import -->
+  <text x="10" y="290">Base-only import styles (orange):</text>
+  <rect class="base-only" x="10" y="300" width="80" height="40" rx="5"/>
+  <rect class="base-only" x="100" y="300" width="60" height="40"/>
+  <circle class="base-only" cx="210" cy="320" r="20"/>
+</svg>

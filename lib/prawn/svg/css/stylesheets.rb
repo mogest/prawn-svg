@@ -2,11 +2,15 @@ module Prawn::SVG::CSS
   class Stylesheets
     attr_reader :css_parser, :root, :media, :font_face_rules
 
-    def initialize(css_parser, root, media = :all)
+    def initialize(css_parser, root, media = :all, url_loader: nil, warnings: [])
       @css_parser = css_parser
       @root = root
       @media = media
+      @warnings = warnings
       @font_face_rules = []
+
+      @has_url_loader = !url_loader.nil?
+      install_url_loader_on_css_parser(url_loader) if url_loader
     end
 
     def load
@@ -17,10 +21,32 @@ module Prawn::SVG::CSS
 
     private
 
+    def install_url_loader_on_css_parser(url_loader)
+      warnings = @warnings
+
+      css_parser.define_singleton_method(:load_uri!) do |uri, options = {}, _deprecated = nil|
+        uri = Addressable::URI.parse(uri) unless uri.respond_to?(:scheme)
+        import_url = uri.to_s
+
+        begin
+          return unless circular_reference_check(import_url)
+
+          src = url_loader.load(import_url)
+          add_block!(src, options) if src
+        rescue CssParser::CircularReferenceError
+          # Silently ignore circular @import references
+        rescue Prawn::SVG::UrlLoader::Error => e
+          warnings << "Failed to load @import CSS from #{import_url}: #{e.message}"
+        end
+      end
+    end
+
     def load_style_elements
+      options = @has_url_loader ? { base_uri: '' } : {}
+
       REXML::XPath.match(root, '//style').each do |source|
         data = source.texts.map(&:value).join
-        css_parser.add_block!(data)
+        css_parser.add_block!(data, **options)
       end
     end
 
