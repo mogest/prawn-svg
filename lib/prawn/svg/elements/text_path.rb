@@ -125,8 +125,8 @@ module Prawn::SVG
     end
 
     def calculate_text_rendering_mode(component)
-      fill = component.computed_properties.fill.any?
-      stroke = component.computed_properties.stroke.any?
+      fill = !component.computed_properties.fill.none? # rubocop:disable Style/InverseMethods
+      stroke = !component.computed_properties.stroke.none? # rubocop:disable Style/InverseMethods
 
       if fill && stroke
         :fill_stroke
