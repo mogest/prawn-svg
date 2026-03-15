@@ -8,6 +8,7 @@ module Prawn
       VALID_OPTIONS = %i[
         at position vposition width height cache_images enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode language
+        log_warnings
       ].freeze
 
       INHERITABLE_OPTIONS = %i[
@@ -46,6 +47,10 @@ module Prawn
       #
       def draw
         @renderer.draw
+
+        if options[:log_warnings]
+          document.warnings.each { |w| warn w }
+        end
       end
 
       def sizing

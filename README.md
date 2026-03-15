@@ -34,6 +34,7 @@ Option      | Data type | Description
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
+:log_warnings | boolean | If true, warnings that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  Defaults to false.
 
 ## Examples
 

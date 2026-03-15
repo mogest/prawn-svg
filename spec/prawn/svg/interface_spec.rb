@@ -31,6 +31,22 @@ describe Prawn::SVG::Interface do
       end
     end
 
+    context 'when log_warnings is true' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, log_warnings: true) }
+
+      it 'outputs warnings to stderr via warn' do
+        expect { interface.draw }.to output("Zero or negative sizing data means this SVG cannot be rendered\n").to_stderr
+      end
+    end
+
+    context 'when log_warnings is not set' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, {}) }
+
+      it 'does not output warnings to stderr' do
+        expect { interface.draw }.not_to output.to_stderr
+      end
+    end
+
     describe 'rewrites' do
       before do
         [:save_font, :bounding_box].each { |message| allow(prawn).to receive(message).and_yield }
