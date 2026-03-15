@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Prawn::SVG::Elements::Switch do
-  let(:options) { {} }
+  let(:options) { { enable_web_requests: false } }
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], options) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
@@ -122,7 +122,7 @@ describe Prawn::SVG::Elements::Switch do
 
   describe 'systemLanguage' do
     context 'with matching language' do
-      let(:options) { { language: 'en' } }
+      let(:options) { { enable_web_requests: false, language: 'en' } }
       let(:svg) do
         <<~SVG
           <svg width="200" height="200">
@@ -141,7 +141,7 @@ describe Prawn::SVG::Elements::Switch do
     end
 
     context 'with non-matching language' do
-      let(:options) { { language: 'fr' } }
+      let(:options) { { enable_web_requests: false, language: 'fr' } }
       let(:svg) do
         <<~SVG
           <svg width="200" height="200">
@@ -160,7 +160,7 @@ describe Prawn::SVG::Elements::Switch do
     end
 
     context 'with prefix matching' do
-      let(:options) { { language: 'en' } }
+      let(:options) { { enable_web_requests: false, language: 'en' } }
       let(:svg) do
         <<~SVG
           <svg width="200" height="200">
@@ -179,7 +179,7 @@ describe Prawn::SVG::Elements::Switch do
     end
 
     context 'with multiple languages in comma-separated list' do
-      let(:options) { { language: 'fr' } }
+      let(:options) { { enable_web_requests: false, language: 'fr' } }
       let(:svg) do
         <<~SVG
           <svg width="200" height="200">
@@ -291,7 +291,7 @@ describe Prawn::SVG::Elements::Switch do
   end
 
   describe 'case-insensitive language matching' do
-    let(:options) { { language: 'EN' } }
+    let(:options) { { enable_web_requests: false, language: 'EN' } }
     let(:svg) do
       <<~SVG
         <svg width="200" height="200">

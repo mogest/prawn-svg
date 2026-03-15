@@ -6,6 +6,10 @@ class Prawn::SVG::Document
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
 
+  class << self
+    attr_accessor :enable_web_requests_warned
+  end
+
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
 
@@ -35,6 +39,13 @@ class Prawn::SVG::Document
     @font_registry = font_registry
     @color_mode = load_color_mode
     @font_face_tempfiles = []
+
+    if !options.key?(:enable_web_requests) && !self.class.enable_web_requests_warned
+      self.class.enable_web_requests_warned = true
+      warn '[prawn-svg] WARNING: :enable_web_requests is not set and currently defaults to true. ' \
+           'In prawn-svg 1.0, this will default to false. ' \
+           'Please explicitly pass enable_web_requests: true or enable_web_requests: false to suppress this warning.'
+    end
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],

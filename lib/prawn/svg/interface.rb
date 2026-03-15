@@ -48,9 +48,7 @@ module Prawn
       def draw
         @renderer.draw
 
-        if options[:log_warnings]
-          document.warnings.each { |w| warn w }
-        end
+        document.warnings.each { |w| warn w } if options[:log_warnings]
       end
 
       def sizing

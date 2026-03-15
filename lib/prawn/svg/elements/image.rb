@@ -93,8 +93,9 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
         attribute_overrides.merge!(view_attrs) if view_attrs
       end
 
+      has_web_loader = @document.url_loader.loaders.any? { |l| l.is_a?(Prawn::SVG::Loaders::Web) }
       document = Prawn::SVG::Document.new(
-        data, [width, height], { width: width, height: height },
+        data, [width, height], { width: width, height: height, enable_web_requests: has_web_loader },
         attribute_overrides: attribute_overrides
       )
 

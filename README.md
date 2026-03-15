@@ -28,8 +28,8 @@ Option      | Data type | Description
 :vposition  | :top, :center, :bottom, integer | If :at not specified, specifies the vertical position to show the SVG.  Defaults to current cursor position.
 :width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
-:enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images, `@font-face` fonts, and external `<use>` references.  Defaults to true.
-:enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs and relative paths from your local disk if the file is located under the specified directory. Required for `@font-face` fonts and external `<use>` references loaded via file paths. It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
+:enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images, `@font-face` fonts, and external `<use>` references.<br><br>Defaults to true, but will **default to false** in the upcoming 1.0 release.  It's recommended you explicitly set this option for now.
+:enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs and relative paths from your local disk if the file is located under the specified directory. Required for `@font-face` fonts and external `<use>` references loaded via file paths.<br><br>It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
 :cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
@@ -47,12 +47,12 @@ Option      | Data type | Description
 
   # Render the logo at the current Y cursor position, and serve file: links relative to its directory
   root_path = "/apps/myapp/current/images"
-  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path
+  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_warnings: true
 ```
 
 ## Supported features
 
-prawn-svg supports most of the full SVG 1.1 specification.  It currently supports:
+prawn-svg supports almost all of the full SVG 1.1 specification:
 
  - `<line>`, `<polyline>`, `<rect>`, `<polygon>`, `<circle>` and `<ellipse>`
 
@@ -120,30 +120,31 @@ prawn-svg supports most of the full SVG 1.1 specification.  It currently support
 
 ## CSS
 
-prawn-svg supports CSS, both in `<style>` blocks and `style` attributes.
+prawn-svg fully supports CSS2, both in `<style>` blocks and `style` attributes.
 
 `@import` rules are supported for loading external stylesheets (requires `enable_web_requests` or
 `enable_file_requests_with_root` options enabled).
 
 In CSS selectors you can use element names, IDs, classes, attributes (existence, `=`, `^=`, `$=`, `*=`, `~=`, `|=`)
-and all combinators (` `, `>`, `+`, `~`).
-The pseudo-classes `:first-child`, `:last-child`, `:nth-child(n)` (where n is a number) and `:lang(xx)` also work.
-`!important` is supported.
+and all combinators (` `, `>`, `+`, `~`). The pseudo-classes `:first-child`, `:last-child`, `:link`, `:nth-child()`
+and `:lang()` also work.  `:visited`, `:hover`, `:active`, and `:focus` are never matched. `!important` is
+supported.
 
-Pseudo-elements and the other pseudo-classes are not supported.
+We made the call to ignore `@media` because it's not clear whether you're making a PDF to print it or show it on
+the screen.
 
 ## Not supported
 
-prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
+prawn-svg does not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
 writing-mode is partially supported: vertical-rl and vertical-lr rotate the text 90 degrees, which
 handles the common case of sideways Latin text.  CJK upright glyph orientation is not supported.
 
 direction and unicode-bidi are not supported.
 
-Will probably never be supported because either they don't make sense for PDF, they were deprecated in SVG 2, or
-they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering hints, ICC color
-profiles, color-interpolation, enable-background, deprecated CSS clip, @media.
+Features that will probably never be supported because either they don't make sense for PDF, they were deprecated
+in SVG 2, and/or they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering
+hints, ICC color profiles, color-interpolation, enable-background, deprecated CSS clip, @media.
 
 ## Configuration
 

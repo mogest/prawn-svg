@@ -5,7 +5,7 @@ describe 'Integration test' do
   root = "#{File.dirname(__FILE__)}/.."
 
   describe 'a basic SVG file' do
-    let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}) }
+    let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false }) }
     let(:element) { Prawn::SVG::Elements::Root.new(document) }
 
     let(:svg) do
@@ -68,11 +68,11 @@ describe 'Integration test' do
       Prawn::Document.generate("#{root}/spec/sample_output/_with_position.pdf") do |prawn|
         width = prawn.bounds.width / 3
 
-        prawn.svg svg, width: width, position: :left
-        prawn.svg svg, width: width, position: :center
-        prawn.svg svg, width: width, position: :right
-        prawn.svg svg, width: width, position: 50
-        prawn.svg svg, width: width
+        prawn.svg svg, width: width, position: :left, enable_web_requests: false
+        prawn.svg svg, width: width, position: :center, enable_web_requests: false
+        prawn.svg svg, width: width, position: :right, enable_web_requests: false
+        prawn.svg svg, width: width, position: 50, enable_web_requests: false
+        prawn.svg svg, width: width, enable_web_requests: false
       end
     end
   end
@@ -84,10 +84,10 @@ describe 'Integration test' do
       Prawn::Document.generate("#{root}/spec/sample_output/_with_vposition.pdf") do |prawn|
         width = prawn.bounds.width / 3
 
-        prawn.svg svg, width: width, position: :left, vposition: :bottom
-        prawn.svg svg, width: width, position: :center, vposition: :center
-        prawn.svg svg, width: width, position: :right, vposition: :top
-        prawn.svg svg, width: width, position: 50, vposition: 50
+        prawn.svg svg, width: width, position: :left, vposition: :bottom, enable_web_requests: false
+        prawn.svg svg, width: width, position: :center, vposition: :center, enable_web_requests: false
+        prawn.svg svg, width: width, position: :right, vposition: :top, enable_web_requests: false
+        prawn.svg svg, width: width, position: 50, vposition: 50, enable_web_requests: false
       end
     end
   end
@@ -125,7 +125,7 @@ describe 'Integration test' do
           )
 
           r = prawn.svg File.read(file), at: [0, prawn.bounds.top], width: prawn.bounds.width,
-            enable_file_requests_with_root: File.dirname(__FILE__) do |doc|
+            enable_web_requests: false, enable_file_requests_with_root: File.dirname(__FILE__) do |doc|
             doc.url_loader.add_to_cache(
               'https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg', File.read("#{root}/spec/sample_images/mushroom-wide.jpg")
             )
@@ -152,16 +152,16 @@ describe 'Integration test' do
         prawn.draw_text 'This is multiple SVGs being output to the same PDF', at: [0, y]
 
         y -= 12
-        prawn.svg File.read("#{root}/spec/sample_svg/arcs01.svg"),   at: [0, y],         width: width / 2
-        prawn.svg File.read("#{root}/spec/sample_svg/circle01.svg"), at: [width / 2, y], width: width / 2
+        prawn.svg File.read("#{root}/spec/sample_svg/arcs01.svg"),   at: [0, y],         width: width / 2, enable_web_requests: false
+        prawn.svg File.read("#{root}/spec/sample_svg/circle01.svg"), at: [width / 2, y], width: width / 2, enable_web_requests: false
 
         y -= 120
         prawn.draw_text 'Here are some more PDFs below', at: [0, y]
 
         y -= 12
-        prawn.svg File.read("#{root}/spec/sample_svg/quad01.svg"), at: [0, y],             width: width / 3
-        prawn.svg File.read("#{root}/spec/sample_svg/rect01.svg"), at: [width / 3, y],     width: width / 3
-        prawn.svg File.read("#{root}/spec/sample_svg/rect02.svg"), at: [width / 3 * 2, y], width: width / 3
+        prawn.svg File.read("#{root}/spec/sample_svg/quad01.svg"), at: [0, y],             width: width / 3, enable_web_requests: false
+        prawn.svg File.read("#{root}/spec/sample_svg/rect01.svg"), at: [width / 3, y],     width: width / 3, enable_web_requests: false
+        prawn.svg File.read("#{root}/spec/sample_svg/rect02.svg"), at: [width / 3 * 2, y], width: width / 3, enable_web_requests: false
       end
     end
   end

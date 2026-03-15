@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Prawn::SVG::Elements::Polygon do
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600 }) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600, enable_web_requests: false }) }
 
   subject do
     Prawn::SVG::Elements::Polygon.new(document, document.root, [], Prawn::SVG::State.new)

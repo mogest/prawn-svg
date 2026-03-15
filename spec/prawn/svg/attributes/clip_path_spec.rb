@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe Prawn::SVG::Attributes::ClipPath do
   let(:font_registry) { Prawn::SVG::FontRegistry.new('Helvetica' => { normal: nil }) }
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], {}, font_registry: font_registry) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false }, font_registry: font_registry) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
 

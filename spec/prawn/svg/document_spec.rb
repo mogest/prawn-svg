@@ -2,12 +2,12 @@ require "#{File.dirname(__FILE__)}/../../spec_helper"
 
 describe Prawn::SVG::Document do
   let(:bounds) { [100, 100] }
-  let(:options) { {} }
+  let(:options) { { enable_web_requests: false } }
 
   describe '#initialize' do
     context 'with a well-formed document' do
       let(:svg) { '<svg></svg>' }
-      let(:options) { { color_mode: :cmyk } }
+      let(:options) { { color_mode: :cmyk, enable_web_requests: false } }
 
       it 'parses the XML and yields itself to its block' do
         yielded = nil
@@ -48,7 +48,7 @@ describe Prawn::SVG::Document do
       let(:sample_ttf_dir) { File.expand_path('../../sample_ttf', __dir__) }
       let(:font_filename) { 'OpenSans-SemiboldItalic.ttf' }
       let(:font_path) { File.join(sample_ttf_dir, font_filename) }
-      let(:file_options) { { enable_file_requests_with_root: sample_ttf_dir } }
+      let(:file_options) { { enable_file_requests_with_root: sample_ttf_dir, enable_web_requests: false } }
 
       it 'registers @font-face fonts with the font registry' do
         svg = <<~SVG
@@ -144,7 +144,7 @@ describe Prawn::SVG::Document do
         SVG
 
         font_registry = Prawn::SVG::FontRegistry.new({})
-        document = Prawn::SVG::Document.new(svg, bounds, {}, font_registry: font_registry)
+        document = Prawn::SVG::Document.new(svg, bounds, { enable_web_requests: false }, font_registry: font_registry)
 
         expect(font_registry.installed_fonts['FileFont']).to be_nil
         expect(document.warnings).to include(/Failed to load/)
@@ -205,7 +205,7 @@ describe Prawn::SVG::Document do
         css_path = File.join(sample_css_dir, 'import_nested.css')
         document = Prawn::SVG::Document.new(
           svg_with_import(css_path), bounds,
-          { enable_file_requests_with_root: sample_css_dir }
+          { enable_file_requests_with_root: sample_css_dir, enable_web_requests: false }
         )
 
         expect(document.warnings).to be_empty
@@ -213,7 +213,7 @@ describe Prawn::SVG::Document do
 
       it 'does not load @import file URLs when enable_file_requests_with_root is not set' do
         css_path = File.join(sample_css_dir, 'import_nested.css')
-        document = Prawn::SVG::Document.new(svg_with_import(css_path), bounds, {})
+        document = Prawn::SVG::Document.new(svg_with_import(css_path), bounds, { enable_web_requests: false })
 
         expect(document.warnings).to include(/Failed to load @import CSS.*No handler available/)
       end
@@ -223,7 +223,7 @@ describe Prawn::SVG::Document do
         css_path = File.join(sample_css_dir, 'import_nested.css')
         document = Prawn::SVG::Document.new(
           svg_with_import(css_path), bounds,
-          { enable_file_requests_with_root: other_dir }
+          { enable_file_requests_with_root: other_dir, enable_web_requests: false }
         )
 
         expect(document.warnings).to include(/Failed to load @import CSS.*not inside the root path/)

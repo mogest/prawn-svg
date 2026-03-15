@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Prawn::SVG::Elements::Base do
   let(:svg) { '<svg></svg>' }
   let(:document) do
-    Prawn::SVG::Document.new(svg, [800, 600], {},
+    Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
       font_registry: Prawn::SVG::FontRegistry.new('Helvetica' => { normal: nil }))
   end
   let(:parent_calls) { [] }
@@ -182,7 +182,7 @@ describe Prawn::SVG::Elements::Base do
     SVG
 
     it 'applies stylesheet styling but style attributes take precedence' do
-      document = Prawn::SVG::Document.new(svg, [100, 100], {})
+      document = Prawn::SVG::Document.new(svg, [100, 100], { enable_web_requests: false })
       calls = []
       element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
       element.process

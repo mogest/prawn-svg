@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Prawn::SVG::Elements::Gradient do
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600 }) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600, enable_web_requests: false }) }
   let(:root_element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
   let(:element) { document.gradients['flag'] }
 

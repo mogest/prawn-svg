@@ -16,14 +16,14 @@ describe Prawn::SVG::Interface do
       end
 
       it 'does nothing if an invalid option is given and debug is off' do
-        Prawn::SVG::Interface.new(svg, prawn, invalid: 'option')
+        Prawn::SVG::Interface.new(svg, prawn, invalid: 'option', enable_web_requests: false)
       end
     end
   end
 
   describe '#draw' do
     context 'when the sizing object indicates the sizes are invalid' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, {}) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
 
       it "doesn't draw anything and adds a warning" do
         interface.draw
@@ -32,7 +32,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when log_warnings is true' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, log_warnings: true) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, log_warnings: true, enable_web_requests: false) }
 
       it 'outputs warnings to stderr via warn' do
         expect { interface.draw }.to output("Zero or negative sizing data means this SVG cannot be rendered\n").to_stderr
@@ -40,7 +40,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when log_warnings is not set' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, {}) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
 
       it 'does not output warnings to stderr' do
         expect { interface.draw }.not_to output.to_stderr
@@ -67,7 +67,7 @@ describe Prawn::SVG::Interface do
         context 'and fill rule is not set' do
           let(:interface) do
             Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red"></rect></svg>',
-              prawn, {})
+              prawn, { enable_web_requests: false })
           end
 
           it "adds content 'B'" do
@@ -81,7 +81,7 @@ describe Prawn::SVG::Interface do
         context 'and fill rule is evenodd' do
           let(:interface) do
             Prawn::SVG::Interface.new(
-              '<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, {}
+              '<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, { enable_web_requests: false }
             )
           end
 
@@ -100,7 +100,7 @@ describe Prawn::SVG::Interface do
     subject { interface.position }
 
     context 'when options[:at] supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, at: [1, 2], position: :left) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, at: [1, 2], position: :left, enable_web_requests: false) }
 
       it 'returns options[:at]' do
         expect(subject).to eq [1, 2]
@@ -108,7 +108,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when only a position is supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, position: position) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, position: position, enable_web_requests: false) }
 
       context '(:left)' do
         let(:position) { :left }
@@ -132,7 +132,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when a vposition is supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, vposition: vposition) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, vposition: vposition, enable_web_requests: false) }
 
       context '(:top)' do
         let(:vposition) { :top }
@@ -157,7 +157,7 @@ describe Prawn::SVG::Interface do
   end
 
   describe '#sizing and #resize' do
-    let(:interface) { Prawn::SVG::Interface.new(svg, prawn, {}) }
+    let(:interface) { Prawn::SVG::Interface.new(svg, prawn, { enable_web_requests: false }) }
 
     it 'allows the advanced user to resize the SVG after learning about its dimensions' do
       expect(interface.sizing.output_width).to eq 250

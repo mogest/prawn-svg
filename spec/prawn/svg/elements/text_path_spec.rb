@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Prawn::SVG::Elements::TextPath do
   let(:document) do
-    Prawn::SVG::Document.new(svg, [800, 600], {},
+    Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
       font_registry: Prawn::SVG::FontRegistry.new('Helvetica' => { normal: nil }, 'Times-Roman' => { normal: nil }))
   end
   let(:element) { Prawn::SVG::Elements::Text.new(document, document.root.elements[2], [], fake_state) }
