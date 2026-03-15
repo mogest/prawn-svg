@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" xml:lang="en">
+  <style>
+    text { font-size: 14px; font-family: sans-serif; }
+    .label { font-weight: bold; fill: #333; }
+
+    /* Basic :lang() matching */
+    .box:lang(en) { fill: #4a90d9; }
+    .box:lang(fr) { fill: #e74c3c; }
+    .box:lang(de) { fill: #2ecc71; }
+    .box:lang(ja) { fill: #f39c12; }
+
+    /* Prefix matching: :lang(en) matches xml:lang="en-US" and xml:lang="en-GB" */
+    .prefix-box:lang(en) { fill: #4a90d9; }
+
+    /* Inheritance: children inherit language from ancestors */
+    .inherit-box:lang(en) { fill: #4a90d9; }
+    .inherit-box:lang(fr) { fill: #e74c3c; }
+
+    /* Combined with other selectors */
+    g:lang(de) > .combined-box { fill: #2ecc71; }
+  </style>
+
+  <!-- Section 1: Basic :lang() matching -->
+  <text x="10" y="25" class="label">1. Basic :lang() matching</text>
+
+  <g xml:lang="en">
+    <rect x="10" y="35" width="80" height="30" class="box"/>
+    <text x="20" y="55">English</text>
+  </g>
+
+  <g xml:lang="fr">
+    <rect x="100" y="35" width="80" height="30" class="box"/>
+    <text x="110" y="55" fill="white">French</text>
+  </g>
+
+  <g xml:lang="de">
+    <rect x="190" y="35" width="80" height="30" class="box"/>
+    <text x="200" y="55">German</text>
+  </g>
+
+  <g xml:lang="ja">
+    <rect x="280" y="35" width="80" height="30" class="box"/>
+    <text x="290" y="55">Japanese</text>
+  </g>
+
+  <!-- Section 2: Prefix matching -->
+  <text x="10" y="105" class="label">2. Prefix matching - :lang(en) matches en-US and en-GB</text>
+
+  <g xml:lang="en-US">
+    <rect x="10" y="115" width="80" height="30" class="prefix-box"/>
+    <text x="20" y="135">en-US</text>
+  </g>
+
+  <g xml:lang="en-GB">
+    <rect x="100" y="115" width="80" height="30" class="prefix-box"/>
+    <text x="110" y="135">en-GB</text>
+  </g>
+
+  <g xml:lang="en">
+    <rect x="190" y="115" width="80" height="30" class="prefix-box"/>
+    <text x="200" y="135">en</text>
+  </g>
+
+  <!-- Section 3: Inheritance from ancestors -->
+  <text x="10" y="185" class="label">3. Language inheritance from ancestors</text>
+
+  <!-- Root is xml:lang="en", so these inherit English -->
+  <rect x="10" y="195" width="80" height="30" class="inherit-box"/>
+  <text x="20" y="215">Inherited en</text>
+
+  <g xml:lang="fr">
+    <!-- This overrides to French -->
+    <rect x="100" y="195" width="80" height="30" class="inherit-box"/>
+    <text x="110" y="215" fill="white">Override fr</text>
+
+    <!-- Nested child also inherits French -->
+    <g>
+      <rect x="190" y="195" width="80" height="30" class="inherit-box"/>
+      <text x="200" y="215" fill="white">Nested fr</text>
+    </g>
+  </g>
+
+  <!-- Back to inheriting English from root -->
+  <rect x="280" y="195" width="80" height="30" class="inherit-box"/>
+  <text x="290" y="215">Back to en</text>
+
+  <!-- Section 4: Combined with other selectors -->
+  <text x="10" y="275" class="label">4. Combined with other selectors</text>
+
+  <g xml:lang="de">
+    <rect x="10" y="285" width="120" height="30" class="combined-box"/>
+    <text x="20" y="305">g:lang(de) > .box</text>
+  </g>
+
+  <g xml:lang="en">
+    <rect x="140" y="285" width="120" height="30" class="combined-box" fill="#ccc"/>
+    <text x="150" y="305">Not German</text>
+  </g>
+
+  <!-- Section 5: Case insensitivity -->
+  <text x="10" y="355" class="label">5. Case insensitivity</text>
+
+  <g xml:lang="EN">
+    <rect x="10" y="365" width="80" height="30" class="box"/>
+    <text x="20" y="385">EN = en</text>
+  </g>
+
+  <g xml:lang="Fr">
+    <rect x="100" y="365" width="80" height="30" class="box"/>
+    <text x="110" y="385" fill="white">Fr = fr</text>
+  </g>
+
+  <!-- Section 6: No language set (should not match) -->
+  <text x="10" y="435" class="label">6. No xml:lang on element (inherits root "en")</text>
+  <rect x="10" y="445" width="80" height="30" class="box"/>
+  <text x="20" y="465">Inherits en</text>
+</svg>

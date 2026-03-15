@@ -289,6 +289,64 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe ':lang() pseudo-class' do
+    it 'matches elements by xml:lang attribute' do
+      svg = <<~SVG
+        <svg xml:lang="en">
+          <rect width="1" height="1" />
+          <g xml:lang="fr">
+            <rect width="2" height="2" />
+          </g>
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('rect:lang(en) { fill: red; } rect:lang(fr) { fill: blue; }')
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      width_and_styles = result.map { |k, v| [k.attributes['width'].to_i, v] }.sort_by(&:first)
+
+      expect(width_and_styles).to eq([
+                                       [1, [['fill', 'red', false]]],
+                                       [2, [['fill', 'blue', false]]]
+                                     ])
+    end
+
+    it 'matches with prefix matching (en matches en-US)' do
+      svg = <<~SVG
+        <svg xml:lang="en-US">
+          <rect width="1" height="1" />
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('rect:lang(en) { fill: red; }')
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      styles = result.values.first
+
+      expect(styles).to eq([['fill', 'red', false]])
+    end
+
+    it 'inherits language from ancestors' do
+      svg = <<~SVG
+        <svg xml:lang="en">
+          <g>
+            <rect width="1" height="1" />
+          </g>
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('rect:lang(en) { fill: red; }')
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      styles = result.values.first
+
+      expect(styles).to eq([['fill', 'red', false]])
+    end
+  end
+
   describe 'style tag parsing' do
     let(:svg) do
       <<~SVG

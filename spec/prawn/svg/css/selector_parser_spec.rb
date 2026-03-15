@@ -19,6 +19,12 @@ RSpec.describe Prawn::SVG::CSS::SelectorParser do
       ]
     end
 
+    it 'parses :lang() pseudo-class' do
+      expect(described_class.parse(':lang(en)')).to eq [{ pseudo_class: ['lang(en)'] }]
+      expect(described_class.parse('rect:lang(fr)')).to eq [{ name: 'rect', pseudo_class: ['lang(fr)'] }]
+      expect(described_class.parse(':lang(en-US)')).to eq [{ pseudo_class: ['lang(en-US)'] }]
+    end
+
     it 'parses attributes' do
       expect(described_class.parse('[abc]')).to eq [{ attribute: [['abc', nil, nil]] }]
       expect(described_class.parse('[abc=123]')).to eq [{ attribute: [['abc', '=', '123']] }]

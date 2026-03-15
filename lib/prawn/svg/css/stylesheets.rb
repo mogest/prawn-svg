@@ -112,11 +112,13 @@ module Prawn::SVG::CSS
                  end
 
         positions = []
+        lang_predicates = []
         pseudo_classes.each do |pc|
           case pc
           when 'first-child' then positions << '1'
           when 'last-child'  then positions << 'last()'
           when /^nth-child\((\d+)\)$/ then positions << $1
+          when /^lang\((.+)\)$/ then lang_predicates << $1
           end
         end
 
@@ -159,6 +161,10 @@ module Prawn::SVG::CSS
           when '|='
             result << "[contains(concat('-',@#{key},'-'), #{xpath_quote "-#{value}-"})]"
           end
+        end
+
+        lang_predicates.each do |lang|
+          result << "[lang(#{xpath_quote lang})]"
         end
 
         result
