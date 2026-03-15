@@ -94,10 +94,13 @@ module Prawn::SVG::CSS
       %("#{value.gsub('\\', '\\\\').gsub('"', '\\"')}") if value
     end
 
+    RECOGNIZED_PSEUDO_CLASSES = %w[first-child last-child link visited hover active focus].freeze
+
     def css_selector_to_xpath(selector)
       selector.map do |element|
         pseudo_classes = Set.new(element[:pseudo_class])
         require_function_name = false
+        never_match = false
 
         result = case element[:combinator]
                  when :child
@@ -113,12 +116,17 @@ module Prawn::SVG::CSS
 
         positions = []
         lang_predicates = []
+        href_predicates = []
         pseudo_classes.each do |pc|
           case pc
           when 'first-child' then positions << '1'
           when 'last-child'  then positions << 'last()'
-          when /^nth-child\((\d+)\)$/ then positions << $1
+          when /^nth-child\((.+)\)$/ then positions << parse_nth_child_expression($1)
           when /^lang\((.+)\)$/ then lang_predicates << $1
+          when 'link' then href_predicates << true
+          when 'visited', 'hover', 'active', 'focus' then never_match = true
+          else
+            never_match = true unless RECOGNIZED_PSEUDO_CLASSES.include?(pc)
           end
         end
 
@@ -167,8 +175,46 @@ module Prawn::SVG::CSS
           result << "[lang(#{xpath_quote lang})]"
         end
 
+        result << '[@href or @xlink:href]' unless href_predicates.empty?
+
+        result << '[false()]' if never_match
+
         result
       end.join
+    end
+
+    def parse_nth_child_expression(expr)
+      expr = expr.strip
+
+      return '(position() mod 2 = 1)' if expr == 'odd'
+      return '(position() mod 2 = 0)' if expr == 'even'
+      return expr if expr.match?(/\A\d+\z/)
+
+      match = expr.match(/\A(-?\d*)n\s*([+-]\s*\d+)?\z/)
+      return 'false()' unless match
+
+      a = case match[1]
+          when '', '+' then 1
+          when '-' then -1
+          else match[1].to_i
+          end
+      b = match[2] ? match[2].gsub(/\s/, '').to_i : 0
+
+      if a.zero?
+        b.to_s
+      elsif a.positive?
+        if b <= 0
+          "(position() mod #{a} = #{b % a} and position() >= #{[b, 1].max})"
+        else
+          "(position() mod #{a} = #{b % a} and position() >= #{b})"
+        end
+      elsif b <= 0
+        # a is negative: matches positions b, b+a, b+2a, ... while > 0
+        # i.e. position() <= b and (position() - b) mod |a| = 0
+        'false()'
+      else
+        "((position() - #{b}) mod #{a.abs} = 0 and position() >= 1 and position() <= #{b})"
+      end
     end
 
     def calculate_specificity(selector)

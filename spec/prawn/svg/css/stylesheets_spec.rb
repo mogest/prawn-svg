@@ -347,6 +347,122 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe ':link pseudo-class' do
+    it 'matches elements with href attribute' do
+      svg = <<~SVG
+        <svg xmlns:xlink="http://www.w3.org/1999/xlink">
+          <a href="http://example.com"><rect width="1" height="1" /></a>
+          <a xlink:href="http://example.com"><rect width="2" height="2" /></a>
+          <a><rect width="3" height="3" /></a>
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('a:link { fill: red; }')
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      matched = result.map { |k, _| k.name }.sort
+
+      expect(matched).to eq(%w[a a])
+    end
+  end
+
+  describe ':visited, :hover, :active, :focus pseudo-classes' do
+    %w[visited hover active focus].each do |pc|
+      it ":#{pc} never matches any elements" do
+        svg = <<~SVG
+          <svg>
+            <a href="http://example.com"><rect width="1" height="1" /></a>
+            <rect width="2" height="2" />
+          </svg>
+        SVG
+
+        css_parser = CssParser::Parser.new
+        css_parser.add_block!("a:#{pc} { fill: red; }")
+
+        result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+        expect(result).to be_empty
+      end
+    end
+  end
+
+  describe 'unknown pseudo-classes' do
+    it 'does not match any elements for unknown pseudo-classes' do
+      svg = <<~SVG
+        <svg>
+          <rect width="1" height="1" />
+          <rect width="2" height="2" />
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('rect:bogus { fill: red; }')
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      expect(result).to be_empty
+    end
+  end
+
+  describe ':nth-child() formula syntax' do
+    let(:svg) do
+      <<~SVG
+        <svg>
+          <g>
+            <rect width="1" height="1" />
+            <rect width="2" height="2" />
+            <rect width="3" height="3" />
+            <rect width="4" height="4" />
+            <rect width="5" height="5" />
+            <rect width="6" height="6" />
+          </g>
+        </svg>
+      SVG
+    end
+
+    def matched_widths(css_rule)
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!(css_rule)
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result.map { |k, _| k.attributes['width'].to_i }.sort
+    end
+
+    it 'handles odd keyword' do
+      expect(matched_widths('rect:nth-child(odd) { fill: red; }')).to eq([1, 3, 5])
+    end
+
+    it 'handles even keyword' do
+      expect(matched_widths('rect:nth-child(even) { fill: red; }')).to eq([2, 4, 6])
+    end
+
+    it 'handles bare number' do
+      expect(matched_widths('rect:nth-child(3) { fill: red; }')).to eq([3])
+    end
+
+    it 'handles 2n+1 formula' do
+      expect(matched_widths('rect:nth-child(2n+1) { fill: red; }')).to eq([1, 3, 5])
+    end
+
+    it 'handles 2n formula (every 2nd)' do
+      expect(matched_widths('rect:nth-child(2n) { fill: red; }')).to eq([2, 4, 6])
+    end
+
+    it 'handles 3n formula' do
+      expect(matched_widths('rect:nth-child(3n) { fill: red; }')).to eq([3, 6])
+    end
+
+    it 'handles n+3 formula (from 3rd onward)' do
+      expect(matched_widths('rect:nth-child(n+3) { fill: red; }')).to eq([3, 4, 5, 6])
+    end
+
+    it 'handles -n+3 formula (first 3)' do
+      expect(matched_widths('rect:nth-child(-n+3) { fill: red; }')).to eq([1, 2, 3])
+    end
+
+    it 'handles 3n+2 formula' do
+      expect(matched_widths('rect:nth-child(3n+2) { fill: red; }')).to eq([2, 5])
+    end
+  end
+
   describe 'style tag parsing' do
     let(:svg) do
       <<~SVG
