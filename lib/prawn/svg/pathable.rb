@@ -102,11 +102,14 @@ module Prawn::SVG::Pathable
       second = angles.first
       bisect = (first + second) / 2.0
 
-      angles << if (first - second).abs > 180
-                  bisect >= 0 ? bisect - 180 : bisect + 180
-                else
-                  bisect
-                end
+      closing_angle = if (first - second).abs > 180
+                        bisect >= 0 ? bisect - 180 : bisect + 180
+                      else
+                        bisect
+                      end
+
+      angles[0] = closing_angle
+      angles << closing_angle
     else
       angles << destination_angles.last.last
     end

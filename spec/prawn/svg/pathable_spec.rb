@@ -61,7 +61,7 @@ RSpec.describe Prawn::SVG::Pathable do
       end
 
       it 'calls apply_marker on the marker' do
-        expect(marker).to receive(:apply_marker).with(subject, point: [10, 10], angle: 45)
+        expect(marker).to receive(:apply_marker).with(subject, point: [10, 10], angle: -45.0)
         subject.apply_markers
       end
     end
