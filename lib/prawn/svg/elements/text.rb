@@ -12,6 +12,9 @@ module Prawn::SVG
     def render(prawn, renderer)
       return unless @root_component.children
 
+      origin_x = @root_component.x_values.first
+      origin_y = @root_component.y_values.first
+
       @root_component.lay_out(prawn)
 
       translate_x =
@@ -23,10 +26,29 @@ module Prawn::SVG
         end
 
       cursor = Cursor.new(0, document.sizing.output_height)
-      @root_component.render_component(prawn, renderer, cursor, translate_x)
+
+      if vertical_writing_mode?
+        render_vertical(prawn, renderer, cursor, translate_x, origin_x, origin_y)
+      else
+        @root_component.render_component(prawn, renderer, cursor, translate_x)
+      end
     end
 
     private
+
+    def vertical_writing_mode?
+      wm = @root_component.computed_properties.writing_mode
+      ['vertical-rl', 'vertical-lr'].include?(wm)
+    end
+
+    def render_vertical(prawn, renderer, cursor, translate_x, origin_x, origin_y)
+      origin_x ||= 0
+      origin_y ||= document.sizing.output_height
+
+      prawn.rotate(-90, origin: [origin_x, origin_y]) do
+        @root_component.render_component(prawn, renderer, cursor, translate_x)
+      end
+    end
 
     def reintroduce_trailing_and_leading_whitespace
       text_nodes = []

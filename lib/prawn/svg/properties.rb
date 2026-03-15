@@ -62,7 +62,8 @@ module Prawn::SVG
       'stroke-width'       => Config.new(1.0, true, [:positive_length, :positive_percentage]),
       'text-anchor'        => Config.new('start', true, %w[start middle end]),
       'text-decoration'    => Config.new('none', true, [:text_decoration]),
-      'visibility'         => Config.new('visible', true, %w[visible hidden collapse])
+      'visibility'         => Config.new('visible', true, %w[visible hidden collapse]),
+      'writing-mode'       => Config.new('horizontal-tb', true, %w[horizontal-tb vertical-rl vertical-lr])
     }.freeze
 
     PROPERTIES.each do |name, value|

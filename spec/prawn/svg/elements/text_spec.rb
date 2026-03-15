@@ -779,6 +779,55 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'writing-mode' do
+    context 'with vertical-rl' do
+      let(:svg) { '<text writing-mode="vertical-rl" x="50" y="100">Vertical</text>' }
+
+      it 'rotates the text 90 degrees clockwise around the text origin' do
+        expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with vertical-lr' do
+      let(:svg) { '<text writing-mode="vertical-lr" x="50" y="100">Vertical</text>' }
+
+      it 'rotates the text 90 degrees clockwise' do
+        expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with horizontal-tb (default)' do
+      let(:svg) { '<text x="50" y="100">Horizontal</text>' }
+
+      it 'does not rotate the text' do
+        expect(prawn).not_to receive(:rotate)
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'inherited from parent' do
+      let(:svg) { '<g writing-mode="vertical-rl"><text x="50" y="100">Inherited</text></g>' }
+      let(:element) { Prawn::SVG::Elements::Container.new(document, document.root, [], fake_state) }
+
+      it 'inherits writing-mode and rotates the text' do
+        element.process
+
+        expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        renderer.render_calls(prawn, element.calls)
+      end
+    end
+  end
+
   describe 'when a use element references a tspan element' do
     let(:svg) do
       <<~SVG

@@ -135,8 +135,10 @@ Pseudo-elements and the other pseudo-classes are not supported.
 
 prawn-svg will not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-writing-mode, direction, and unicode-bidi are not supported.  It would be a lot of work to implement
-non-LTR directions, and no-one has asked for it yet.
+writing-mode is partially supported: vertical-rl and vertical-lr rotate the text 90 degrees, which
+handles the common case of sideways Latin text.  CJK upright glyph orientation is not supported.
+
+direction and unicode-bidi are not supported.
 
 Will probably never be supported because either they don't make sense for PDF, they were deprecated in SVG 2, or
 they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering hints, ICC color
