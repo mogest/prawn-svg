@@ -42,11 +42,14 @@ module Prawn::SVG::CSS
     end
 
     def load_style_elements
-      options = @has_url_loader ? { base_uri: '' } : {}
-
       REXML::XPath.match(root, '//style').each do |source|
         data = source.texts.map(&:value).join
-        css_parser.add_block!(data, **options)
+
+        if @has_url_loader
+          css_parser.add_block!(data, base_uri: '')
+        else
+          css_parser.add_block!(data)
+        end
       end
     end
 
