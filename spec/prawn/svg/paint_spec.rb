@@ -21,6 +21,16 @@ RSpec.describe Prawn::SVG::Paint do
       expect(described_class.parse('currentColor')).to eq(described_class.new(:currentcolor, nil))
     end
 
+    it "parses 'transparent' as a synonym for 'none'" do
+      result = described_class.parse('transparent')
+      expect(result).to eq(described_class.new(:none, nil))
+      expect(result.none?).to be(true)
+    end
+
+    it "parses 'Transparent' case-insensitively" do
+      expect(described_class.parse('Transparent')).to eq(described_class.new(:none, nil))
+    end
+
     it 'parses a URL with a fallback keyword' do
       expect(described_class.parse('url(#foo) none')).to eq(described_class.new(:none, '#foo'))
     end
