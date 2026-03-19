@@ -412,4 +412,44 @@ RSpec.describe Prawn::SVG::Properties do
       expect(subject.last_parsed_stop_alpha).to be_nil
     end
   end
+
+  describe 'paint-order' do
+    it 'accepts normal' do
+      subject.set('paint-order', 'normal')
+      expect(subject.paint_order).to eq 'normal'
+    end
+
+    it 'accepts stroke' do
+      subject.set('paint-order', 'stroke')
+      expect(subject.paint_order).to eq 'stroke'
+    end
+
+    it 'accepts fill stroke markers' do
+      subject.set('paint-order', 'fill stroke markers')
+      expect(subject.paint_order).to eq 'fill stroke markers'
+    end
+
+    it 'accepts stroke fill' do
+      subject.set('paint-order', 'stroke fill')
+      expect(subject.paint_order).to eq 'stroke fill'
+    end
+
+    it 'rejects invalid values' do
+      subject.set('paint-order', 'invalid')
+      expect(subject.paint_order).to be_nil
+    end
+
+    it 'is inherited' do
+      parent = Prawn::SVG::Properties.new
+      parent.set('paint-order', 'stroke')
+
+      child = Prawn::SVG::Properties.new
+
+      computed = Prawn::SVG::Properties.new
+      computed.compute_properties(parent)
+      computed.compute_properties(child)
+
+      expect(computed.paint_order).to eq 'stroke'
+    end
+  end
 end

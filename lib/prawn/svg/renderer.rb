@@ -175,6 +175,24 @@ module Prawn
           issue_prawn_command(prawn, children)
           prawn.add_content('S')
 
+        when 'stroke_then_fill'
+          # SVG paint-order: stroke — paint stroke before fill.
+          # PDF has no stroke-then-fill operator, so we capture the path construction
+          # operators, stroke them, re-emit the path, then fill on top.
+          stream_obj = prawn.page.content.stream
+          raw = stream_obj.instance_variable_get(:@stream)
+          pos_before = raw.length
+
+          yield # path construction operators are appended to the stream
+
+          path_ops = raw[pos_before..]
+
+          prawn.add_content('S') # stroke (consumes path)
+          stream_obj << path_ops # re-emit path
+
+          even_odd = kwarguments[:fill_rule] == :even_odd
+          prawn.add_content(even_odd ? 'f*' : 'f') # fill
+
         when 'noop'
           yield
 

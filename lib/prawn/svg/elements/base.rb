@@ -172,10 +172,16 @@ class Prawn::SVG::Elements::Base
     fill   = !computed_properties.fill.none? # rubocop:disable Style/InverseMethods
     stroke = !computed_properties.stroke.none? # rubocop:disable Style/InverseMethods
 
-    if fill
+    even_odd = computed_properties.fill_rule == 'evenodd'
+    stroke_first = fill && stroke && computed_properties.paint_order.is_a?(String) &&
+                   computed_properties.paint_order.start_with?('stroke')
+
+    if stroke_first
+      add_call_and_enter('stroke_then_fill', fill_rule: even_odd ? :even_odd : nil)
+    elsif fill
       command = stroke ? 'fill_and_stroke' : 'fill'
 
-      if computed_properties.fill_rule == 'evenodd'
+      if even_odd
         add_call_and_enter(command, fill_rule: :even_odd)
       else
         add_call_and_enter(command)
