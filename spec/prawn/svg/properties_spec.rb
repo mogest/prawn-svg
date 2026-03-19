@@ -398,4 +398,18 @@ RSpec.describe Prawn::SVG::Properties do
       end
     end
   end
+
+  describe '#last_parsed_stop_alpha' do
+    it 'stores the alpha from an rgba stop-color' do
+      subject.set('stop-color', 'rgba(255, 0, 0, 0.5)')
+      expect(subject.stop_color).to eq Prawn::SVG::Color::RGB.new('ff0000')
+      expect(subject.last_parsed_stop_alpha).to eq 0.5
+    end
+
+    it 'is nil for non-rgba stop-color values' do
+      subject.set('stop-color', 'red')
+      expect(subject.stop_color).to eq Prawn::SVG::Color::RGB.new('ff0000')
+      expect(subject.last_parsed_stop_alpha).to be_nil
+    end
+  end
 end

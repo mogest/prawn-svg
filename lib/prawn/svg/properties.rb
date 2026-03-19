@@ -78,6 +78,7 @@ module Prawn::SVG
 
     attr_accessor(*ATTR_NAMES)
     attr_reader :important_ids
+    attr_reader :last_parsed_stop_alpha
 
     def initialize
       @numeric_font_size = EM
@@ -235,9 +236,13 @@ module Prawn::SVG
       when :color_with_icc
         case Prawn::SVG::CSS::ValuesParser.parse(value)
         in [other, ['icc-color', _args]]
-          Prawn::SVG::Color.parse(other)
+          color, alpha = Prawn::SVG::Color.parse_with_alpha(other)
+          @last_parsed_stop_alpha = alpha
+          color
         in [other] # rubocop:disable Lint/DuplicateBranch
-          Prawn::SVG::Color.parse(other)
+          color, alpha = Prawn::SVG::Color.parse_with_alpha(other)
+          @last_parsed_stop_alpha = alpha
+          color
         else
           nil
         end
