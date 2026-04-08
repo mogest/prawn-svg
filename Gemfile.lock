@@ -10,7 +10,7 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
-    addressable (2.8.9)
+    addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.2)
     bigdecimal (3.1.8)
@@ -29,7 +29,7 @@ GEM
       matrix (~> 0.4)
       pdf-core (~> 0.10.0)
       ttfunk (~> 1.8)
-    public_suffix (7.0.5)
+    public_suffix (5.1.1)
     racc (1.8.0)
     rainbow (3.1.1)
     rake (13.2.1)
