@@ -34,7 +34,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     require_positive_value width, height
 
     @image = begin
-      @document.url_loader.load(@url)
+      @document.url_loader.load(@url, binary: true)
     rescue Prawn::SVG::UrlLoader::Error => e
       raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
     end
@@ -93,12 +93,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
         attribute_overrides.merge!(view_attrs) if view_attrs
       end
 
-      has_web_loader = @document.url_loader.loaders.any? { |l| l.is_a?(Prawn::SVG::Loaders::Web) }
-      document = Prawn::SVG::Document.new(
-        data, [width, height], { width: width, height: height, enable_web_requests: has_web_loader },
-        attribute_overrides: attribute_overrides
-      )
-
+      document = @document.new_subdocument(data, width, height, attribute_overrides)
       dimensions = [document.sizing.output_width, document.sizing.output_height]
       ImageData.new(dimensions, document)
 

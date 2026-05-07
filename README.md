@@ -30,7 +30,7 @@ Option      | Data type | Description
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :enable_web_requests | boolean | If true, prawn-svg will make http and https requests to fetch images, `@font-face` fonts, and external `<use>` references.<br><br>Defaults to true, but will **default to false** in the upcoming 1.0 release.  It's recommended you explicitly set this option for now.
 :enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs and relative paths from your local disk if the file is located under the specified directory. Required for `@font-face` fonts and external `<use>` references loaded via file paths.<br><br>It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
-:cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
+:cache_requests | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.

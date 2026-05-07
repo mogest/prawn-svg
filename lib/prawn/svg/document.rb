@@ -1,14 +1,13 @@
 require 'tempfile'
 
 class Prawn::SVG::Document
-  Error = Class.new(StandardError)
-  InvalidSVGData = Class.new(Error)
+  class Error < StandardError
+  end
+
+  class InvalidSVGData < Error
+  end
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
-
-  class << self
-    attr_accessor :enable_web_requests_warned
-  end
 
   # An +Array+ of warnings that occurred while parsing the SVG data.
   attr_reader :warnings
@@ -23,7 +22,8 @@ class Prawn::SVG::Document
     :color_mode,
     :external_svg_cache
 
-  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {})
+  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new,
+                 attribute_overrides: {}, url_loader: nil)
     begin
       @root = REXML::Document.new(data).root or raise_parse_error(data)
     rescue REXML::ParseException => e
@@ -40,17 +40,14 @@ class Prawn::SVG::Document
     @color_mode = load_color_mode
     @font_face_tempfiles = []
 
-    if !options.key?(:enable_web_requests) && !self.class.enable_web_requests_warned
-      self.class.enable_web_requests_warned = true
-      warn '[prawn-svg] WARNING: :enable_web_requests is not set and currently defaults to true. ' \
-           'In prawn-svg 1.0, this will default to false. ' \
-           'Please explicitly pass enable_web_requests: true or enable_web_requests: false to suppress this warning.'
-    end
-
-    @url_loader = Prawn::SVG::UrlLoader.new(
-      enable_cache:          options[:cache_images],
-      enable_web:            options.fetch(:enable_web_requests, true),
-      enable_file_with_root: options[:enable_file_requests_with_root]
+    @url_loader = url_loader || Prawn::SVG::UrlLoader.new(
+      # :cache_images is deprecated but still accepted for backwards compatibility
+      enable_cache:          options[:cache_requests] || options[:cache_images],
+      enable_web:            options[:enable_web_requests],
+      enable_file_with_root: options[:enable_file_requests_with_root],
+      cache_fn:              options[:cache_fn],
+      allowed_web_url_fn:    options[:allowed_web_url_fn],
+      allowed_file_path_fn:  options[:allowed_file_path_fn]
     )
 
     attributes = @root.attributes.dup
@@ -59,7 +56,7 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, warnings: warnings)
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: @url_loader, warnings: warnings)
     @element_styles = stylesheets.load
     process_font_face_rules(stylesheets.font_face_rules)
 
@@ -78,6 +75,14 @@ class Prawn::SVG::Document
     yield
   ensure
     @sizing = original
+  end
+
+  def new_subdocument(data, width, height, attribute_overrides)
+    new(data, [width, height], { width: width, height: height },
+      font_registry:       font_registry,
+      css_parser:          css_parser,
+      attribute_overrides: attribute_overrides,
+      url_loader:          url_loader)
   end
 
   private
@@ -127,7 +132,7 @@ class Prawn::SVG::Document
   def load_url_font_face(family, weight, style, stretch, source)
     return if source[:format] && !Prawn::SVG::CSS::FontFaceParser::SUPPORTED_FORMATS.include?(source[:format])
 
-    data = url_loader.load(source[:url])
+    data = url_loader.load(source[:url], binary: true)
     tempfile = Tempfile.new(['prawn-svg-font', '.ttf'])
     tempfile.binmode
     tempfile.write(data)

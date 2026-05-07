@@ -31,7 +31,7 @@ module Prawn::SVG::CSS
         begin
           return unless circular_reference_check(import_url)
 
-          src = url_loader.load(import_url)
+          src = url_loader.load(import_url, binary: false)
           add_block!(src, options) if src
         rescue CssParser::CircularReferenceError
           # Silently ignore circular @import references

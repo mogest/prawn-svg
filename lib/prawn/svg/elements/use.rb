@@ -96,7 +96,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def load_external_svg(url)
     @document.external_svg_cache[url] ||= begin
-      data = @document.url_loader.load(url)
+      data = @document.url_loader.load(url, binary: false)
 
       root = begin
         REXML::Document.new(data).root
