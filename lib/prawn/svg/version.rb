@@ -1,5 +1,5 @@
 module Prawn
   module SVG
-    VERSION = '0.40.1'.freeze
+    VERSION = '0.40.2'.freeze
   end
 end
