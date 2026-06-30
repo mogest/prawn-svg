@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Prawn::SVG::Elements::Base do
   let(:svg) { '<svg></svg>' }
   let(:document) do
-    Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+    Prawn::SVG::Document.new(svg, [800, 600], {},
       font_registry: Prawn::SVG::FontRegistry.new('Helvetica' => { normal: nil }))
   end
   let(:parent_calls) { [] }
@@ -188,7 +188,7 @@ describe Prawn::SVG::Elements::Base do
     SVG
 
     it 'applies stylesheet styling but style attributes take precedence' do
-      document = Prawn::SVG::Document.new(svg, [100, 100], { enable_web_requests: false })
+      document = Prawn::SVG::Document.new(svg, [100, 100], {})
       calls = []
       element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
       element.process
@@ -246,7 +246,7 @@ describe Prawn::SVG::Elements::Base do
       </svg>
     SVG
     let(:document) do
-      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+      Prawn::SVG::Document.new(svg, [800, 600], {},
         font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
     end
 
@@ -284,7 +284,7 @@ describe Prawn::SVG::Elements::Base do
       </svg>
     SVG
     let(:document) do
-      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+      Prawn::SVG::Document.new(svg, [800, 600], {},
         font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
     end
 
@@ -315,7 +315,7 @@ describe Prawn::SVG::Elements::Base do
       </svg>
     SVG
     let(:document) do
-      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+      Prawn::SVG::Document.new(svg, [800, 600], {},
         font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
     end
 
@@ -361,7 +361,7 @@ describe Prawn::SVG::Elements::Base do
     context 'on a text element' do
       let(:svg) { '<svg><text style="paint-order: stroke">hello</text></svg>' }
       let(:document) do
-        Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        Prawn::SVG::Document.new(svg, [800, 600], {},
           font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
       end
 

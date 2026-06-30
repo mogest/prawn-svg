@@ -5,7 +5,7 @@ describe Prawn::SVG::UrlLoader do
   let(:enable_web)   { true }
   let(:enable_file)  { '.' }
   let(:loader) do
-    Prawn::SVG::UrlLoader.new(enable_cache: enable_cache, enable_web: enable_web, enable_file_with_root: enable_file)
+    Prawn::SVG::UrlLoader.new(enable_cache: enable_cache, web_requests: enable_web, enable_file_with_root: enable_file)
   end
 
   describe '#initialize' do
@@ -84,18 +84,6 @@ describe Prawn::SVG::UrlLoader do
         expect(web_loader).not_to receive(:from_url)
 
         expect(subject).to eq 'data'
-      end
-    end
-
-    context 'when web requests are disabled' do
-      let(:enable_web) { false }
-
-      it "doesn't use the web loader" do
-        expect(data_loader).to receive(:from_url)
-        expect(web_loader).not_to receive(:from_url)
-        expect(file_loader).to receive(:from_url)
-
-        expect { subject }.to raise_error(Prawn::SVG::UrlLoader::Error, /No handler available/)
       end
     end
 

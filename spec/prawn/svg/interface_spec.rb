@@ -17,18 +17,18 @@ describe Prawn::SVG::Interface do
 
       it 'accepts a single raise_on_issue category' do
         expect do
-          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: :unsupported, enable_web_requests: false)
+          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: :unsupported)
         end.not_to raise_error
       end
 
       it 'rejects unknown raise_on_issue categories' do
         expect do
-          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: [:unsuported], enable_web_requests: false)
+          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: [:unsuported])
         end.to raise_error(ArgumentError, /unsuported/)
       end
 
       it 'does nothing if an invalid option is given and debug is off' do
-        Prawn::SVG::Interface.new(svg, prawn, invalid: 'option', enable_web_requests: false)
+        Prawn::SVG::Interface.new(svg, prawn, invalid: 'option')
       end
     end
   end
@@ -36,15 +36,14 @@ describe Prawn::SVG::Interface do
   describe '#draw' do
     it 'emits six operands for both fill and stroke Bezier curves' do
       pdf = Prawn::Document.new
-      pdf.svg('<svg width="100" height="100"><path d="M 10 10 C 20 20 30 30 40 10 Z" fill="red" stroke="black"/></svg>',
-        enable_web_requests: false)
+      pdf.svg('<svg width="100" height="100"><path d="M 10 10 C 20 20 30 30 40 10 Z" fill="red" stroke="black"/></svg>')
 
       curves = pdf.state.page.content.stream.filtered_stream.lines.grep(/ c$/)
       expect(curves.map { |line| line.split.length - 1 }).to eq [6, 6]
     end
 
     context 'when the sizing object indicates the sizes are invalid' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, { enable_web_requests: false }) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, {}) }
 
       it "doesn't draw anything and adds a warning" do
         interface.draw
@@ -53,7 +52,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when the SVG has a zero size' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, {}) }
 
       it "doesn't draw anything or add an issue" do
         interface.draw
@@ -63,14 +62,14 @@ describe Prawn::SVG::Interface do
 
     context 'when an @import fails to load' do
       it 'includes the issue in the result' do
-        result = Prawn::Document.new.svg('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>', enable_web_requests: false)
+        result = Prawn::Document.new.svg('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>')
         expect(result[:issues].map(&:category)).to eq [:resource]
         expect(result[:warnings]).to include(/Failed to load @import CSS from missing.css/)
       end
     end
 
     context 'when log_warnings is true' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_warnings: true, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_warnings: true) }
 
       it 'outputs warnings to stderr via warn' do
         expect { interface.draw }.to output("Negative sizing data means this SVG cannot be rendered\n").to_stderr
@@ -78,7 +77,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when log_issues is true' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_issues: true, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_issues: true) }
 
       it 'outputs issues to stderr via warn' do
         expect { interface.draw }.to output("Negative sizing data means this SVG cannot be rendered\n").to_stderr
@@ -86,7 +85,7 @@ describe Prawn::SVG::Interface do
     end
 
     describe 'raise_on_issue' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, raise_on_issue: raise_on_issue, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, raise_on_issue: raise_on_issue) }
 
       context 'when true' do
         let(:raise_on_issue) { true }
@@ -117,7 +116,7 @@ describe Prawn::SVG::Interface do
       context 'when an issue was recorded while parsing the document' do
         let(:interface) do
           Prawn::SVG::Interface.new('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>', Prawn::Document.new,
-            raise_on_issue: [:resource], enable_web_requests: false)
+            raise_on_issue: [:resource])
         end
 
         it 'raises' do
@@ -147,13 +146,13 @@ describe Prawn::SVG::Interface do
       end
 
       it 'records the image issues once' do
-        result = Prawn::Document.new.svg(svg, enable_web_requests: false)
+        result = Prawn::Document.new.svg(svg)
         expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring")]
       end
     end
 
     context 'when log_warnings is not set' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, { enable_web_requests: false }) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, {}) }
 
       it 'does not output warnings to stderr' do
         expect { interface.draw }.not_to output.to_stderr
@@ -180,7 +179,7 @@ describe Prawn::SVG::Interface do
         context 'and fill rule is not set' do
           let(:interface) do
             Prawn::SVG::Interface.new('<svg width="250" height="100"><rect width="10" height="10" stroke="red"></rect></svg>',
-              prawn, { enable_web_requests: false })
+              prawn, {})
           end
 
           it "adds content 'f' then 'S'" do
@@ -196,7 +195,7 @@ describe Prawn::SVG::Interface do
         context 'and fill rule is evenodd' do
           let(:interface) do
             Prawn::SVG::Interface.new(
-              '<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, { enable_web_requests: false }
+              '<svg width="250" height="100"><rect width="10" height="10" stroke="red" fill-rule="evenodd"></rect></svg>', prawn, {}
             )
           end
 
@@ -217,7 +216,7 @@ describe Prawn::SVG::Interface do
     subject { interface.position }
 
     context 'when options[:at] supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, at: [1, 2], position: :left, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, at: [1, 2], position: :left) }
 
       it 'returns options[:at]' do
         expect(subject).to eq [1, 2]
@@ -225,7 +224,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when only a position is supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, position: position, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, position: position) }
 
       context '(:left)' do
         let(:position) { :left }
@@ -249,7 +248,7 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when a vposition is supplied' do
-      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, vposition: vposition, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new(svg, prawn, vposition: vposition) }
 
       context '(:top)' do
         let(:vposition) { :top }
@@ -274,7 +273,7 @@ describe Prawn::SVG::Interface do
   end
 
   describe '#sizing and #resize' do
-    let(:interface) { Prawn::SVG::Interface.new(svg, prawn, { enable_web_requests: false }) }
+    let(:interface) { Prawn::SVG::Interface.new(svg, prawn, {}) }
 
     it 'allows the advanced user to resize the SVG after learning about its dimensions' do
       expect(interface.sizing.output_width).to eq 250

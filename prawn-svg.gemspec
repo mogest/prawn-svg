@@ -23,4 +23,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'matrix', '~> 0.4.2'
   gem.add_dependency 'prawn', '>= 0.11.1', '< 3'
   gem.add_dependency 'rexml', '>= 3.4.2', '< 4'
+  gem.add_dependency 'ssrf_filter', '~> 1.6'
 end

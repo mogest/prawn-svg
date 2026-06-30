@@ -18,7 +18,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     SVG
   end
 
-  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600, enable_web_requests: false }) }
+  let(:document) { Prawn::SVG::Document.new(svg, [800, 600], { width: 800, height: 600 }) }
 
   def new_state
     state = Prawn::SVG::State.new

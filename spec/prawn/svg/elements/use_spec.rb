@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Prawn::SVG::Elements::Use do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], options) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
-  let(:options) { { enable_web_requests: false } }
+  let(:options) { {} }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
 
   describe 'local references' do

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Prawn::SVG::Elements::Image do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], options) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
-  let(:options) { { enable_web_requests: false, enable_file_requests_with_root: '.' } }
+  let(:options) { { enable_file_requests_with_root: '.' } }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
 
   let(:external_svg) do
@@ -164,6 +164,32 @@ describe Prawn::SVG::Elements::Image do
 
     it 'renders the full SVG normally' do
       expect(flattened_calls.any? { |c| c[0] == 'svg:render_sub_document' }).to be true
+    end
+  end
+
+  describe 'SVG images that reference themselves' do
+    let(:url) { 'http://image-test.invalid/self.svg' }
+
+    def render_self_referencing(count)
+      requests = 0
+      images = (1..count).map { |n| %(<image href="#{url}?#{n}" width="10" height="10"/>) }.join
+      self_svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{images}</svg>)
+      result = Prawn::Document.new.svg(self_svg, web_requests: ->(_uri) { (requests += 1) && self_svg })
+      [requests, result]
+    end
+
+    it 'stops nesting and reports a resource issue' do
+      requests, result = render_self_referencing(1)
+
+      expect(requests).to eq Prawn::SVG::Elements::Image::MAX_NESTED_DOCUMENTS + 1
+      expect(result[:issues].map(&:category)).to eq [:resource]
+      expect(result[:warnings]).to eq ['too many nested SVG images']
+    end
+
+    it 'limits the total number of nested documents when they fan out' do
+      requests, = render_self_referencing(6)
+
+      expect(requests).to be <= (Prawn::SVG::Elements::Image::MAX_NESTED_DOCUMENTS * 6) + 6
     end
   end
 end

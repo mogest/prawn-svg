@@ -3,13 +3,13 @@ class Prawn::SVG::UrlLoader
 
   attr_reader :enable_cache, :loaders
 
-  def initialize(enable_cache: false, enable_web: true, enable_file_with_root: nil)
+  def initialize(enable_cache: false, web_requests: false, enable_file_with_root: nil)
     @url_cache = {}
     @enable_cache = enable_cache
 
     @loaders = []
     loaders << Prawn::SVG::Loaders::Data.new
-    loaders << Prawn::SVG::Loaders::Web.new if enable_web
+    loaders << Prawn::SVG::Loaders::Web.new(web_requests)
     loaders << Prawn::SVG::Loaders::File.new(enable_file_with_root) if enable_file_with_root
   end
 

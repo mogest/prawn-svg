@@ -22,7 +22,7 @@ RSpec.describe Prawn::SVG::Pathable do
     end
   end
 
-  let(:document) { Prawn::SVG::Document.new('<svg></svg>', [800, 600], { width: 800, height: 600, enable_web_requests: false }) }
+  let(:document) { Prawn::SVG::Document.new('<svg></svg>', [800, 600], { width: 800, height: 600 }) }
   let(:state) { Prawn::SVG::State.new }
 
   subject do

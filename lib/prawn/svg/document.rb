@@ -6,10 +6,6 @@ class Prawn::SVG::Document
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
 
-  class << self
-    attr_accessor :enable_web_requests_warned
-  end
-
   # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
   attr_reader :issues
 
@@ -21,9 +17,12 @@ class Prawn::SVG::Document
     :elements_by_id, :gradients,
     :element_styles,
     :color_mode,
-    :external_svg_cache
+    :external_svg_cache,
+    :root_document
 
-  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {})
+  attr_accessor :nested_document_count
+
+  def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
       @root = REXML::Document.new(data).root or raise_parse_error(data)
     rescue REXML::ParseException => e
@@ -33,6 +32,8 @@ class Prawn::SVG::Document
     @issues = []
     @issue_set = Set.new
     @options = options
+    @root_document = root_document || self
+    @nested_document_count = 0
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}
@@ -41,16 +42,9 @@ class Prawn::SVG::Document
     @color_mode = load_color_mode
     @font_face_tempfiles = []
 
-    if !options.key?(:enable_web_requests) && !self.class.enable_web_requests_warned
-      self.class.enable_web_requests_warned = true
-      warn '[prawn-svg] WARNING: :enable_web_requests is not set and currently defaults to true. ' \
-           'In prawn-svg 1.0, this will default to false. ' \
-           'Please explicitly pass enable_web_requests: true or enable_web_requests: false to suppress this warning.'
-    end
-
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],
-      enable_web:            options.fetch(:enable_web_requests, true),
+      web_requests:          options.fetch(:web_requests) { options[:enable_web_requests] },
       enable_file_with_root: options[:enable_file_requests_with_root]
     )
 
@@ -76,6 +70,18 @@ class Prawn::SVG::Document
   # Retained for backwards compatibility; use #issues instead.
   def warnings
     issues.map(&:message).freeze
+  end
+
+  def replicate(data, width, height, attribute_overrides: {})
+    options = @options.reject { |key, _| key == :enable_file_requests_with_root }
+    root_document.nested_document_count += 1
+
+    self.class.new(
+      data, [width, height],
+      options.merge(width: width, height: height),
+      attribute_overrides: attribute_overrides,
+      root_document:       root_document
+    )
   end
 
   def calculate_sizing(requested_width: nil, requested_height: nil)
