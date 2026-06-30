@@ -157,7 +157,14 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       offset = result.last[:offset] if result.last && result.last[:offset] > offset
 
       if (color = child.properties.stop_color&.value)
-        result << { offset: offset, color: color, opacity: (child.properties.stop_opacity || 1.0).clamp(0.0, 1.0) }
+        base_opacity = (child.properties.stop_opacity || 1.0).clamp(0.0, 1.0)
+
+        # Multiply in the alpha channel from rgba() stop-color if present
+        if (rgba_alpha = child.properties.last_parsed_stop_alpha)
+          base_opacity = (base_opacity * rgba_alpha).clamp(0.0, 1.0)
+        end
+
+        result << { offset: offset, color: color, opacity: base_opacity }
       end
     end
 

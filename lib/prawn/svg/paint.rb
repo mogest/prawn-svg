@@ -34,6 +34,7 @@ module Prawn::SVG
         if value.is_a?(String)
           keyword = value.downcase
           return new(keyword.to_sym, url) if ['none', 'currentcolor'].include?(keyword)
+          return new(:none, url) if keyword == 'transparent'
         end
 
         color = Color.parse(value)

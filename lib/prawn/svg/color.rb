@@ -182,8 +182,40 @@ class Prawn::SVG::Color
       RGB_DEFAULT_COLOR
     end
 
+    # Returns [color, alpha] where alpha is 0.0..1.0 (nil if no alpha component).
+    # Useful for rgba() values where the alpha needs to be propagated separately.
+    def parse_with_alpha(value)
+      case value
+      in ['rgba', args]
+        return [nil, nil] unless args.length == 4
+
+        rgb = args[0..2].map do |arg|
+          number = to_float(arg, 2.55) or break
+          format('%02x', number.round.clamp(0, 255))
+        end
+        return [nil, nil] unless rgb
+
+        alpha = Float(args[3], exception: false)
+        alpha = alpha&.clamp(0.0, 1.0)
+
+        [RGB.new(rgb.join), alpha]
+      else
+        [parse(value), nil]
+      end
+    end
+
     def parse(value)
       case value
+      in ['rgba', args]
+        return unless args.length == 4
+
+        rgb = args[0..2].map do |arg|
+          number = to_float(arg, 2.55) or break
+          format('%02x', number.round.clamp(0, 255))
+        end
+
+        rgb && RGB.new(rgb.join)
+
       in ['rgb', args]
         return unless args.length == 3
 

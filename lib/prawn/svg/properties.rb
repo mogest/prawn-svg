@@ -60,6 +60,7 @@ module Prawn::SVG
       'stroke-miterlimit'  => Config.new(4.0, true, [:positive_number]),
       'stroke-opacity'     => Config.new(1.0, true, [:number]),
       'stroke-width'       => Config.new(1.0, true, [:positive_length, :positive_percentage]),
+      'paint-order'        => Config.new('normal', true, [:paint_order]),
       'text-anchor'        => Config.new('start', true, %w[start middle end]),
       'text-decoration'    => Config.new('none', true, [:text_decoration]),
       'visibility'         => Config.new('visible', true, %w[visible hidden collapse]),
@@ -78,6 +79,7 @@ module Prawn::SVG
 
     attr_accessor(*ATTR_NAMES)
     attr_reader :important_ids
+    attr_reader :last_parsed_stop_alpha
 
     def initialize
       @numeric_font_size = EM
@@ -235,9 +237,13 @@ module Prawn::SVG
       when :color_with_icc
         case Prawn::SVG::CSS::ValuesParser.parse(value)
         in [other, ['icc-color', _args]]
-          Prawn::SVG::Color.parse(other)
+          color, alpha = Prawn::SVG::Color.parse_with_alpha(other)
+          @last_parsed_stop_alpha = alpha
+          color
         in [other] # rubocop:disable Lint/DuplicateBranch
-          Prawn::SVG::Color.parse(other)
+          color, alpha = Prawn::SVG::Color.parse_with_alpha(other)
+          @last_parsed_stop_alpha = alpha
+          color
         else
           nil
         end
@@ -262,6 +268,14 @@ module Prawn::SVG
         Length.parse(value, positive_only: true)
       when :positive_percentage
         Percentage.parse(value, positive_only: true)
+      when :paint_order
+        return 'normal' if keyword == 'normal'
+
+        parts = keyword.split
+        valid = %w[fill stroke markers]
+        return nil unless parts.all? { |p| valid.include?(p) }
+
+        parts.join(' ')
       when :text_decoration
         parts = keyword.split
         valid = %w[none underline overline line-through]

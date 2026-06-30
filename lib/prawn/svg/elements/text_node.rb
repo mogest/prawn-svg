@@ -110,67 +110,19 @@ module Prawn::SVG
     end
 
     def render(prawn, size, cursor, y_offset)
-      chunks.each do |chunk|
-        cursor.x = chunk.x if chunk.x
-        cursor.x += chunk.dx if chunk.dx
-        cursor.y = chunk.y if chunk.y
-        cursor.y -= chunk.dy if chunk.dy
+      fill = !component.computed_properties.fill.none?
+      stroke = !component.computed_properties.stroke.none?
+      paint_order = component.computed_properties.paint_order
+      stroke_first = fill && stroke && !component.inside_clip_path &&
+                     paint_order.is_a?(String) && paint_order.start_with?('stroke')
 
-        width = chunk.fixed_width || chunk.base_width
-
-        unless component.inside_clip_path
-          decoration = component.computed_properties.text_decoration
-          unless decoration == 'none'
-            render_underline(prawn, size, cursor, y_offset, width) if decoration.include?('underline')
-            render_overline(prawn, size, cursor, y_offset, width) if decoration.include?('overline')
-            render_line_through(prawn, size, cursor, y_offset, width) if decoration.include?('line-through')
-          end
-          render_link_annotation(prawn, size, cursor, y_offset, width)
-        end
-
-        kerning = component.kerning_enabled?
-        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: kerning }
-        opts[:rotate] = chunk.rotate if chunk.rotate
-
-        scaling =
-          if chunk.fixed_width && component.current_length_adjust_is_scaling?
-            chunk.fixed_width * 100 / chunk.base_width
-          else
-            100
-          end
-
-        spacing_enabled = chunk.fixed_width && !component.current_length_adjust_is_scaling? && chunk.text.length > 1
-
-        # This isn't perfect.  It assumes the parent component which started the textLength context
-        # has a character at the end of its text nodes.  If it doesn't, the last character in its
-        # children should not take the space.  This is possible but would involve a lot more work so
-        # I will park it for now.
-        parent_spacing = spacing_enabled && !component.text_length
-        spacing =
-          if spacing_enabled
-            ((chunk.fixed_width - chunk.base_width) / (chunk.text.length - (parent_spacing ? 0 : 1))) + (component.kerning_pixels || 0) + (component.letter_spacing_pixels || 0)
-          end
-
-        # Inside clip paths, text renders white in a soft mask to define the
-        # clipping region. Override any fill color from the SVG element.
-        prawn.fill_color('ffffff') if component.inside_clip_path
-
-        combined_spacing = spacing || combined_kerning_and_letter_spacing
-        prawn.horizontal_text_scaling(scaling) do
-          prawn.character_spacing(combined_spacing || prawn.character_spacing) do
-            prawn.word_spacing(component.word_spacing_pixels || prawn.word_spacing) do
-              prawn.text_rendering_mode(calculate_text_rendering_mode) do
-                render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
-              end
-            end
-          end
-        end
-
-        cursor.x += chunk.fixed_width || chunk.base_width
-
-        # If we're in a textLength context for one of our parents, we'll need to add spacing
-        # to the end of our string.  See comment above for why this isn't quite right.
-        cursor.x += spacing if parent_spacing
+      if stroke_first
+        # PDF has no stroke-then-fill text mode, so render text twice:
+        # first as stroke (underneath), then as fill (on top).
+        render_chunks(prawn, size, cursor.dup, y_offset, :stroke)
+        render_chunks(prawn, size, cursor, y_offset, :fill)
+      else
+        render_chunks(prawn, size, cursor, y_offset, calculate_text_rendering_mode)
       end
     end
 
@@ -275,6 +227,64 @@ module Prawn::SVG
 
     def scaled_font_size(prawn, method_name, size)
       (prawn.font.public_send(method_name) / prawn.font_size) * size
+    end
+
+    def render_chunks(prawn, size, cursor, y_offset, text_mode)
+      chunks.each do |chunk|
+        cursor.x = chunk.x if chunk.x
+        cursor.x += chunk.dx if chunk.dx
+        cursor.y = chunk.y if chunk.y
+        cursor.y -= chunk.dy if chunk.dy
+
+        width = chunk.fixed_width || chunk.base_width
+
+        unless component.inside_clip_path
+          # Only render decorations/annotations on the fill pass (or non-dual-pass)
+          if text_mode != :stroke
+            decoration = component.computed_properties.text_decoration
+            unless decoration == 'none'
+              render_underline(prawn, size, cursor, y_offset, width) if decoration.include?('underline')
+              render_overline(prawn, size, cursor, y_offset, width) if decoration.include?('overline')
+              render_line_through(prawn, size, cursor, y_offset, width) if decoration.include?('line-through')
+            end
+            render_link_annotation(prawn, size, cursor, y_offset, width)
+          end
+        end
+
+        kerning = component.kerning_enabled?
+        opts = { size: size, at: [cursor.x, cursor.y + (y_offset || 0)], kerning: kerning }
+        opts[:rotate] = chunk.rotate if chunk.rotate
+
+        scaling =
+          if chunk.fixed_width && component.current_length_adjust_is_scaling?
+            chunk.fixed_width * 100 / chunk.base_width
+          else
+            100
+          end
+
+        spacing_enabled = chunk.fixed_width && !component.current_length_adjust_is_scaling? && chunk.text.length > 1
+        parent_spacing = spacing_enabled && !component.text_length
+        spacing =
+          if spacing_enabled
+            ((chunk.fixed_width - chunk.base_width) / (chunk.text.length - (parent_spacing ? 0 : 1))) + (component.kerning_pixels || 0) + (component.letter_spacing_pixels || 0)
+          end
+
+        prawn.fill_color('ffffff') if component.inside_clip_path
+
+        combined_spacing = spacing || combined_kerning_and_letter_spacing
+        prawn.horizontal_text_scaling(scaling) do
+          prawn.character_spacing(combined_spacing || prawn.character_spacing) do
+            prawn.word_spacing(component.word_spacing_pixels || prawn.word_spacing) do
+              prawn.text_rendering_mode(text_mode) do
+                render_text_directly(prawn, chunk.text, chunk.font_runs, opts)
+              end
+            end
+          end
+        end
+
+        cursor.x += chunk.fixed_width || chunk.base_width
+        cursor.x += spacing if parent_spacing
+      end
     end
 
     def combined_kerning_and_letter_spacing
