@@ -22,6 +22,15 @@ describe Prawn::SVG::Interface do
   end
 
   describe '#draw' do
+    it 'emits six operands for both fill and stroke Bezier curves' do
+      pdf = Prawn::Document.new
+      pdf.svg('<svg width="100" height="100"><path d="M 10 10 C 20 20 30 30 40 10 Z" fill="red" stroke="black"/></svg>',
+        enable_web_requests: false)
+
+      curves = pdf.state.page.content.stream.filtered_stream.lines.grep(/ c$/)
+      expect(curves.map { |line| line.split.length - 1 }).to eq [6, 6]
+    end
+
     context 'when the sizing object indicates the sizes are invalid' do
       let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
 
