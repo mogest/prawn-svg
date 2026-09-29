@@ -143,6 +143,13 @@ module Prawn
           arguments[4] += left - ((left * arguments[0]) + (top * arguments[2]))
           arguments[5] += top - ((left * arguments[1]) + (top * arguments[3]))
 
+        when 'curve_to'
+          # Prawn appends the destination to bounds, mutating bounds.
+          # Preserve it for path replay by passing a .dup instead.
+          # See: https://github.com/prawnpdf/prawn/issues/1401
+          prawn.curve_to(arguments.first, **kwarguments.merge(bounds: kwarguments[:bounds].dup))
+          yield
+
         when 'miter_limit'
           prawn.add_content("#{arguments.first} M")
           yield
