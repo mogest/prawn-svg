@@ -207,4 +207,28 @@ describe Prawn::SVG::Elements::Gradient do
       )
     end
   end
+
+  describe 'gradient with rgba stop-color' do
+    let(:svg) do
+      <<-SVG
+        <linearGradient id="flag" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="rgba(255, 0, 0, 0.5)"/>
+          <stop offset="1" stop-color="rgba(0, 0, 255, 0.25)" stop-opacity="0.8"/>
+        </linearGradient>
+      SVG
+    end
+
+    it 'propagates rgba alpha into stop opacity' do
+      arguments = element.gradient_arguments(double(bounding_box: nil, stroke_width: 0))
+      stops = arguments[:stops]
+
+      # First stop: alpha=0.5, no stop-opacity => 0.5
+      expect(stops[0][:color]).to eq 'ff0000'
+      expect(stops[0][:opacity]).to eq 0.5
+
+      # Second stop: alpha=0.25, stop-opacity=0.8 => 0.25 * 0.8 = 0.2
+      expect(stops[1][:color]).to eq '0000ff'
+      expect(stops[1][:opacity]).to eq 0.2
+    end
+  end
 end

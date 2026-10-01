@@ -75,6 +75,21 @@ describe Prawn::SVG::Elements::Base do
         let(:svg) { '<rect style="fill: black; fill-rule: evenodd;"></rect>' }
         it        { is_expected.to eq ['fill', [], { fill_rule: :even_odd }, []] }
       end
+
+      context 'with fill and stroke and paint-order: stroke' do
+        let(:svg) { '<rect style="fill: black; stroke: black; paint-order: stroke;"></rect>' }
+        it        { is_expected.to eq ['stroke_then_fill', [], { fill_rule: nil }, []] }
+      end
+
+      context 'with paint-order: stroke but no fill' do
+        let(:svg) { '<rect style="fill: none; stroke: black; paint-order: stroke;"></rect>' }
+        it        { is_expected.to eq ['stroke', [], {}, []] }
+      end
+
+      context 'with paint-order: stroke and evenodd fill rule' do
+        let(:svg) { '<rect style="fill: black; stroke: black; paint-order: stroke; fill-rule: evenodd;"></rect>' }
+        it        { is_expected.to eq ['stroke_then_fill', [], { fill_rule: :even_odd }, []] }
+      end
     end
 
     it 'appends calls to the parent element' do
