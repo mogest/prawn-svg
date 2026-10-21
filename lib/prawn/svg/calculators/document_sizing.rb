@@ -102,8 +102,8 @@ module Prawn::SVG::Calculators
     private
 
     def parse_view_box
-      values = @view_box.to_s.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP).map { |value| Float(value, exception: false) }
-      values if values.length == 4 && values.all?
+      values = @view_box.to_s.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
+      values.map(&:to_f) if values.length == 4 && values.all? { |value| Prawn::SVG::AttributeValue.number?(value) }
     end
   end
 end

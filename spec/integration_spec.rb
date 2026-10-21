@@ -97,12 +97,15 @@ describe 'Integration test' do
 
     expected_issues = {
       'bad.svg'                => ["Unknown attribute 'lineHeight' on <text>"],
+      'bad_iri.svg'            => ["Unsupported value '2no' for attribute 'x' on <rect>"],
+      'bad_lengths.svg'        => ["Unsupported value '2no' for attribute 'x' on <rect>"],
       'cap_styles.svg'         => ["Unsupported value 'invalid' for property 'stroke-linecap' on <line>"],
       'clip_path.svg'          => ["Unknown attribute 'viewPort' on <svg>"],
       'default_color.svg'      => ["Unsupported value 'gren' for property 'fill' on <rect>"],
       'gistfile1.svg'          => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
       'google_charts.svg'      => ["Unsupported property 'overflow-x' on <svg>", "Unsupported property 'overflow-y' on <svg>"],
       'gradient_transform.svg' => ["Unknown attribute 'xgradientTransform' on <linearGradient>"],
+      'marker_shorthand.svg'   => ["Unsupported value 'auto-start-reverse' for attribute 'orient' on <marker>"],
       'highcharts.svg'         => ["Unknown attribute 'zIndex' on <g>", "Unknown attribute 'zIndex' on <text>", "Unknown attribute 'isShadow' on <rect>"],
       'positioning.svg'        => ["Unknown attribute 'transform' on <tspan>"],
       'subfamilies.svg'        => ["Unknown attribute 'r' on <rect>"],

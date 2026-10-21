@@ -151,7 +151,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     end
 
     @stops = stop_elements.each_with_object([]) do |child, result|
-      offset = percentage_or_proportion(child.attributes['offset']).clamp(0.0, 1.0)
+      offset = child.attributes['offset']
+      offset = Prawn::SVG::AttributeValue.valid?(:number_or_percentage, offset) ? percentage_or_proportion(offset).clamp(0.0, 1.0) : 0.0
 
       # Offsets must be strictly increasing (SVG 13.2.4)
       offset = result.last[:offset] if result.last && result.last[:offset] > offset

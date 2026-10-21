@@ -9,6 +9,21 @@ describe Prawn::SVG::Elements::Gradient do
     root_element.process
   end
 
+  describe 'stop offsets with units' do
+    let(:svg) do
+      <<-SVG
+        <linearGradient id="flag">
+          <stop offset="1em" stop-color="red"/>
+          <stop offset="0.5" stop-color="blue"/>
+        </linearGradient>
+      SVG
+    end
+
+    it 'treats them as zero' do
+      expect(element.stops.map { |stop| stop[:offset] }).to eq [0.0, 0.5, 1]
+    end
+  end
+
   describe 'object bounding box with linear gradient' do
     let(:svg) do
       <<-SVG

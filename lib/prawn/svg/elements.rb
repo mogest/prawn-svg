@@ -75,6 +75,31 @@ module Prawn::SVG::Elements
     image:          %w[x y width height preserveAspectRatio href transform]
   }.freeze
 
+  UNITS_VALUES = %w[userSpaceOnUse objectBoundingBox].freeze
+
+  # Types of attribute values, checked by AttributeValue.valid?.  Attributes not listed aren't checked.
+  ATTRIBUTE_TYPES = {
+    x: :length, y: :length, width: :length, height: :length,
+    x1: :length, y1: :length, x2: :length, y2: :length,
+    cx: :length, cy: :length, r: :length, rx: :length, ry: :length, fx: :length, fy: :length, fr: :length,
+    refX: :length, refY: :length, markerWidth: :length, markerHeight: :length,
+    textLength: :length, startOffset: :length,
+    dx: :length_list, dy: :length_list, rotate: :number_list,
+    offset: :number_or_percentage,
+    viewBox: :view_box, preserveAspectRatio: :preserve_aspect_ratio, orient: :orient,
+    gradientUnits: UNITS_VALUES, patternUnits: UNITS_VALUES, patternContentUnits: UNITS_VALUES,
+    clipPathUnits: UNITS_VALUES, maskUnits: UNITS_VALUES, maskContentUnits: UNITS_VALUES,
+    markerUnits: %w[strokeWidth userSpaceOnUse],
+    spreadMethod: %w[pad reflect repeat],
+    lengthAdjust: %w[spacing spacingAndGlyphs]
+  }.freeze
+
+  ATTRIBUTE_TYPE_OVERRIDES = {
+    text:  { x: :length_list, y: :length_list },
+    tspan: { x: :length_list, y: :length_list },
+    tref:  { x: :length_list, y: :length_list }
+  }.freeze
+
   GLOBAL_ATTRIBUTES = %w[id class style].freeze
 
   # Attributes that are valid but have no effect on a static rendering

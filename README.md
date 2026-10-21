@@ -63,7 +63,7 @@ When prawn-svg can't render part of an SVG as a browser would, it records an iss
 
 Category | Meaning
 -------- | -------
-:unsupported | A valid SVG or CSS feature that prawn-svg ignores, so the output may differ from a browser's.  For example, `filter` or `pathLength`.  Property values prawn-svg can't use are also reported here, since it can't tell an unsupported value from an invalid one.
+:unsupported | A valid SVG or CSS feature that prawn-svg ignores, so the output may differ from a browser's.  For example, `filter` or `pathLength`.  Property and attribute values prawn-svg can't use are also reported here, since it can't tell an unsupported value from an invalid one.
 :unknown | An attribute or property prawn-svg doesn't recognise.  Usually specific to the program that generated the SVG, or not valid on that element, and ignored by browsers too.  For example, Highcharts' `zIndex`.
 :invalid | The SVG is malformed, such as bad path data, a missing required attribute, or a reference to an element that doesn't exist.
 :resource | An image, font, stylesheet or external SVG couldn't be loaded.

@@ -152,7 +152,7 @@ describe Prawn::SVG::Calculators::DocumentSizing do
         end
       end
 
-      ['0 0 100', '0 0 100 200 300', 'a b c d', '0 0 100px 200'].each do |view_box|
+      ['0 0 100', '0 0 100 200 300', 'a b c d', '0 0 100px 200', '0 0 0x10 10'].each do |view_box|
         context "when the viewBox is '#{view_box}'" do
           let(:attributes) { { 'viewBox' => view_box } }
 

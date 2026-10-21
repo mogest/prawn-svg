@@ -269,6 +269,34 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
+  describe 'attribute value issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <rect x="2no" y="1e1" width="10" height="calc(1px)" rx="auto"></rect>
+        <linearGradient id="g" gradientUnits="userspaceonuse" spreadMethod="pad"><stop offset="0" stop-color="red"/></linearGradient>
+        <text x="1 2 x" y="5"><tspan dx="1,2" rotate="45deg">hi</tspan></text>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'adds an issue for each value that prawn-svg cannot use' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues.map(&:message)).to eq [
+        "Unsupported value '2no' for attribute 'x' on <rect>",
+        "Unsupported value 'calc(1px)' for attribute 'height' on <rect>",
+        "Unsupported value 'auto' for attribute 'rx' on <rect>",
+        "Unsupported value 'userspaceonuse' for attribute 'gradientUnits' on <linearGradient>",
+        "Unsupported value '1 2 x' for attribute 'x' on <text>",
+        "Unsupported value '45deg' for attribute 'rotate' on <tspan>"
+      ]
+      expect(document.issues.map(&:category).uniq).to eq [:unsupported]
+    end
+  end
+
   describe 'property issues' do
     let(:svg) { <<-SVG }
       <svg>

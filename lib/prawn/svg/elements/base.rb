@@ -239,6 +239,8 @@ class Prawn::SVG::Elements::Base
         @attributes[name] = value
         if (category = attribute_issue_category(name, value))
           add_source_issue(category, "#{category.to_s.capitalize} attribute '#{name}' on <#{self.name}>")
+        elsif (type = attribute_type(name)) && !Prawn::SVG::AttributeValue.valid?(type, value)
+          add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for attribute '#{name}' on <#{self.name}>")
         end
       end
     end
@@ -288,6 +290,13 @@ class Prawn::SVG::Elements::Base
     else
       :unknown
     end
+  end
+
+  def attribute_type(attribute)
+    elements = Prawn::SVG::Elements
+    return unless elements::ATTRIBUTES.fetch(name.to_sym, []).include?(attribute)
+
+    elements::ATTRIBUTE_TYPE_OVERRIDES.dig(name.to_sym, attribute.to_sym) || elements::ATTRIBUTE_TYPES[attribute.to_sym]
   end
 
   def add_source_issue(category, message)
