@@ -343,7 +343,7 @@ module Prawn::SVG
     end
 
     def parse_wsp(name)
-      (attributes[name] || '').split(COMMA_WSP_REGEXP)
+      (attributes[name] || '').strip.split(COMMA_WSP_REGEXP)
     end
   end
 end

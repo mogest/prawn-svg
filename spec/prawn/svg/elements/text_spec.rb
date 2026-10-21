@@ -15,6 +15,17 @@ describe Prawn::SVG::Elements::Text do
     element.render(prawn, renderer)
   end
 
+  describe 'coordinate lists' do
+    let(:svg) { '<text x=" 10, 20 " y="  30">Hi</text>' }
+
+    it 'ignores surrounding whitespace' do
+      element.process
+      root = element.instance_variable_get(:@root_component)
+      expect(root.x_values).to eq [10.0, 20.0]
+      expect(root.y_values).to eq [570.0]
+    end
+  end
+
   describe 'basic text rendering' do
     let(:svg) { '<text>Hello World</text>' }
 
