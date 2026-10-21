@@ -2,7 +2,7 @@ module Prawn::SVG
   Length = Struct.new(:value, :unit)
 
   class Length
-    REGEXP = /\A([+-]?\d*(?:\.\d+)?)(em|rem|ex|px|in|cm|mm|pt|pc)?\z/i.freeze
+    REGEXP = /\A([+-]?\d*(?:\.\d+)?(?:e[+-]?\d+)?)(em|rem|ex|px|in|cm|mm|pt|pc)?\z/i.freeze
 
     def self.parse(value, positive_only: false)
       if (matches = value.match(REGEXP))

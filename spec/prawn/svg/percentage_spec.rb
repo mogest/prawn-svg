@@ -14,6 +14,10 @@ describe Prawn::SVG::Percentage do
       expect(described_class.parse('-1.23%')).to eq(described_class.new(-1.23))
     end
 
+    it 'parses a percentage with an exponent' do
+      expect(described_class.parse('5e1%')).to eq(described_class.new(50))
+    end
+
     it 'parses a percentage with no decimal points' do
       expect(described_class.parse('1%')).to eq(described_class.new(1))
     end
