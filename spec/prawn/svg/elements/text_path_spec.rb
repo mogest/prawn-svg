@@ -73,28 +73,30 @@ describe Prawn::SVG::Elements::TextPath do
     end
   end
 
-  describe 'with percentage startOffset' do
-    let(:svg) do
-      <<~SVG
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <defs><path id="mypath" d="M 0,50 L 200,50"/></defs>
-          <text font-size="16"><textPath href="#mypath" startOffset="50%">A</textPath></text>
-        </svg>
-      SVG
-    end
-
-    it 'starts at the percentage of path length' do
-      drawn = []
-      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
-        drawn << [text, opts[:at]]
-        method.call(text, **opts)
+  ['50%', ' 50% '].each do |start_offset|
+    describe "with percentage startOffset '#{start_offset}'" do
+      let(:svg) do
+        <<~SVG
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs><path id="mypath" d="M 0,50 L 200,50"/></defs>
+            <text font-size="16"><textPath href="#mypath" startOffset="#{start_offset}">A</textPath></text>
+          </svg>
+        SVG
       end
 
-      process_and_render
+      it 'starts at the percentage of path length' do
+        drawn = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          drawn << [text, opts[:at]]
+          method.call(text, **opts)
+        end
 
-      expect(drawn).not_to be_empty
-      # 50% of 200 = 100, so first char midpoint at ~100
-      expect(drawn.first[1][0]).to be_within(20).of(100)
+        process_and_render
+
+        expect(drawn).not_to be_empty
+        # 50% of 200 = 100, so first char midpoint at ~100
+        expect(drawn.first[1][0]).to be_within(20).of(100)
+      end
     end
   end
 

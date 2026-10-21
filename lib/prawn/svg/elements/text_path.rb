@@ -140,11 +140,11 @@ module Prawn::SVG
     end
 
     def parse_start_offset
-      value = attributes['startOffset']
+      value = attributes['startOffset']&.strip
       return 0.0 unless value
 
-      if value.end_with?('%')
-        @path_length.total_length * value.to_f / 100.0
+      if (percentage = Percentage.parse(value))
+        @path_length.total_length * percentage.to_factor
       else
         x_pixels(value)
       end
