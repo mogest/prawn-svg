@@ -173,6 +173,23 @@ describe Prawn::SVG::Elements::Mask do
     end
   end
 
+  describe 'objectBoundingBox mask region with percentages and exponents' do
+    let(:svg) do
+      <<~SVG
+        <svg width="200" height="200">
+          <mask id="m1" x="10%" y="0.1" width="80%" height="8e-1">
+            <rect width="200" height="200" fill="white"/>
+          </mask>
+          <rect x="50" y="50" width="100" height="100" fill="red" mask="url(#m1)"/>
+        </svg>
+      SVG
+    end
+
+    it 'clips to the mask region' do
+      expect(flattened_calls).to include ['rectangle', [[60.0, 140.0], 80.0, 80.0], {}]
+    end
+  end
+
   describe 'maskContentUnits=objectBoundingBox with coordinate scaling' do
     let(:svg) do
       <<~SVG
