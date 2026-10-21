@@ -28,9 +28,7 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       element.add_call 'transformation_matrix', 1, 0, 0, 1, point[0], -point[1]
 
-      if attributes['orient'] != 'auto'
-        angle = attributes['orient'].to_f # defaults to 0 if not specified
-      end
+      angle = Prawn::SVG::Angle.parse(attributes['orient'].to_s) || 0 unless attributes['orient']&.strip == 'auto'
 
       element.push_call_position
       element.add_call_and_enter 'rotate', -angle, origin: [0, y('0')] if angle != 0
