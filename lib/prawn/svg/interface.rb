@@ -8,7 +8,7 @@ module Prawn
       VALID_OPTIONS = %i[
         at position vposition width height cache_images enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode language
-        log_warnings
+        log_issues log_warnings raise_on_issue
       ].freeze
 
       INHERITABLE_OPTIONS = %i[
@@ -48,7 +48,8 @@ module Prawn
       def draw
         @renderer.draw
 
-        document.warnings.each { |w| warn w } if options[:log_warnings]
+        document.warnings.each { |w| warn w } if options[:log_issues] || options[:log_warnings]
+        raise_on_issues
       end
 
       def sizing
@@ -66,6 +67,15 @@ module Prawn
       # backwards support for when the font_path used to be stored on this class
       def self.font_path
         Prawn::SVG::FontRegistry.font_path
+      end
+
+      private
+
+      def raise_on_issues
+        return unless (categories = options[:raise_on_issue])
+
+        issues = document.issues.select { |issue| categories == true || Array(categories).include?(issue.category) }
+        raise IssueError, issues if issues.any?
       end
     end
   end

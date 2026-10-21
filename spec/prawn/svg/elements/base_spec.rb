@@ -97,7 +97,13 @@ describe Prawn::SVG::Elements::Base do
       expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError, 'hello')
       expect(element).to_not receive(:apply)
       element.process
-      expect(document.warnings).to eq ['hello']
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'hello')]
+    end
+
+    it 'records the category of a SkipElementError' do
+      expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError.new('hello', :unsupported))
+      element.process
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, 'hello')]
     end
   end
 

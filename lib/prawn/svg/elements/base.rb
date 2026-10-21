@@ -20,13 +20,22 @@ class Prawn::SVG::Elements::Base
   SVG_NAMESPACE = 'http://www.w3.org/2000/svg'.freeze
 
   SkipElementQuietly = Class.new(StandardError)
-  SkipElementError = Class.new(StandardError)
+
+  class SkipElementError < StandardError
+    attr_reader :category
+
+    def initialize(message = nil, category = :invalid)
+      super(message)
+      @category = category
+    end
+  end
+
   MissingAttributesError = Class.new(SkipElementError)
 
   attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes, :properties
   attr_accessor :calls
 
-  def_delegators :@document, :warnings
+  def_delegators :@document, :add_issue
   def_delegator :@state, :computed_properties
 
   def initialize(document, source, parent_calls, state)
@@ -67,7 +76,7 @@ class Prawn::SVG::Elements::Base
     append_calls_to_parent unless computed_properties.display == 'none'
   rescue SkipElementQuietly
   rescue SkipElementError => e
-    @document.warnings << e.message
+    @document.add_issue(e.category, e.message)
   end
 
   def name
@@ -143,7 +152,7 @@ class Prawn::SVG::Elements::Base
 
         add_call 'restore'
       else
-        @document.warnings << "Unknown tag '#{elem.name}'; ignoring"
+        @document.add_issue(:unsupported, "Unknown tag '#{elem.name}'; ignoring")
       end
     end
   end

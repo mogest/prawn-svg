@@ -21,11 +21,9 @@ module Prawn
       #
       def draw
         if sizing.invalid?
-          document.warnings << 'Zero or negative sizing data means this SVG cannot be rendered'
+          document.add_issue(:invalid, 'Zero or negative sizing data means this SVG cannot be rendered')
           return
         end
-
-        document.warnings.clear
 
         prawn.save_font do
           prawn.bounding_box(position, width: sizing.output_width, height: sizing.output_height) do
@@ -127,7 +125,7 @@ module Prawn
             element.render(prawn, self)
           rescue Prawn::SVG::Elements::Base::SkipElementQuietly
           rescue Prawn::SVG::Elements::Base::SkipElementError => e
-            @document.warnings << e.message
+            @document.add_issue(e.category, e.message)
           end
 
           yield
@@ -190,7 +188,8 @@ module Prawn
           sub_options = inheritable_options.merge({ at: [0, 0] })
 
           Renderer.new(prawn, sub_document, sub_options).draw
-          document.warnings.concat(sub_document.warnings)
+          document.issues.concat(sub_document.issues)
+          sub_document.issues.clear
           yield
 
         when 'soft_mask'

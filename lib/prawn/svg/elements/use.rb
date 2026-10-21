@@ -101,10 +101,10 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       root = begin
         REXML::Document.new(data).root
       rescue REXML::ParseException
-        raise SkipElementError, "use tag references external SVG at '#{url}' which could not be parsed"
+        raise SkipElementError.new("use tag references external SVG at '#{url}' which could not be parsed", :resource)
       end
 
-      raise SkipElementError, "use tag references external URL '#{url}' which does not contain SVG" unless root
+      raise SkipElementError.new("use tag references external URL '#{url}' which does not contain SVG", :resource) unless root
 
       css_parser = CssParser::Parser.new
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root)
@@ -113,7 +113,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       [root, element_styles]
     end
   rescue Prawn::SVG::UrlLoader::Error => e
-    raise SkipElementError, "use tag could not load external SVG from '#{url}': #{e.message}"
+    raise SkipElementError.new("use tag could not load external SVG from '#{url}': #{e.message}", :resource)
   end
 
   def import_external_styles(element, external_element_styles)

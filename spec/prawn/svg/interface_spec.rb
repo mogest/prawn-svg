@@ -48,6 +48,81 @@ describe Prawn::SVG::Interface do
       end
     end
 
+    context 'when log_issues is true' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, log_issues: true, enable_web_requests: false) }
+
+      it 'outputs issues to stderr via warn' do
+        expect { interface.draw }.to output("Zero or negative sizing data means this SVG cannot be rendered\n").to_stderr
+      end
+    end
+
+    describe 'raise_on_issue' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, raise_on_issue: raise_on_issue, enable_web_requests: false) }
+
+      context 'when true' do
+        let(:raise_on_issue) { true }
+
+        it 'raises an IssueError containing the issues' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError, 'Zero or negative sizing data means this SVG cannot be rendered') { |e|
+            expect(e.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Zero or negative sizing data means this SVG cannot be rendered')]
+          }
+        end
+      end
+
+      context 'when given a list including the issue category' do
+        let(:raise_on_issue) { [:unsupported, :invalid] }
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError)
+        end
+      end
+
+      context 'when given a single category' do
+        let(:raise_on_issue) { :invalid }
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError)
+        end
+      end
+
+      context 'when an issue was recorded while parsing the document' do
+        let(:interface) do
+          Prawn::SVG::Interface.new('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>', Prawn::Document.new,
+            raise_on_issue: [:resource], enable_web_requests: false)
+        end
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError, /Failed to load @import CSS/)
+        end
+      end
+
+      context 'when given a list not including the issue category' do
+        let(:raise_on_issue) { [:resource] }
+
+        it 'does not raise' do
+          expect { interface.draw }.not_to raise_error
+        end
+      end
+    end
+
+    context 'when an SVG image is drawn more than once' do
+      let(:image_uri) { "data:image/svg+xml;base64,#{['<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><foo/></svg>'].pack('m0')}" }
+      let(:svg) do
+        <<~SVG
+          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+            <mask id="m" maskUnits="userSpaceOnUse"><image width="10" height="10" href="#{image_uri}"/></mask>
+            <rect width="10" height="10" mask="url(#m)"/>
+            <rect width="10" height="10" mask="url(#m)"/>
+          </svg>
+        SVG
+      end
+
+      it 'records the image issues once per draw' do
+        result = Prawn::Document.new.svg(svg, enable_web_requests: false)
+        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unsupported, "Unknown tag 'foo'; ignoring")] * 2
+      end
+    end
+
     context 'when log_warnings is not set' do
       let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
 

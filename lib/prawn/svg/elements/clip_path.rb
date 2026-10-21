@@ -14,7 +14,7 @@ class Prawn::SVG::Elements::ClipPath < Prawn::SVG::Elements::Base
     if units == 'objectBoundingBox'
       bbox = element.bounding_box
       if bbox.nil?
-        document.warnings << 'clipPath with clipPathUnits="objectBoundingBox" requires element to have a bounding box'
+        document.add_issue(:unsupported, 'clipPath with clipPathUnits="objectBoundingBox" requires element to have a bounding box')
         return nil
       end
 

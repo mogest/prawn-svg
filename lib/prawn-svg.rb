@@ -2,6 +2,7 @@ require 'rexml/document'
 
 require 'prawn'
 require 'prawn/svg/version'
+require 'prawn/svg/issue'
 
 require 'css_parser'
 

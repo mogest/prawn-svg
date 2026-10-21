@@ -6,7 +6,7 @@ module Prawn::SVG::Attributes::Mask
     mask_element = extract_element_from_url_id_reference(mask, 'mask')
 
     if mask_element.nil?
-      document.warnings << 'Could not resolve mask URI to a mask element'
+      document.add_issue(:invalid, 'Could not resolve mask URI to a mask element')
     else
       add_call_and_enter 'save_graphics_state'
       mask_calls = mask_element.build_mask_calls(self)

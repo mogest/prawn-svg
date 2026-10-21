@@ -22,6 +22,6 @@ class Prawn::SVG::Elements::DirectRenderBase < Prawn::SVG::Elements::Base
     @parent_calls << ['svg:render', [self], [], []] unless computed_properties.display == 'none'
   rescue SkipElementQuietly
   rescue SkipElementError => e
-    @document.warnings << e.message
+    @document.add_issue(e.category, e.message)
   end
 end

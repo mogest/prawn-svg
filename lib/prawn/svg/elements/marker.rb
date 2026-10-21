@@ -14,7 +14,7 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
     sizing.calculate
 
     if sizing.invalid?
-      document.warnings << '<marker> cannot be rendered due to invalid sizing information'
+      document.add_issue(:invalid, '<marker> cannot be rendered due to invalid sizing information')
       return
     end
 

@@ -126,7 +126,7 @@ module Prawn::SVG::Pathable
              .map(&:to_f)
 
     if values.length.odd?
-      document.warnings << 'points attribute has an odd number of points; ignoring the last one'
+      document.add_issue(:invalid, 'points attribute has an odd number of points; ignoring the last one')
       values.pop
     end
 

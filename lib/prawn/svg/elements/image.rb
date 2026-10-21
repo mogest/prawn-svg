@@ -36,7 +36,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     @image = begin
       @document.url_loader.load(@url)
     rescue Prawn::SVG::UrlLoader::Error => e
-      raise SkipElementError, "Error retrieving URL #{@url}: #{e.message}"
+      raise SkipElementError.new("Error retrieving URL #{@url}: #{e.message}", :resource)
     end
 
     @image_data = process_image(@image, width, height, preserve_aspect_ratio)
@@ -106,7 +106,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       raise_invalid_image_type
     end
   rescue Prawn::SVG::Document::InvalidSVGData
-    raise_invalid_image_type
+    raise SkipElementError.new('image tag references SVG data which could not be parsed', :resource)
   end
 
   def extract_fragment(url)
@@ -172,6 +172,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   end
 
   def raise_invalid_image_type
-    raise SkipElementError, 'Unsupported image type supplied to image tag'
+    raise SkipElementError.new('Unsupported image type supplied to image tag', :unsupported)
   end
 end

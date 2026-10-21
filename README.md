@@ -34,7 +34,8 @@ Option      | Data type | Description
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
-:log_warnings | boolean | If true, warnings that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  Defaults to false.
+:log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
+:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category (`:unsupported`, `:invalid`, `:resource`) or array of categories, only issues in those categories raise.  Note the SVG will already have been drawn into the PDF.  Defaults to false.
 
 ## Examples
 
@@ -47,8 +48,12 @@ Option      | Data type | Description
 
   # Render the logo at the current Y cursor position, and serve file: links relative to its directory
   root_path = "/apps/myapp/current/images"
-  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_warnings: true
+  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_issues: true
 ```
+
+`svg` returns a hash with `:width`, `:height` and `:issues`, an array of `Prawn::SVG::Issue` objects with a `category` and `message`.
+Categories are `:unsupported` (something in the SVG was ignored), `:invalid` (the SVG is malformed), and `:resource` (an external resource or font couldn't be loaded).
+`:warnings` contains just the issue messages, for backwards compatibility.
 
 ## Supported features
 

@@ -13,7 +13,7 @@ class Prawn::SVG::Elements::Mask < Prawn::SVG::Elements::Base
     content_units = attributes['maskContentUnits'] || 'userSpaceOnUse'
 
     if content_units == 'objectBoundingBox' && bbox.nil?
-      document.warnings << 'mask with maskContentUnits="objectBoundingBox" requires element to have a bounding box'
+      document.add_issue(:unsupported, 'mask with maskContentUnits="objectBoundingBox" requires element to have a bounding box')
       return []
     end
 

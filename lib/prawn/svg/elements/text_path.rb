@@ -3,13 +3,13 @@ module Prawn::SVG
     def parse
       href = href_attribute
       unless href&.start_with?('#')
-        warnings << '<textPath> must reference a path element'
+        add_issue(:invalid, '<textPath> must reference a path element')
         raise SkipElementQuietly
       end
 
       @path_element = document.elements_by_id[href[1..]]
       unless @path_element.is_a?(Elements::Path)
-        warnings << "<textPath> reference '#{href}' is not a path element"
+        add_issue(:invalid, "<textPath> reference '#{href}' is not a path element")
         raise SkipElementQuietly
       end
 

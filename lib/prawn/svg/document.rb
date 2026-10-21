@@ -10,8 +10,8 @@ class Prawn::SVG::Document
     attr_accessor :enable_web_requests_warned
   end
 
-  # An +Array+ of warnings that occurred while parsing the SVG data.
-  attr_reader :warnings
+  # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
+  attr_reader :issues
 
   attr_reader :root,
     :sizing,
@@ -30,7 +30,7 @@ class Prawn::SVG::Document
       raise_parse_error(data, e.message)
     end
 
-    @warnings = []
+    @issues = []
     @options = options
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
@@ -59,11 +59,20 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, warnings: warnings)
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, issues: issues)
     @element_styles = stylesheets.load
     process_font_face_rules(stylesheets.font_face_rules)
 
     yield self if block_given?
+  end
+
+  def add_issue(category, message)
+    issues << Prawn::SVG::Issue.new(category, message)
+  end
+
+  # Retained for backwards compatibility; use #issues instead.
+  def warnings
+    issues.map(&:message).freeze
   end
 
   def calculate_sizing(requested_width: nil, requested_height: nil)
@@ -137,7 +146,7 @@ class Prawn::SVG::Document
     font_registry.register_font_face(family, weight, style, stretch, tempfile.path)
     true
   rescue Prawn::SVG::UrlLoader::Error => e
-    warnings << "Failed to load @font-face font from #{source[:url]}: #{e.message}"
+    add_issue(:resource, "Failed to load @font-face font from #{source[:url]}: #{e.message}")
     false
   end
 
