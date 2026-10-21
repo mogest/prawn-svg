@@ -95,6 +95,13 @@ describe 'Integration test' do
   describe 'sample file rendering' do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
+    expected_issues = {
+      'cap_styles.svg'    => ["Unsupported value 'invalid' for property 'stroke-linecap' on <line>"],
+      'default_color.svg' => ["Unsupported value 'gren' for property 'fill' on <rect>"] * 2,
+      'gistfile1.svg'     => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
+      'google_charts.svg' => ["Unsupported property 'overflow-x' on <svg>", "Unsupported property 'overflow-y' on <svg>"]
+    }
+
     let(:ttf_directory) { Pathname.new(__dir__).join('sample_ttf') }
     let(:noto_sans_ttf) { ttf_directory.join('NotoSansJP-Regular.ttf') }
 
@@ -138,7 +145,7 @@ describe 'Integration test' do
             (w =~ /Verdana/ && w =~ /is not a known font/) || w =~ /(render gradients$|waiting on the Prawn project)/
           end
         end
-        warnings.should == []
+        expect(warnings).to eq expected_issues.fetch(File.basename(file), [])
       end
     end
   end

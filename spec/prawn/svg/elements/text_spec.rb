@@ -802,6 +802,17 @@ describe Prawn::SVG::Elements::Text do
       end
     end
 
+    context 'with the SVG 1.1 value tb-rl' do
+      let(:svg) { '<text writing-mode="tb-rl" x="50" y="100">Vertical</text>' }
+
+      it 'rotates the text 90 degrees clockwise' do
+        expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        process_and_render
+      end
+    end
+
     context 'with horizontal-tb (default)' do
       let(:svg) { '<text x="50" y="100">Horizontal</text>' }
 

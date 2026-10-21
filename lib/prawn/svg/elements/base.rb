@@ -233,34 +233,46 @@ class Prawn::SVG::Elements::Base
 
     # Apply presentation attributes, and set attributes that aren't presentation attributes
     source.attributes.each do |name, value|
-      # Properties#set returns nil if it's not a recognised property name
-      @properties.set(name, value) or @attributes[name] = value
-    end
-
-    # Apply stylesheet styles
-    if (styles = document.element_styles[source])
-      styles.each do |name, value, important|
-        @properties.set(name, value, important: important)
+      if Prawn::SVG::Properties.known?(name)
+        set_property(name, value)
+      else
+        @attributes[name] = value
       end
     end
 
+    # Apply stylesheet styles
+    document.element_styles[source]&.each do |name, value, important|
+      set_property(name, value, important: important)
+    end
+
     # Apply inline styles
-    @properties.load_hash(parse_css_declarations(source.attributes['style'] || ''))
+    parse_css_declarations(source.attributes['style'] || '').each do |name, value, important|
+      set_property(name, value, important: important)
+    end
 
     state.computed_properties.compute_properties(@properties)
   end
 
-  def parse_css_declarations(declarations)
-    # copied from css_parser
-    declarations
-      .gsub(/(^\s*)|(\s*$)/, '')
-      .split(/[;$]+/m)
-      .each_with_object({}) do |decs, output|
-        if (matches = decs.match(/\s*(.[^:]*)\s*:\s*(.[^;]*)\s*(;|\Z)/i))
-          property, value, = matches.captures
-          output[property.downcase] = value
-        end
+  def set_property(property, value, important: false)
+    @properties.set(property, value, important: important).tap do |result|
+      case result
+      when nil
+        add_issue(:unsupported, "Unsupported property '#{property}' on <#{name}>") unless Prawn::SVG::Properties.ignored?(property, value)
+      when false
+        add_issue(:unsupported, "Unsupported value '#{value.strip}' for property '#{property}' on <#{name}>")
       end
+    end
+  end
+
+  def parse_css_declarations(declarations)
+    declarations.scan(/(?:"[^"]*"|'[^']*'|\([^)]*\)|[^;"'(])+/).filter_map do |declaration|
+      property, value = declaration.split(':', 2)
+      property = property.strip.downcase
+      next if value.nil? || property.empty?
+
+      important = value.sub!(/!\s*important\s*\z/i, '')
+      [property, value.strip, !important.nil?]
+    end
   end
 
   def require_attributes(*names)

@@ -197,4 +197,73 @@ describe Prawn::SVG::Elements::Base do
       expect(fill_colors).to eq ['000000', 'ff0000', '008000', 'ffff00']
     end
   end
+
+  describe 'inline styles' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <style>rect { fill: red !important; }</style>
+        <rect width="10" height="10" style=" Fill : blue ;stroke:green !important;stroke: red"></rect>
+      </svg>
+    SVG
+
+    it 'parses declarations with whitespace and !important' do
+      rect = Prawn::SVG::Elements::Base.new(document, document.root.elements['rect'], [], fake_state)
+      rect.process
+      expect(document.issues).to be_empty
+      expect(rect.properties.fill).to eq Prawn::SVG::Paint.parse('red')
+      expect(rect.properties.stroke).to eq Prawn::SVG::Paint.parse('green')
+    end
+
+    it 'splits declarations on semicolons outside quotes and brackets, skipping empty ones' do
+      expect(element.send(:parse_css_declarations, %{;; : x; fill:; mask: url("a;b"); clip-path: url(data:x;y); font: 12px 'A;B' ! IMPORTANT})).to eq [
+        ['fill', '', false],
+        ['mask', 'url("a;b")', false],
+        ['clip-path', 'url(data:x;y)', false],
+        ['font', "12px 'A;B'", true]
+      ]
+    end
+  end
+
+  describe 'property issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <style>
+          rect { filter: blur(2px); stroke: nope; cursor: pointer; -webkit-font-smoothing: auto; }
+        </style>
+        <rect width="100" height="100" fill="gren" stroke-linecap="round" data-x="1" style="paint-order: stroke; fill-opacity: lots; --var: 1; pointer-events: none"></rect>
+        <title style="paint-order: stroke"></title>
+      </svg>
+    SVG
+
+    it 'adds an issue for each unsupported property or value, except ones that have no effect or are vendor-prefixed' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'gren' for property 'fill' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'nope' for property 'stroke' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'lots' for property 'fill-opacity' on <rect>")
+      ]
+    end
+
+    context 'on a text element' do
+      let(:svg) { '<svg><text style="paint-order: stroke">hello</text></svg>' }
+      let(:document) do
+        Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+          font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+      end
+
+      it 'adds the issue once' do
+        Prawn::SVG::Elements::Root.new(document, document.root, []).process
+        expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <text>")]
+      end
+    end
+
+    it 'does not treat a presentation attribute with a rejected value as a plain attribute' do
+      rect = Prawn::SVG::Elements::Base.new(document, document.root.elements['rect'], [], fake_state)
+      rect.process
+      expect(rect.attributes.keys).to eq ['width', 'height', 'data-x', 'style']
+    end
+  end
 end
