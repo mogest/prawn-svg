@@ -29,8 +29,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     height = y_pixels(attributes['height'])
     preserve_aspect_ratio = attributes['preserveAspectRatio']
 
-    raise SkipElementQuietly if width.zero? || height.zero?
-
     require_positive_value width, height
 
     @image = begin

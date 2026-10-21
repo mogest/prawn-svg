@@ -312,10 +312,13 @@ class Prawn::SVG::Elements::Base
     end
   end
 
+  # A zero size is valid and disables rendering of the element
   def require_positive_value(*args)
-    if args.any? { |arg| arg.nil? || arg <= 0 }
+    if args.any? { |arg| arg.nil? || arg.negative? }
       raise SkipElementError, "Invalid attributes on tag #{name}; skipping tag"
     end
+
+    raise SkipElementQuietly if args.any?(&:zero?)
   end
 
   def extract_element_from_url_id_reference(value, expected_type = nil)

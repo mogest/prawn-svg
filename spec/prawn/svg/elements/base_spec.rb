@@ -198,6 +198,17 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
+  describe 'zero and negative sizes' do
+    let(:svg) do
+      '<svg><rect width="0" height="10"/><circle r="0"/><ellipse rx="5" ry="0"/><rect width="-1" height="10"/></svg>'
+    end
+
+    it 'skips zero-sized shapes quietly, and reports negative sizes' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Invalid attributes on tag rect; skipping tag')]
+    end
+  end
+
   describe 'inline styles' do
     let(:svg) { <<-SVG }
       <svg>
