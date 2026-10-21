@@ -31,9 +31,8 @@ module Prawn::SVG::Calculators
       @output_width = Pixels::Measurement.to_pixels(@document_width || @requested_width, container_width)
       @output_height = Pixels::Measurement.to_pixels(@document_height || @requested_height, container_height)
 
-      if @view_box
-        values = @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
-        @x_offset, @y_offset, @viewport_width, @viewport_height = values.map(&:to_f)
+      if (view_box = parse_view_box)
+        @x_offset, @y_offset, @viewport_width, @viewport_height = view_box
 
         if @viewport_width.positive? && @viewport_height.positive?
           # If neither the width nor height was specified, use the entire width and the viewbox ratio
@@ -98,6 +97,13 @@ module Prawn::SVG::Calculators
 
     def requested_height=(value)
       @requested_height = value&.to_f
+    end
+
+    private
+
+    def parse_view_box
+      values = @view_box.to_s.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP).map { |value| Float(value, exception: false) }
+      values if values.length == 4 && values.all?
     end
   end
 end

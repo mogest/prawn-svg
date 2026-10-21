@@ -151,6 +151,20 @@ describe Prawn::SVG::Calculators::DocumentSizing do
           expect(sizing.output_height).to eq 800
         end
       end
+
+      ['0 0 100', '0 0 100 200 300', 'a b c d', '0 0 100px 200'].each do |view_box|
+        context "when the viewBox is '#{view_box}'" do
+          let(:attributes) { { 'viewBox' => view_box } }
+
+          it 'ignores it' do
+            sizing.calculate
+
+            expect(sizing.output_width).to eq 1200
+            expect(sizing.output_height).to eq 800
+            expect(sizing.x_scale).to eq 1
+          end
+        end
+      end
     end
   end
 end
