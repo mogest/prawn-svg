@@ -50,6 +50,28 @@ describe Prawn::SVG::Elements::Use do
     end
   end
 
+  describe 'local reference to symbol with an unusable width' do
+    let(:svg) do
+      <<~SVG
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs>
+            <symbol id="s1" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="blue"/>
+            </symbol>
+          </defs>
+          <use xlink:href="#s1" width="2no" height="50"/>
+        </svg>
+      SVG
+    end
+
+    before { element.process }
+
+    it 'reports the width once, and renders the symbol at full width' do
+      expect(document.warnings).to eq ["Unsupported value '2no' for attribute 'width' on <use>"]
+      expect(flattened_calls).to include ['fill_color', ['0000ff'], {}]
+    end
+  end
+
   describe 'missing local reference' do
     let(:svg) do
       <<~SVG

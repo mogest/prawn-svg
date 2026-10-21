@@ -37,8 +37,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     source = clone_element_source(referenced_element_source)
 
     if referenced_element_class == Prawn::SVG::Elements::Viewport
-      source.attributes['width'] = @width || '100%'
-      source.attributes['height'] = @height || '100%'
+      source.attributes['width'] = usable_length(@width) || '100%'
+      source.attributes['height'] = usable_length(@height) || '100%'
     end
 
     child = referenced_element_class.new(document, source, calls, state.dup)
@@ -48,6 +48,10 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   end
 
   private
+
+  def usable_length(value)
+    value if value && Prawn::SVG::AttributeValue.valid?(:length, value)
+  end
 
   def resolve_local_reference(id)
     referenced_element = @document.elements_by_id[id]
