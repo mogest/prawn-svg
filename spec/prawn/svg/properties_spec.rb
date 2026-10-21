@@ -212,23 +212,27 @@ RSpec.describe Prawn::SVG::Properties do
     end
   end
 
-  describe '.ignored?' do
-    it 'is true for properties with no effect, vendor-prefixed properties and custom properties' do
-      expect(described_class.ignored?('cursor', 'pointer')).to be true
-      expect(described_class.ignored?('-inkscape-font-specification', 'Sans')).to be true
-      expect(described_class.ignored?('--colour', 'red')).to be true
-      expect(described_class.ignored?('margin-top', '1px')).to be true
-      expect(described_class.ignored?('transition-duration', '1s')).to be true
+  describe '.issue_category' do
+    it 'is nil for properties with no effect, vendor-prefixed properties and custom properties' do
+      expect(described_class.issue_category('cursor', 'pointer')).to be nil
+      expect(described_class.issue_category('-inkscape-font-specification', 'Sans')).to be nil
+      expect(described_class.issue_category('--colour', 'red')).to be nil
+      expect(described_class.issue_category('margin-top', '1px')).to be nil
+      expect(described_class.issue_category('transition-duration', '1s')).to be nil
     end
 
-    it 'is true for values with no effect' do
-      expect(described_class.ignored?('mix-blend-mode', ' Normal ')).to be true
-      expect(described_class.ignored?('mix-blend-mode', 'multiply')).to be false
-      expect(described_class.ignored?('paint-order', 'fill  stroke')).to be true
+    it 'is nil for unsupported properties with values that have no effect' do
+      expect(described_class.issue_category('mix-blend-mode', ' Normal ')).to be nil
+      expect(described_class.issue_category('paint-order', 'fill  stroke')).to be nil
     end
 
-    it 'is false for other properties' do
-      expect(described_class.ignored?('filter', 'blur(2px)')).to be false
+    it 'is :unsupported for other values of unsupported properties' do
+      expect(described_class.issue_category('mix-blend-mode', 'multiply')).to eq :unsupported
+      expect(described_class.issue_category('filter', 'blur(2px)')).to eq :unsupported
+    end
+
+    it 'is :unknown for anything else' do
+      expect(described_class.issue_category('zIndex', '1')).to eq :unknown
     end
   end
 

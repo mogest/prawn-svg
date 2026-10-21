@@ -1,5 +1,5 @@
 module Prawn::SVG
-  # +category+ is one of :unsupported, :invalid or :resource
+  # +category+ is one of :unsupported, :unknown, :invalid or :resource
   Issue = Struct.new(:category, :message)
 
   class IssueError < StandardError

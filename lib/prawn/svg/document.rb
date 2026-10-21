@@ -31,6 +31,7 @@ class Prawn::SVG::Document
     end
 
     @issues = []
+    @issue_set = Set.new
     @options = options
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
@@ -67,7 +68,8 @@ class Prawn::SVG::Document
   end
 
   def add_issue(category, message)
-    issues << Prawn::SVG::Issue.new(category, message)
+    issue = Prawn::SVG::Issue.new(category, message)
+    issues << issue if @issue_set.add?(issue)
   end
 
   # Retained for backwards compatibility; use #issues instead.

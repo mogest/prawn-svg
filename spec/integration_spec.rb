@@ -96,10 +96,17 @@ describe 'Integration test' do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
     expected_issues = {
-      'cap_styles.svg'    => ["Unsupported value 'invalid' for property 'stroke-linecap' on <line>"],
-      'default_color.svg' => ["Unsupported value 'gren' for property 'fill' on <rect>"] * 2,
-      'gistfile1.svg'     => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
-      'google_charts.svg' => ["Unsupported property 'overflow-x' on <svg>", "Unsupported property 'overflow-y' on <svg>"]
+      'bad.svg'                => ["Unknown attribute 'lineHeight' on <text>"],
+      'cap_styles.svg'         => ["Unsupported value 'invalid' for property 'stroke-linecap' on <line>"],
+      'clip_path.svg'          => ["Unknown attribute 'viewPort' on <svg>"],
+      'default_color.svg'      => ["Unsupported value 'gren' for property 'fill' on <rect>"],
+      'gistfile1.svg'          => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
+      'google_charts.svg'      => ["Unsupported property 'overflow-x' on <svg>", "Unsupported property 'overflow-y' on <svg>"],
+      'gradient_transform.svg' => ["Unknown attribute 'xgradientTransform' on <linearGradient>"],
+      'highcharts.svg'         => ["Unknown attribute 'zIndex' on <g>", "Unknown attribute 'zIndex' on <text>", "Unknown attribute 'isShadow' on <rect>"],
+      'positioning.svg'        => ["Unknown attribute 'transform' on <tspan>"],
+      'subfamilies.svg'        => ["Unknown attribute 'r' on <rect>"],
+      'tspan04.svg'            => ["Unknown attribute 'width' on <text>"]
     }
 
     let(:ttf_directory) { Pathname.new(__dir__).join('sample_ttf') }

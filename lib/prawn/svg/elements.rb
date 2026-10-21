@@ -43,4 +43,62 @@ module Prawn::SVG::Elements
     mask:           Prawn::SVG::Elements::Mask,
     view:           Prawn::SVG::Elements::Ignored
   }.freeze
+
+  # Attributes supported on each element, excluding presentation attributes, which are handled by Properties.
+  # Namespaced attributes such as xlink:href are never reported, so aren't listed.
+  ATTRIBUTES = {
+    svg:            %w[x y width height viewBox preserveAspectRatio transform],
+    symbol:         %w[x y width height viewBox preserveAspectRatio],
+    g:              %w[transform],
+    defs:           %w[transform],
+    a:              %w[href transform],
+    switch:         %w[transform],
+    clipPath:       %w[clipPathUnits transform],
+    mask:           %w[x y width height maskUnits maskContentUnits],
+    marker:         %w[markerWidth markerHeight markerUnits orient refX refY viewBox preserveAspectRatio],
+    pattern:        %w[x y width height patternUnits patternContentUnits patternTransform viewBox preserveAspectRatio href],
+    linearGradient: %w[x1 y1 x2 y2 gradientUnits gradientTransform spreadMethod href],
+    radialGradient: %w[cx cy r fx fy fr gradientUnits gradientTransform spreadMethod href],
+    stop:           %w[offset],
+    text:           %w[x y dx dy rotate textLength lengthAdjust transform],
+    tspan:          %w[x y dx dy rotate textLength lengthAdjust],
+    tref:           %w[x y dx dy rotate textLength lengthAdjust href],
+    textPath:       %w[startOffset textLength lengthAdjust href],
+    line:           %w[x1 y1 x2 y2 transform],
+    polyline:       %w[points transform],
+    polygon:        %w[points transform],
+    circle:         %w[cx cy r transform],
+    ellipse:        %w[cx cy rx ry transform],
+    rect:           %w[x y width height rx ry transform],
+    path:           %w[d transform],
+    use:            %w[x y width height href transform],
+    image:          %w[x y width height preserveAspectRatio href transform]
+  }.freeze
+
+  GLOBAL_ATTRIBUTES = %w[id class style].freeze
+
+  # Attributes that are valid but have no effect on a static rendering
+  NO_EFFECT_ATTRIBUTES = %w[
+    version baseProfile lang role tabindex focusable autofocus nonce target requiredFeatures
+    contentScriptType contentStyleType zoomAndPan externalResourcesRequired
+    crossorigin decoding rel download hreflang type referrerpolicy ping
+  ].freeze
+
+  # 'on' covers event handlers
+  NO_EFFECT_ATTRIBUTE_PREFIXES = %w[xmlns data- aria- on].freeze
+
+  # Valid attributes that prawn-svg doesn't support
+  UNSUPPORTED_ATTRIBUTES = {
+    path:     %w[pathLength],
+    rect:     %w[pathLength],
+    circle:   %w[pathLength],
+    ellipse:  %w[pathLength],
+    line:     %w[pathLength],
+    polyline: %w[pathLength],
+    polygon:  %w[pathLength],
+    textPath: %w[method spacing side path]
+  }.freeze
+
+  # Only evaluated by <switch>, on its children
+  CONDITIONAL_ATTRIBUTES = %w[systemLanguage requiredExtensions].freeze
 end

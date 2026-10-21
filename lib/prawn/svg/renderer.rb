@@ -188,8 +188,7 @@ module Prawn
           sub_options = inheritable_options.merge({ at: [0, 0] })
 
           Renderer.new(prawn, sub_document, sub_options).draw
-          document.issues.concat(sub_document.issues)
-          sub_document.issues.clear
+          sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 
         when 'soft_mask'

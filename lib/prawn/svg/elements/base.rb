@@ -237,6 +237,9 @@ class Prawn::SVG::Elements::Base
         set_property(name, value)
       else
         @attributes[name] = value
+        if (category = attribute_issue_category(name, value))
+          add_source_issue(category, "#{category.to_s.capitalize} attribute '#{name}' on <#{self.name}>")
+        end
       end
     end
 
@@ -257,11 +260,38 @@ class Prawn::SVG::Elements::Base
     @properties.set(property, value, important: important).tap do |result|
       case result
       when nil
-        add_issue(:unsupported, "Unsupported property '#{property}' on <#{name}>") unless Prawn::SVG::Properties.ignored?(property, value)
+        if (category = Prawn::SVG::Properties.issue_category(property, value))
+          add_source_issue(category, "#{category.to_s.capitalize} property '#{property}' on <#{name}>")
+        end
       when false
-        add_issue(:unsupported, "Unsupported value '#{value.strip}' for property '#{property}' on <#{name}>")
+        add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for property '#{property}' on <#{name}>")
       end
     end
+  end
+
+  def attribute_issue_category(attribute, value)
+    elements = Prawn::SVG::Elements
+    supported = elements::ATTRIBUTES[name.to_sym] or return
+    in_switch = source.parent&.name == 'switch'
+
+    return if supported.include?(attribute) ||
+              elements::GLOBAL_ATTRIBUTES.include?(attribute) ||
+              elements::NO_EFFECT_ATTRIBUTES.include?(attribute) ||
+              attribute.start_with?(*elements::NO_EFFECT_ATTRIBUTE_PREFIXES) ||
+              attribute.include?(':') ||
+              (in_switch && elements::CONDITIONAL_ATTRIBUTES.include?(attribute))
+
+    if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute) || elements::CONDITIONAL_ATTRIBUTES.include?(attribute)
+      :unsupported
+    elsif Prawn::SVG::Properties::OTHER_PRESENTATION_ATTRIBUTES.include?(attribute)
+      Prawn::SVG::Properties.issue_category(attribute, value)
+    else
+      :unknown
+    end
+  end
+
+  def add_source_issue(category, message)
+    add_issue(category, message)
   end
 
   def parse_css_declarations(declarations)

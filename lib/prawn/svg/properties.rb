@@ -88,42 +88,66 @@ module Prawn::SVG
       max-width max-height min-width min-height color-scheme isolation z-index
     ].freeze
 
-    # Values of unsupported properties that leave a static rendering unchanged
-    NO_EFFECT_VALUES = {
-      'background'              => %w[none transparent],
-      'background-color'        => %w[transparent],
-      'clip'                    => %w[auto],
-      'direction'               => %w[ltr],
-      'filter'                  => %w[none],
-      'font-feature-settings'   => %w[normal],
-      'font-optical-sizing'     => %w[auto],
-      'font-size-adjust'        => %w[none],
-      'font-variant-alternates' => %w[normal],
-      'font-variant-caps'       => %w[normal],
-      'font-variant-east-asian' => %w[normal],
-      'font-variant-ligatures'  => %w[normal],
-      'font-variant-numeric'    => %w[normal],
-      'font-variant-position'   => %w[normal],
-      'font-variation-settings' => %w[normal],
-      'height'                  => %w[auto],
-      'image-rendering'         => %w[auto optimizequality],
-      'inline-size'             => %w[auto 0 0px],
-      'mask-type'               => %w[luminance],
-      'mix-blend-mode'          => %w[normal],
-      'paint-order'             => ['normal', 'fill', 'fill stroke', 'fill stroke markers'],
-      'shape-inside'            => %w[none],
-      'outline'                 => %w[none 0],
-      'shape-margin'            => %w[0 0px],
-      'text-decoration-line'    => %w[none],
-      'text-decoration-style'   => %w[solid],
-      'text-orientation'        => %w[mixed],
-      'text-transform'          => %w[none],
-      'transform'               => %w[none],
-      'vector-effect'           => %w[none],
-      'vertical-align'          => %w[baseline],
-      'white-space'             => %w[normal nowrap],
-      'width'                   => %w[auto]
+    # Valid properties that prawn-svg doesn't support, mapped to any values that leave a static rendering unchanged
+    UNSUPPORTED = {
+      'background'                   => %w[none transparent],
+      'background-color'             => %w[transparent],
+      'clip'                         => %w[auto],
+      'direction'                    => %w[ltr],
+      'filter'                       => %w[none],
+      'font-feature-settings'        => %w[normal],
+      'font-optical-sizing'          => %w[auto],
+      'font-synthesis'               => [],
+      'font-size-adjust'             => %w[none],
+      'font-variant-alternates'      => %w[normal],
+      'font-variant-caps'            => %w[normal],
+      'font-variant-east-asian'      => %w[normal],
+      'font-variant-ligatures'       => %w[normal],
+      'font-variant-numeric'         => %w[normal],
+      'font-variant-position'        => %w[normal],
+      'font-variation-settings'      => %w[normal],
+      'glyph-orientation-horizontal' => %w[0 0deg],
+      'glyph-orientation-vertical'   => %w[auto],
+      'height'                       => %w[auto],
+      'image-rendering'              => %w[auto optimizequality],
+      'inline-size'                  => %w[auto 0 0px],
+      'mask-type'                    => %w[luminance],
+      'mix-blend-mode'               => %w[normal],
+      'paint-order'                  => ['normal', 'fill', 'fill stroke', 'fill stroke markers'],
+      'shape-inside'                 => %w[none],
+      'outline'                      => %w[none 0],
+      'overflow-x'                   => [],
+      'overflow-y'                   => [],
+      'shape-margin'                 => %w[0 0px],
+      'text-decoration-line'         => %w[none],
+      'text-decoration-style'        => %w[solid],
+      'text-orientation'             => %w[mixed],
+      'text-transform'               => %w[none],
+      'transform'                    => %w[none],
+      'transform-box'                => [],
+      'transform-origin'             => [],
+      'unicode-bidi'                 => %w[normal],
+      'vector-effect'                => %w[none],
+      'vertical-align'               => %w[baseline],
+      'white-space'                  => %w[normal nowrap],
+      'width'                        => %w[auto],
+      'x'                            => [],
+      'y'                            => [],
+      'r'                            => [],
+      'rx'                           => %w[auto],
+      'ry'                           => %w[auto],
+      'cx'                           => [],
+      'cy'                           => [],
+      'd'                            => []
     }.freeze
+
+    # Presentation attributes for properties that aren't in PROPERTIES
+    OTHER_PRESENTATION_ATTRIBUTES = %w[
+      clip color-interpolation color-interpolation-filters color-profile color-rendering cursor direction
+      enable-background filter flood-color flood-opacity font-size-adjust glyph-orientation-horizontal
+      glyph-orientation-vertical image-rendering lighting-color mask-type paint-order pointer-events shape-rendering
+      text-overflow text-rendering transform-origin unicode-bidi vector-effect white-space
+    ].freeze
 
     # '-' covers vendor-prefixed and custom properties
     NO_EFFECT_PREFIXES = %w[- margin padding transition].freeze
@@ -153,10 +177,13 @@ module Prawn::SVG
       PROPERTIES.key?(name) || SHORTHANDS.include?(name)
     end
 
-    def self.ignored?(name, value)
-      name = name.to_s.downcase
-      name.start_with?(*NO_EFFECT_PREFIXES) || NO_EFFECT.include?(name) ||
-        NO_EFFECT_VALUES.fetch(name, []).include?(value.strip.downcase.squeeze(' '))
+    # The issue category for a property that Properties doesn't know: nil if it has no effect,
+    # :unsupported if it's valid but unsupported, otherwise :unknown.
+    def self.issue_category(name, value)
+      return if name.start_with?(*NO_EFFECT_PREFIXES) || NO_EFFECT.include?(name)
+      return :unknown unless (no_effect_values = UNSUPPORTED[name])
+
+      :unsupported unless no_effect_values.include?(value.strip.downcase.squeeze(' '))
     end
 
     # Returns true if the value was accepted, false if it was rejected, or nil if the property is not known.

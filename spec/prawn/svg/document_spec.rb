@@ -254,4 +254,15 @@ describe Prawn::SVG::Document do
       end
     end
   end
+
+  describe '#add_issue' do
+    subject { Prawn::SVG::Document.new('<svg></svg>', bounds, options) }
+
+    it 'records each distinct issue once' do
+      subject.add_issue(:unknown, 'a')
+      subject.add_issue(:unknown, 'a')
+      subject.add_issue(:unsupported, 'a')
+      expect(subject.issues).to eq [Prawn::SVG::Issue.new(:unknown, 'a'), Prawn::SVG::Issue.new(:unsupported, 'a')]
+    end
+  end
 end

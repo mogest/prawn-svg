@@ -117,9 +117,9 @@ describe Prawn::SVG::Interface do
         SVG
       end
 
-      it 'records the image issues once per draw' do
+      it 'records the image issues once' do
         result = Prawn::Document.new.svg(svg, enable_web_requests: false)
-        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unsupported, "Unknown tag 'foo'; ignoring")] * 2
+        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unsupported, "Unknown tag 'foo'; ignoring")]
       end
     end
 

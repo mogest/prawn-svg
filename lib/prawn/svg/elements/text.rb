@@ -36,10 +36,8 @@ module Prawn::SVG
 
     private
 
-    # The root text component processes the same source element and reports any property issues
-    def set_property(property, value, important: false)
-      properties.set(property, value, important: important)
-    end
+    # The root text component processes the same source element and reports its issues
+    def add_source_issue(category, message); end
 
     def vertical_writing_mode?
       wm = @root_component.computed_properties.writing_mode

@@ -35,7 +35,7 @@ Option      | Data type | Description
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
 :log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
-:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category (`:unsupported`, `:invalid`, `:resource`) or array of categories, only issues in those categories raise.  Note the SVG will already have been drawn into the PDF.  Defaults to false.
+:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise.  See [Issues](#issues).  Defaults to false.
 
 ## Examples
 
@@ -51,9 +51,38 @@ Option      | Data type | Description
   svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_issues: true
 ```
 
-`svg` returns a hash with `:width`, `:height` and `:issues`, an array of `Prawn::SVG::Issue` objects with a `category` and `message`.
-Categories are `:unsupported` (something in the SVG was ignored), `:invalid` (the SVG is malformed), and `:resource` (an external resource or font couldn't be loaded).
-`:warnings` contains just the issue messages, for backwards compatibility.
+## Issues
+
+When prawn-svg can't render part of an SVG as a browser would, it records an issue and carries on.
+`svg` returns them as `Prawn::SVG::Issue` objects, along with the rendered size:
+
+```ruby
+  result = svg IO.read("drawing.svg")
+  result[:issues].each { |issue| puts "#{issue.category}: #{issue.message}" }
+```
+
+Category | Meaning
+-------- | -------
+:unsupported | A valid SVG or CSS feature that prawn-svg ignores, so the output may differ from a browser's.  For example, `filter` or `pathLength`.  Property values prawn-svg can't use are also reported here, since it can't tell an unsupported value from an invalid one.
+:unknown | An attribute or property prawn-svg doesn't recognise.  Usually specific to the program that generated the SVG, or not valid on that element, and ignored by browsers too.  For example, Highcharts' `zIndex`.
+:invalid | The SVG is malformed, such as bad path data, a missing required attribute, or a reference to an element that doesn't exist.
+:resource | An image, font, stylesheet or external SVG couldn't be loaded.
+
+Attributes and properties with no effect on a static rendering, such as `cursor`, `data-*`, or editor namespaces like `inkscape:`, aren't reported.
+
+Use `raise_on_issue` to make issues fatal:
+
+```ruby
+  # Reject any SVG that prawn-svg doesn't completely understand
+  svg data, raise_on_issue: true
+
+  # Only reject SVGs that won't render as they would in a browser
+  svg data, raise_on_issue: [:unsupported, :invalid, :resource]
+```
+
+`Prawn::SVG::IssueError#issues` lists the issues that caused the error.  The SVG has already been drawn into the PDF by the time it's raised.
+
+The return value also contains `:warnings`, the issue messages only, for backwards compatibility.
 
 ## Supported features
 

@@ -224,13 +224,47 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
+  describe 'attribute issues' do
+    let(:svg) { <<-SVG }
+      <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+        <rect width="10" height="10" pathLength="5" zIndex="1" r="2" data-x="1" inkscape:label="a" onclick="x()"
+          role="img" version="1.1" aria-label="x" filter="url(#f)" vector-effect="none" clip="auto" systemLanguage="en"
+          Width="5" mix-blend-mode="multiply"></rect>
+        <switch><rect width="10" height="10" systemLanguage="en"></rect></switch>
+        <text x="0" y="10" zIndex="1"><tspan transform="scale(2)">hello</tspan><textPath side="right">x</textPath></text>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'adds unsupported and unknown issues, ignoring attributes with no effect' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'pathLength' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'r' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'systemLanguage' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'Width' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'mix-blend-mode' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <text>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'transform' on <tspan>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'side' on <textPath>"),
+        Prawn::SVG::Issue.new(:invalid, '<textPath> must reference a path element')
+      ]
+    end
+  end
+
   describe 'property issues' do
     let(:svg) { <<-SVG }
       <svg>
         <style>
           rect { filter: blur(2px); stroke: nope; cursor: pointer; -webkit-font-smoothing: auto; }
         </style>
-        <rect width="100" height="100" fill="gren" stroke-linecap="round" data-x="1" style="paint-order: stroke; fill-opacity: lots; --var: 1; pointer-events: none"></rect>
+        <rect width="100" height="100" fill="gren" stroke-linecap="round" data-x="1" style="paint-order: stroke; fill-opacity: lots; --var: 1; pointer-events: none; zindex: 1"></rect>
         <title style="paint-order: stroke"></title>
       </svg>
     SVG
@@ -243,7 +277,8 @@ describe Prawn::SVG::Elements::Base do
         Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'nope' for property 'stroke' on <rect>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'lots' for property 'fill-opacity' on <rect>")
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'lots' for property 'fill-opacity' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown property 'zindex' on <rect>")
       ]
     end
 
