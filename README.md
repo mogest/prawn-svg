@@ -35,7 +35,7 @@ Option      | Data type | Description
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
 :log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
-:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise.  See [Issues](#issues).  Defaults to false.
+:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See [Issues](#issues).  Defaults to false.
 
 ## Examples
 
@@ -64,7 +64,7 @@ When prawn-svg can't render part of an SVG as a browser would, it records an iss
 Category | Meaning
 -------- | -------
 :unsupported | A valid SVG or CSS feature that prawn-svg ignores, so the output may differ from a browser's.  For example, `filter` or `pathLength`.  Property and attribute values prawn-svg can't use are also reported here, since it can't tell an unsupported value from an invalid one.
-:unknown | An attribute or property prawn-svg doesn't recognise.  Usually specific to the program that generated the SVG, or not valid on that element, and ignored by browsers too.  For example, Highcharts' `zIndex`.
+:unknown | An attribute or property prawn-svg doesn't recognise.  Usually specific to the program that generated the SVG, or not valid on that element, and ignored by browsers too.  For example, Highcharts' `zIndex`.  Unknown elements are currently reported as `:unsupported`.
 :invalid | The SVG is malformed, such as bad path data, a missing required attribute, or a reference to an element that doesn't exist.
 :resource | An image, font, stylesheet or external SVG couldn't be loaded.
 
@@ -171,7 +171,7 @@ the screen.
 
 prawn-svg does not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-writing-mode is partially supported: vertical-rl and vertical-lr rotate the text 90 degrees, which
+writing-mode is partially supported: vertical-rl and vertical-lr (and SVG 1.1's tb-rl and tb) rotate the text 90 degrees, which
 handles the common case of sideways Latin text.  CJK upright glyph orientation is not supported.
 
 direction and unicode-bidi are not supported.

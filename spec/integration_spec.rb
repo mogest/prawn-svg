@@ -129,7 +129,7 @@ describe 'Integration test' do
     end
 
     files.each do |file|
-      it "renders the #{File.basename file} sample file without warnings or crashing" do
+      it "renders the #{File.basename file} sample file with only the expected issues" do
         expect(Net::HTTP).to_not receive(:get)
 
         warnings = nil

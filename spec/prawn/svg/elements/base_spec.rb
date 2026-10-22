@@ -237,8 +237,8 @@ describe Prawn::SVG::Elements::Base do
 
   describe 'attribute issues' do
     let(:svg) { <<-SVG }
-      <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
-        <rect width="10" height="10" pathLength="5" zIndex="1" r="2" data-x="1" inkscape:label="a" onclick="x()"
+      <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+        <rect width="10" height="10" pathLength="5" zIndex="1" r="2" data-x="1" inkscape:label="a" sodipodi:nodetypes="cc" xml:space="preserve" onclick="x()"
           role="img" version="1.1" aria-label="x" filter="url(#f)" vector-effect="none" clip="auto" systemLanguage="en"
           Width="5" mix-blend-mode="multiply"></rect>
         <switch><rect width="10" height="10" systemLanguage="en"></rect></switch>

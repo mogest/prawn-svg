@@ -39,6 +39,12 @@ RSpec.describe Prawn::SVG::Properties do
       expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
     end
 
+    it 'accepts any CSS display value, treating everything but none as displayed' do
+      %w[block inline-block flex table-cell].each do |value|
+        expect(subject.set('display', value)).to be true
+      end
+    end
+
     it 'ignores invalid values, retaining any previously set value' do
       subject.set('display', 'invalid')
       expect(subject.display).to be nil
