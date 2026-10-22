@@ -237,6 +237,8 @@ RSpec.describe Prawn::SVG::Properties do
     it 'is :unsupported for other values of unsupported properties' do
       expect(described_class.issue_category('mix-blend-mode', 'multiply')).to eq :unsupported
       expect(described_class.issue_category('filter', 'blur(2px)')).to eq :unsupported
+      expect(described_class.issue_category('text-shadow', '1px 1px red')).to eq :unsupported
+      expect(described_class.issue_category('animation', 'spin 1s')).to eq :unsupported
     end
 
     it 'is :unknown for anything else' do

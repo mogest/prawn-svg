@@ -6,11 +6,15 @@ require 'prawn/svg/elements/call_duplicator'
 require 'prawn/svg/elements/bbox_scaling'
 
 %w[base direct_render_base root anchor container switch clip_path mask viewport text text_component text_node text_path line polyline polygon circle ellipse
-   rect path use image gradient pattern marker ignored].each do |filename|
+   rect path use image gradient pattern marker ignored unsupported].each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
 
 module Prawn::SVG::Elements
+  # Unsupported, and reported by their parent, as they can be children of shapes, which don't process their children.
+  # Not in TAG_CLASS_MAPPING, so <switch> doesn't select them.
+  REPORTED_BY_PARENT_ELEMENTS = %w[animate animateColor animateMotion animateTransform set script].freeze
+
   TAG_CLASS_MAPPING = {
     g:              Prawn::SVG::Elements::Container,
     symbol:         Prawn::SVG::Elements::Container,
@@ -37,9 +41,9 @@ module Prawn::SVG::Elements
     title:          Prawn::SVG::Elements::Ignored,
     desc:           Prawn::SVG::Elements::Ignored,
     metadata:       Prawn::SVG::Elements::Ignored,
-    foreignObject:  Prawn::SVG::Elements::Ignored,
+    foreignObject:  Prawn::SVG::Elements::Unsupported,
     'font-face':    Prawn::SVG::Elements::Ignored,
-    filter:         Prawn::SVG::Elements::Ignored, # unsupported
+    filter:         Prawn::SVG::Elements::Ignored, # the filter property is reported instead
     mask:           Prawn::SVG::Elements::Mask,
     view:           Prawn::SVG::Elements::Ignored
   }.freeze
@@ -121,6 +125,7 @@ module Prawn::SVG::Elements
     line:     %w[pathLength],
     polyline: %w[pathLength],
     polygon:  %w[pathLength],
+    symbol:   %w[refX refY],
     textPath: %w[method spacing side path]
   }.freeze
 

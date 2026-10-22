@@ -56,6 +56,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
+    report_unsupported_children
     extract_attributes_and_properties
     parse_and_apply
   end
@@ -151,8 +152,16 @@ class Prawn::SVG::Elements::Base
         child.process
 
         add_call 'restore'
-      else
-        @document.add_issue(:unsupported, "Unknown tag '#{elem.name}'; ignoring")
+      elsif !Prawn::SVG::Elements::REPORTED_BY_PARENT_ELEMENTS.include?(elem.name)
+        @document.add_issue(:unknown, "Unknown tag '#{elem.name}'; ignoring")
+      end
+    end
+  end
+
+  def report_unsupported_children
+    svg_child_elements.each do |elem|
+      if Prawn::SVG::Elements::REPORTED_BY_PARENT_ELEMENTS.include?(elem.name)
+        @document.add_issue(:unsupported, "Unsupported tag '#{elem.name}'; ignoring")
       end
     end
   end

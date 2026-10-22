@@ -90,6 +90,8 @@ module Prawn::SVG
 
     # Valid properties that prawn-svg doesn't support, mapped to any values that leave a static rendering unchanged
     UNSUPPORTED = {
+      'animation'                    => %w[none],
+      'animation-name'               => %w[none],
       'background'                   => %w[none transparent],
       'background-color'             => %w[transparent],
       'clip'                         => %w[auto],
@@ -122,6 +124,7 @@ module Prawn::SVG
       'text-decoration-line'         => %w[none],
       'text-decoration-style'        => %w[solid],
       'text-orientation'             => %w[mixed],
+      'text-shadow'                  => %w[none],
       'text-transform'               => %w[none],
       'transform'                    => %w[none],
       'transform-box'                => [],

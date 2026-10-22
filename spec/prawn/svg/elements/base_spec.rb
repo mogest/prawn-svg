@@ -269,6 +269,43 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
+  describe 'element issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <foo/>
+        <foreignObject/>
+        <script/>
+        <rect width="10" height="10"><animate/></rect>
+        <g><set/></g>
+        <text x="0" y="10">hi<animateColor/><a>x</a><bar/></text>
+        <switch><foreignObject requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><rect width="1" height="1"/></switch>
+        <symbol refX="1"/>
+        <switch><script/><rect id="fallback" width="1" height="1"/></switch>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'reports unknown tags as unknown, and SVG tags that prawn-svg ignores as unsupported' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.elements_by_id['fallback'].base_calls).not_to be_empty
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'script'; ignoring"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'foreignObject'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animate'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'set'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animateColor'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'a' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'bar' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'refX' on <symbol>")
+      ]
+    end
+  end
+
   describe 'attribute value issues' do
     let(:svg) { <<-SVG }
       <svg>

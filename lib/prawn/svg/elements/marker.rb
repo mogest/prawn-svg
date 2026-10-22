@@ -14,7 +14,11 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
     sizing.calculate
 
     if sizing.invalid?
-      document.add_issue(:invalid, '<marker> cannot be rendered due to negative sizing information') if sizing.negative?
+      if [attributes['markerWidth'], attributes['markerHeight']].any? { |value| value&.strip&.end_with?('%') && value.to_f.nonzero? }
+        document.add_issue(:unsupported, '<marker> with a percentage markerWidth or markerHeight is not supported')
+      elsif sizing.negative?
+        document.add_issue(:invalid, '<marker> cannot be rendered due to negative sizing information')
+      end
       return
     end
 

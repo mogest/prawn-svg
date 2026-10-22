@@ -59,7 +59,7 @@ module Prawn::SVG::TransformParser
         end
 
       else
-        add_issue(:unsupported, "Unknown/unsupported transformation '#{name}'; ignoring")
+        add_issue(:invalid, "Unknown transformation '#{name}'; ignoring")
       end
     end
 

@@ -113,6 +113,28 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     end
   end
 
+  describe 'percentage size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="10%"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'reports it as unsupported' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, '<marker> with a percentage markerWidth or markerHeight is not supported')]
+    end
+  end
+
+  describe 'zero percentage size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="0%"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'renders nothing without an issue' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to be_empty
+    end
+  end
+
   describe 'orient' do
     def rotation
       subject.process
