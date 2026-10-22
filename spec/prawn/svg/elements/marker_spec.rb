@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Prawn::SVG::Elements::Marker do
+  let(:orient) { 'auto' }
   let(:svg) do
     <<-SVG
       <svg>
@@ -8,7 +9,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
           viewBox="0 0 10 10" refX="0" refY="5"
           markerUnits="strokeWidth"
           markerWidth="4" markerHeight="3"
-          orient="auto">
+          orient="#{orient}">
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
 
@@ -86,6 +87,87 @@ RSpec.describe Prawn::SVG::Elements::Marker do
         ]],
         ['restore', [], {}, []]
       ]
+    end
+  end
+
+  describe 'zero size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="0"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'renders nothing without an issue' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(line_element.base_calls.map(&:first)).not_to include('save')
+      expect(document.issues).to be_empty
+    end
+  end
+
+  describe 'negative size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="-2"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'reports it' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<marker> cannot be rendered due to negative sizing information')]
+    end
+  end
+
+  describe 'percentage size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="10%"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'reports it as unsupported' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, '<marker> with a percentage markerWidth or markerHeight is not supported')]
+    end
+  end
+
+  describe 'zero percentage size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="0%"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'renders nothing without an issue' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to be_empty
+    end
+  end
+
+  describe 'orient' do
+    def rotation
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 45)
+      line_element.base_calls.find { |call| call.first == 'rotate' }&.dig(1, 0)
+    end
+
+    {
+      '30'                 => -30,
+      '30deg'              => -30,
+      '100grad'            => -90,
+      '0.5turn'            => nil,
+      '1rad'               => -180 / Math::PI,
+      'junk'               => nil,
+      'auto-start-reverse' => nil,
+      ' auto '             => -45
+    }.each do |value, expected|
+      context "with #{value}" do
+        let(:orient) { value }
+
+        it 'rotates by the angle' do
+          expect(rotation).to eq expected
+        end
+      end
+    end
+
+    context 'with auto' do
+      let(:orient) { 'auto' }
+
+      it 'uses the path angle' do
+        expect(rotation).to eq(-45)
+      end
     end
   end
 end

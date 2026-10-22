@@ -3,13 +3,13 @@ module Prawn::SVG
     def parse
       href = href_attribute
       unless href&.start_with?('#')
-        warnings << '<textPath> must reference a path element'
+        add_issue(:invalid, '<textPath> must reference a path element')
         raise SkipElementQuietly
       end
 
       @path_element = document.elements_by_id[href[1..]]
       unless @path_element.is_a?(Elements::Path)
-        warnings << "<textPath> reference '#{href}' is not a path element"
+        add_issue(:invalid, "<textPath> reference '#{href}' is not a path element")
         raise SkipElementQuietly
       end
 
@@ -140,11 +140,11 @@ module Prawn::SVG
     end
 
     def parse_start_offset
-      value = attributes['startOffset']
+      value = attributes['startOffset']&.strip
       return 0.0 unless value
 
-      if value.end_with?('%')
-        @path_length.total_length * value.to_f / 100.0
+      if (percentage = Percentage.parse(value))
+        @path_length.total_length * percentage.to_factor
       else
         x_pixels(value)
       end

@@ -1,7 +1,7 @@
 Prawn::SVG::Percentage = Struct.new(:value)
 
 class Prawn::SVG::Percentage
-  REGEXP = /\A([+-]?\d*(?:\.\d+)?)%\z/i.freeze
+  REGEXP = /\A([+-]?\d*(?:\.\d+)?(?:e[+-]?\d+)?)%\z/i.freeze
 
   def self.parse(value, positive_only: false)
     if (matches = value.match(REGEXP))

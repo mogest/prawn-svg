@@ -4,11 +4,15 @@ describe Prawn::SVG::Attributes::Transform do
   class TransformTestElement
     include Prawn::SVG::Attributes::Transform
 
-    attr_accessor :attributes, :warnings
+    attr_accessor :attributes, :issues
 
     def initialize
-      @warnings = []
+      @issues = []
       @attributes = {}
+    end
+
+    def add_issue(category, message)
+      issues << Prawn::SVG::Issue.new(category, message)
     end
 
     def transformable?

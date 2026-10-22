@@ -15,6 +15,26 @@ describe Prawn::SVG::Elements::Text do
     element.render(prawn, renderer)
   end
 
+  describe 'non-rendering children' do
+    let(:svg) { '<text>Hi<title>a</title><desc>b</desc><metadata/><tspan><title>c</title>there</tspan></text>' }
+
+    it 'ignores them without an issue' do
+      element.process
+      expect(document.issues).to be_empty
+    end
+  end
+
+  describe 'coordinate lists' do
+    let(:svg) { '<text x=" 10, 20 " y="  30">Hi</text>' }
+
+    it 'ignores surrounding whitespace' do
+      element.process
+      root = element.instance_variable_get(:@root_component)
+      expect(root.x_values).to eq [10.0, 20.0]
+      expect(root.y_values).to eq [570.0]
+    end
+  end
+
   describe 'basic text rendering' do
     let(:svg) { '<text>Hello World</text>' }
 
@@ -793,6 +813,17 @@ describe Prawn::SVG::Elements::Text do
 
     context 'with vertical-lr' do
       let(:svg) { '<text writing-mode="vertical-lr" x="50" y="100">Vertical</text>' }
+
+      it 'rotates the text 90 degrees clockwise' do
+        expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original
+        expect(prawn).to receive(:draw_text).with(anything, hash_including(:at)).and_call_original
+
+        process_and_render
+      end
+    end
+
+    context 'with the SVG 1.1 value tb-rl' do
+      let(:svg) { '<text writing-mode="tb-rl" x="50" y="100">Vertical</text>' }
 
       it 'rotates the text 90 degrees clockwise' do
         expect(prawn).to receive(:rotate).with(-90, origin: [50.0, 500.0]).and_call_original

@@ -25,8 +25,13 @@ module Prawn::SVG
       'clip-path'          => Config.new('none', false, ['none', :funciri]),
       'clip-rule'          => Config.new('nonzero', true, %w[nonzero evenodd]),
       'color'              => Config.new(Color.black, true, [:color]),
-      'display'            => Config.new('inline', false, %w[inline none]),
-      'dominant-baseline'  => Config.new('auto', true, %w[auto middle central hanging alphabetic text-before-edge text-after-edge]),
+      # Any display value other than none renders an SVG element the same way
+      'display'            => Config.new('inline', false, %w[
+                                           inline none block inline-block list-item run-in compact marker flow-root flex inline-flex grid inline-grid
+                                           table inline-table table-row-group table-header-group table-footer-group table-row table-column-group
+                                           table-column table-cell table-caption
+                                         ]),
+      'dominant-baseline'  => Config.new('auto', true, %w[auto middle central hanging alphabetic mathematical ideographic text-before-edge text-after-edge]),
       'fill'               => Config.new(Paint.black, true, [:paint]),
       'fill-opacity'       => Config.new(1.0, true, [:number]),
       'fill-rule'          => Config.new('nonzero', true, %w[nonzero evenodd]),
@@ -63,7 +68,7 @@ module Prawn::SVG
       'text-anchor'        => Config.new('start', true, %w[start middle end]),
       'text-decoration'    => Config.new('none', true, [:text_decoration]),
       'visibility'         => Config.new('visible', true, %w[visible hidden collapse]),
-      'writing-mode'       => Config.new('horizontal-tb', true, %w[horizontal-tb vertical-rl vertical-lr])
+      'writing-mode'       => Config.new('horizontal-tb', true, %w[horizontal-tb vertical-rl vertical-lr lr-tb lr rl-tb rl tb-rl tb])
     }.freeze
 
     PROPERTIES.each do |name, value|
@@ -71,6 +76,84 @@ module Prawn::SVG
       value.id = value.attr.to_sym
       value.ivar = "@#{value.attr}"
     end
+
+    SHORTHANDS = %w[font marker].freeze
+
+    # Properties that are valid but have no effect on a static rendering
+    NO_EFFECT = %w[
+      cursor pointer-events user-select shape-rendering text-rendering color-rendering
+      color-interpolation color-interpolation-filters color-profile enable-background line-height position
+      solid-color solid-opacity block-progression shape-padding flood-color flood-opacity lighting-color box-sizing
+      will-change touch-action caret-color text-align text-indent text-decoration-color text-overflow
+      max-width max-height min-width min-height color-scheme isolation z-index
+    ].freeze
+
+    # Valid properties that prawn-svg doesn't support, mapped to any values that leave a static rendering unchanged
+    UNSUPPORTED = {
+      'animation'                    => %w[none],
+      'animation-name'               => %w[none],
+      'background'                   => %w[none transparent],
+      'background-color'             => %w[transparent],
+      'clip'                         => %w[auto],
+      'direction'                    => %w[ltr],
+      'filter'                       => %w[none],
+      'font-feature-settings'        => %w[normal],
+      'font-optical-sizing'          => %w[auto],
+      'font-synthesis'               => [],
+      'font-size-adjust'             => %w[none],
+      'font-variant-alternates'      => %w[normal],
+      'font-variant-caps'            => %w[normal],
+      'font-variant-east-asian'      => %w[normal],
+      'font-variant-ligatures'       => %w[normal],
+      'font-variant-numeric'         => %w[normal],
+      'font-variant-position'        => %w[normal],
+      'font-variation-settings'      => %w[normal],
+      'glyph-orientation-horizontal' => %w[0 0deg],
+      'glyph-orientation-vertical'   => %w[auto],
+      'height'                       => %w[auto],
+      'image-rendering'              => %w[auto optimizequality],
+      'inline-size'                  => %w[auto 0 0px],
+      'mask-type'                    => %w[luminance],
+      'mix-blend-mode'               => %w[normal],
+      'paint-order'                  => ['normal', 'fill', 'fill stroke', 'fill stroke markers'],
+      'shape-inside'                 => %w[none],
+      'outline'                      => %w[none 0],
+      'overflow-x'                   => %w[hidden],
+      'overflow-y'                   => %w[hidden],
+      'shape-margin'                 => %w[0 0px],
+      'text-decoration-line'         => %w[none],
+      'text-decoration-style'        => %w[solid],
+      'text-orientation'             => %w[mixed],
+      'text-shadow'                  => %w[none],
+      'text-transform'               => %w[none],
+      'transform'                    => %w[none],
+      'transform-box'                => [],
+      'transform-origin'             => [],
+      'unicode-bidi'                 => %w[normal],
+      'vector-effect'                => %w[none],
+      'vertical-align'               => %w[baseline],
+      'white-space'                  => %w[normal nowrap],
+      'width'                        => %w[auto],
+      'x'                            => [],
+      'y'                            => [],
+      'r'                            => [],
+      'rx'                           => %w[auto],
+      'ry'                           => %w[auto],
+      'cx'                           => [],
+      'cy'                           => [],
+      'd'                            => []
+    }.freeze
+
+    # Presentation attributes for properties that aren't in PROPERTIES
+    OTHER_PRESENTATION_ATTRIBUTES = %w[
+      clip color-interpolation color-interpolation-filters color-profile color-rendering cursor direction
+      enable-background filter flood-color flood-opacity font-size-adjust glyph-orientation-horizontal
+      glyph-orientation-vertical image-rendering lighting-color mask-type paint-order pointer-events shape-rendering
+      text-overflow text-rendering transform-origin unicode-bidi vector-effect white-space
+    ].freeze
+
+    # '-' covers vendor-prefixed and custom properties
+    NO_EFFECT_PREFIXES = %w[- margin padding transition].freeze
 
     PROPERTY_CONFIGS = PROPERTIES.values
     NAMES = PROPERTIES.keys
@@ -92,15 +175,33 @@ module Prawn::SVG
       self
     end
 
+    def self.known?(name)
+      name = name.to_s.downcase
+      PROPERTIES.key?(name) || SHORTHANDS.include?(name)
+    end
+
+    # The issue category for a property that Properties doesn't know: nil if it has no effect,
+    # :unsupported if it's valid but unsupported, otherwise :unknown.
+    def self.issue_category(name, value)
+      return if name.start_with?(*NO_EFFECT_PREFIXES) || NO_EFFECT.include?(name)
+      return :unknown unless (no_effect_values = UNSUPPORTED[name])
+
+      :unsupported unless no_effect_values.include?(value.strip.downcase.squeeze(' '))
+    end
+
+    # Returns true if the value was accepted, false if it was rejected, or nil if the property is not known.
     def set(name, value, important: false)
       name = name.to_s.downcase
       if (config = PROPERTIES[name])
-        if (value = parse_value(config, value.strip)) && (important || !@important_ids.include?(config.id))
+        return false unless (value = parse_value(config, value.strip))
+
+        if important || !@important_ids.include?(config.id)
           @important_ids << config.id if important
           instance_variable_set(config.ivar, value)
         end
+        true
       elsif name == 'font'
-        apply_font_shorthand(value)
+        apply_font_shorthand(value, important: important)
       elsif name == 'marker'
         apply_marker_shorthand(value, important: important)
       end
@@ -116,8 +217,8 @@ module Prawn::SVG
       end
     end
 
-    def load_hash(hash)
-      hash.each { |name, value| set(name, value) if value }
+    def load_hash(hash, important: false)
+      hash.each { |name, value| set(name, value, important: important) if value }
     end
 
     def compute_properties(other)
@@ -217,7 +318,8 @@ module Prawn::SVG
     def parse_value(config, value)
       keyword = value.downcase
 
-      return 'inherit' if keyword == 'inherit'
+      # color: currentColor refers to the inherited color
+      return 'inherit' if keyword == 'inherit' || (keyword == 'currentcolor' && config.id == :color)
 
       config.valid_values.detect do |type|
         result = parse_value_with_type(type, value, keyword)
@@ -263,10 +365,11 @@ module Prawn::SVG
       when :positive_percentage
         Percentage.parse(value, positive_only: true)
       when :text_decoration
-        parts = keyword.split
+        # blink is valid but browsers don't render it
+        parts = keyword.split - ['blink']
         valid = %w[none underline overline line-through]
         return nil unless parts.all? { |p| valid.include?(p) }
-        return 'none' if parts.include?('none')
+        return 'none' if parts.empty? || parts.include?('none')
 
         parts.uniq.sort.join(' ')
       when :any
@@ -282,18 +385,16 @@ module Prawn::SVG
       end
     end
 
-    def apply_font_shorthand(value)
-      if value.strip.match(/\s/).nil?
-        case value.strip.downcase
-        when 'inherit'
-          load_hash('font-style' => 'inherit', 'font-variant' => 'inherit', 'font-weight' => 'inherit',
-            'font-stretch' => 'inherit', 'font-size' => 'inherit', 'font-family' => 'inherit')
-        when 'caption', 'icon', 'menu', 'message-box', 'small-caption', 'status-bar'
-          load_hash('font-style' => 'normal', 'font-variant' => 'normal', 'font-weight' => 'normal',
-            'font-stretch' => 'normal', 'font-size' => 'medium', 'font-family' => 'sans-serif')
-        end
-
-        return
+    def apply_font_shorthand(value, important:)
+      case value.strip.downcase
+      when 'inherit'
+        load_hash({ 'font-style' => 'inherit', 'font-variant' => 'inherit', 'font-weight' => 'inherit',
+          'font-stretch' => 'inherit', 'font-size' => 'inherit', 'font-family' => 'inherit' }, important: important)
+        return true
+      when 'caption', 'icon', 'menu', 'message-box', 'small-caption', 'status-bar'
+        load_hash({ 'font-style' => 'normal', 'font-variant' => 'normal', 'font-weight' => 'normal',
+          'font-stretch' => 'normal', 'font-size' => 'medium', 'font-family' => 'sans-serif' }, important: important)
+        return true
       end
 
       properties = ['font-style', 'font-variant', 'font-weight', 'font-stretch'].each.with_object({}) do |property, result|
@@ -301,7 +402,7 @@ module Prawn::SVG
       end
 
       values = CSS::FontParser.parse(value)
-      return if values.length < 2
+      return false if values.length < 2
 
       properties['font-family'] = values.pop
       font_size = values.pop.sub(%r{/.*}, '')
@@ -313,15 +414,15 @@ module Prawn::SVG
         else
           break
         end
-      end or return
+      end or return false
 
-      set('font-size', font_size) or return
-      load_hash(properties)
-      value
+      set('font-size', font_size, important: important) or return false
+      load_hash(properties, important: important)
+      true
     end
 
     def apply_marker_shorthand(value, important: false)
-      %w[marker-start marker-mid marker-end].each do |property|
+      %w[marker-start marker-mid marker-end].all? do |property|
         set(property, value, important: important)
       end
     end

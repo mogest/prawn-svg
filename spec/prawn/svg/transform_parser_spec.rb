@@ -33,6 +33,16 @@ RSpec.describe Prawn::SVG::TransformParser do
     it { is_expected.to eq Matrix[[1, 0, 0], [0, 1, 0], [0, 0, 1]] }
   end
 
+  context 'with an unknown function' do
+    let(:transform) { 'skew(10)' }
+
+    it 'reports it as invalid' do
+      test = Test.new
+      expect(test).to receive(:add_issue).with(:invalid, "Unknown transformation 'skew'; ignoring")
+      test.parse_transform_attribute(transform)
+    end
+  end
+
   context 'with translate' do
     let(:transform) { 'translate(10 20)' }
     it { is_expected.to eq Matrix[[1, 0, 10.0], [0, 1, -20.0], [0, 0, 1.0]] }

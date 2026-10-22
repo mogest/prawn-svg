@@ -18,6 +18,12 @@ describe Prawn::SVG::Length do
       expect(described_class.parse('1.23EM')).to eq(described_class.new(1.23, :em))
     end
 
+    it 'parses a length with an exponent' do
+      expect(described_class.parse('1.5e2px')).to eq(described_class.new(150, :px))
+      expect(described_class.parse('1E-1')).to eq(described_class.new(0.1, nil))
+      expect(described_class.parse('1e1em')).to eq(described_class.new(10, :em))
+    end
+
     it 'parses a length with no decimal points' do
       expect(described_class.parse('1em')).to eq(described_class.new(1, :em))
     end

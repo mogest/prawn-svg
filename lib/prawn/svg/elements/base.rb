@@ -20,13 +20,22 @@ class Prawn::SVG::Elements::Base
   SVG_NAMESPACE = 'http://www.w3.org/2000/svg'.freeze
 
   SkipElementQuietly = Class.new(StandardError)
-  SkipElementError = Class.new(StandardError)
+
+  class SkipElementError < StandardError
+    attr_reader :category
+
+    def initialize(message = nil, category = :invalid)
+      super(message)
+      @category = category
+    end
+  end
+
   MissingAttributesError = Class.new(SkipElementError)
 
   attr_reader :document, :source, :parent_calls, :base_calls, :state, :attributes, :properties
   attr_accessor :calls
 
-  def_delegators :@document, :warnings
+  def_delegators :@document, :add_issue
   def_delegator :@state, :computed_properties
 
   def initialize(document, source, parent_calls, state)
@@ -47,6 +56,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
+    report_unsupported_children
     extract_attributes_and_properties
     parse_and_apply
   end
@@ -67,7 +77,7 @@ class Prawn::SVG::Elements::Base
     append_calls_to_parent unless computed_properties.display == 'none'
   rescue SkipElementQuietly
   rescue SkipElementError => e
-    @document.warnings << e.message
+    @document.add_issue(e.category, e.message)
   end
 
   def name
@@ -142,8 +152,16 @@ class Prawn::SVG::Elements::Base
         child.process
 
         add_call 'restore'
-      else
-        @document.warnings << "Unknown tag '#{elem.name}'; ignoring"
+      elsif !Prawn::SVG::Elements::REPORTED_BY_PARENT_ELEMENTS.include?(elem.name)
+        @document.add_issue(:unknown, "Unknown tag '#{elem.name}'; ignoring")
+      end
+    end
+  end
+
+  def report_unsupported_children
+    svg_child_elements.each do |elem|
+      if Prawn::SVG::Elements::REPORTED_BY_PARENT_ELEMENTS.include?(elem.name)
+        @document.add_issue(:unsupported, "Unsupported tag '#{elem.name}'; ignoring")
       end
     end
   end
@@ -224,34 +242,83 @@ class Prawn::SVG::Elements::Base
 
     # Apply presentation attributes, and set attributes that aren't presentation attributes
     source.attributes.each do |name, value|
-      # Properties#set returns nil if it's not a recognised property name
-      @properties.set(name, value) or @attributes[name] = value
-    end
-
-    # Apply stylesheet styles
-    if (styles = document.element_styles[source])
-      styles.each do |name, value, important|
-        @properties.set(name, value, important: important)
+      if Prawn::SVG::Properties.known?(name) || Prawn::SVG::Properties::OTHER_PRESENTATION_ATTRIBUTES.include?(name)
+        set_property(name, value)
+      else
+        @attributes[name] = value
+        if (category = attribute_issue_category(name))
+          add_source_issue(category, "#{category.to_s.capitalize} attribute '#{name}' on <#{self.name}>")
+        elsif (type = attribute_type(name)) && !Prawn::SVG::AttributeValue.valid?(type, value)
+          add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for attribute '#{name}' on <#{self.name}>")
+        end
       end
     end
 
+    # Apply stylesheet styles
+    document.element_styles[source]&.each do |name, value, important|
+      set_property(name, value, important: important)
+    end
+
     # Apply inline styles
-    @properties.load_hash(parse_css_declarations(source.attributes['style'] || ''))
+    parse_css_declarations(source.attributes['style'] || '').each do |name, value, important|
+      set_property(name, value, important: important)
+    end
 
     state.computed_properties.compute_properties(@properties)
   end
 
-  def parse_css_declarations(declarations)
-    # copied from css_parser
-    declarations
-      .gsub(/(^\s*)|(\s*$)/, '')
-      .split(/[;$]+/m)
-      .each_with_object({}) do |decs, output|
-        if (matches = decs.match(/\s*(.[^:]*)\s*:\s*(.[^;]*)\s*(;|\Z)/i))
-          property, value, = matches.captures
-          output[property.downcase] = value
+  def set_property(property, value, important: false)
+    @properties.set(property, value, important: important).tap do |result|
+      case result
+      when nil
+        if (category = Prawn::SVG::Properties.issue_category(property, value))
+          add_source_issue(category, "#{category.to_s.capitalize} property '#{property}' on <#{name}>")
         end
+      when false
+        add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for property '#{property}' on <#{name}>")
       end
+    end
+  end
+
+  def attribute_issue_category(attribute)
+    elements = Prawn::SVG::Elements
+    supported = elements::ATTRIBUTES[name.to_sym] or return
+    in_switch = source.parent&.name == 'switch'
+
+    return if supported.include?(attribute) ||
+              elements::GLOBAL_ATTRIBUTES.include?(attribute) ||
+              elements::NO_EFFECT_ATTRIBUTES.include?(attribute) ||
+              attribute.start_with?(*elements::NO_EFFECT_ATTRIBUTE_PREFIXES) ||
+              attribute.include?(':') ||
+              (in_switch && elements::CONDITIONAL_ATTRIBUTES.include?(attribute))
+
+    if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute) || elements::CONDITIONAL_ATTRIBUTES.include?(attribute)
+      :unsupported
+    else
+      :unknown
+    end
+  end
+
+  def attribute_type(attribute)
+    elements = Prawn::SVG::Elements
+    return unless elements::ATTRIBUTES.fetch(name.to_sym, []).include?(attribute)
+
+    elements::ATTRIBUTE_TYPE_OVERRIDES.dig(name.to_sym, attribute.to_sym) || elements::ATTRIBUTE_TYPES[attribute.to_sym]
+  end
+
+  def add_source_issue(category, message)
+    add_issue(category, message)
+  end
+
+  def parse_css_declarations(declarations)
+    declarations.scan(/(?:"[^"]*"|'[^']*'|\([^)]*\)|[^;"'(])+/).filter_map do |declaration|
+      property, value = declaration.split(':', 2)
+      property = property.strip.downcase
+      next if value.nil? || property.empty?
+
+      important = value.sub!(/!\s*important\s*\z/i, '')
+      [property, value.strip, !important.nil?]
+    end
   end
 
   def require_attributes(*names)
@@ -261,10 +328,13 @@ class Prawn::SVG::Elements::Base
     end
   end
 
+  # A zero size is valid and disables rendering of the element
   def require_positive_value(*args)
-    if args.any? { |arg| arg.nil? || arg <= 0 }
+    if args.any? { |arg| arg.nil? || arg.negative? }
       raise SkipElementError, "Invalid attributes on tag #{name}; skipping tag"
     end
+
+    raise SkipElementQuietly if args.any?(&:zero?)
   end
 
   def extract_element_from_url_id_reference(value, expected_type = nil)

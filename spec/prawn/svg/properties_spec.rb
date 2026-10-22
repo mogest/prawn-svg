@@ -28,6 +28,23 @@ RSpec.describe Prawn::SVG::Properties do
       expect(subject.stroke_linecap).to eq 'round'
     end
 
+    it 'returns false for a rejected value and nil for an unknown property' do
+      expect(subject.set('display', 'invalid')).to be false
+      expect(subject.set('unknown', 'value')).to be nil
+    end
+
+    it 'returns true when the value is valid but overridden by an earlier !important value' do
+      subject.set('color', 'red', important: true)
+      expect(subject.set('color', 'blue')).to be true
+      expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
+    end
+
+    it 'accepts CSS display values' do
+      %w[block inline-block flex table-cell].each do |value|
+        expect(subject.set('display', value)).to be true
+      end
+    end
+
     it 'ignores invalid values, retaining any previously set value' do
       subject.set('display', 'invalid')
       expect(subject.display).to be nil
@@ -91,6 +108,22 @@ RSpec.describe Prawn::SVG::Properties do
         expect(subject.font_family).to eq 'sans-serif'
       end
 
+      it 'returns whether the value was accepted' do
+        expect(subject.set('font', '12px fontname')).to be true
+        expect(subject.set('font', 'menu')).to be true
+        expect(subject.set('font', 'inherit')).to be true
+        expect(subject.set('font', 'invalid')).to be false
+        expect(subject.set('font', '23bad sans-serif')).to be false
+      end
+
+      it 'applies !important to each property it sets' do
+        subject.set('font', 'bold 12px Arial', important: true)
+        subject.set('font-weight', 'normal')
+        subject.set('font-family', 'Times')
+        expect(subject.font_weight).to eq 'bold'
+        expect(subject.font_family).to eq 'Arial'
+      end
+
       it 'does nothing if an unrecognised keyword is used' do
         subject.set('font', 'invalid')
         expect(subject.font_style).to be nil
@@ -137,7 +170,7 @@ RSpec.describe Prawn::SVG::Properties do
       end
 
       it 'does nothing for invalid values' do
-        subject.set('marker', 'invalid')
+        expect(subject.set('marker', 'invalid')).to be false
         expect(subject.marker_start).to be nil
         expect(subject.marker_mid).to be nil
         expect(subject.marker_end).to be nil
@@ -145,9 +178,77 @@ RSpec.describe Prawn::SVG::Properties do
     end
   end
 
+  describe 'color' do
+    it 'treats currentColor as inherit' do
+      expect(subject.set('color', 'currentColor')).to be true
+      expect(subject.color).to eq 'inherit'
+    end
+  end
+
+  describe 'writing-mode' do
+    it 'accepts the SVG 1.1 values' do
+      %w[lr-tb lr rl-tb rl tb-rl tb].each do |value|
+        expect(subject.set('writing-mode', value)).to be true
+      end
+    end
+  end
+
+  describe 'dominant-baseline' do
+    it 'accepts mathematical and ideographic' do
+      expect(subject.set('dominant-baseline', 'mathematical')).to be true
+      expect(subject.set('dominant-baseline', 'ideographic')).to be true
+    end
+  end
+
+  describe 'text-decoration' do
+    it 'accepts blink but does not render it' do
+      expect(subject.set('text-decoration', 'underline blink')).to be true
+      expect(subject.text_decoration).to eq 'underline'
+      subject.set('text-decoration', 'blink')
+      expect(subject.text_decoration).to eq 'none'
+    end
+  end
+
+  describe '.known?' do
+    it 'is true for properties and shorthands, in any case' do
+      expect(described_class.known?('Fill')).to be true
+      expect(described_class.known?('font')).to be true
+      expect(described_class.known?('marker')).to be true
+      expect(described_class.known?('filter')).to be false
+    end
+  end
+
+  describe '.issue_category' do
+    it 'is nil for properties with no effect, vendor-prefixed properties and custom properties' do
+      expect(described_class.issue_category('cursor', 'pointer')).to be nil
+      expect(described_class.issue_category('-inkscape-font-specification', 'Sans')).to be nil
+      expect(described_class.issue_category('--colour', 'red')).to be nil
+      expect(described_class.issue_category('margin-top', '1px')).to be nil
+      expect(described_class.issue_category('transition-duration', '1s')).to be nil
+    end
+
+    it 'is nil for unsupported properties with values that have no effect' do
+      expect(described_class.issue_category('mix-blend-mode', ' Normal ')).to be nil
+      expect(described_class.issue_category('paint-order', 'fill  stroke')).to be nil
+      expect(described_class.issue_category('overflow-x', 'hidden')).to be nil
+      expect(described_class.issue_category('overflow-y', 'Hidden')).to be nil
+    end
+
+    it 'is :unsupported for other values of unsupported properties' do
+      expect(described_class.issue_category('mix-blend-mode', 'multiply')).to eq :unsupported
+      expect(described_class.issue_category('filter', 'blur(2px)')).to eq :unsupported
+      expect(described_class.issue_category('text-shadow', '1px 1px red')).to eq :unsupported
+      expect(described_class.issue_category('animation', 'spin 1s')).to eq :unsupported
+    end
+
+    it 'is :unknown for anything else' do
+      expect(described_class.issue_category('zIndex', '1')).to eq :unknown
+    end
+  end
+
   describe '#load_hash' do
     it 'uses #set to load in a hash of properties' do
-      subject.load_hash('stroke' => 'blue', 'fill' => 'green', 'stroke-linecap' => 'Round')
+      subject.load_hash({ 'stroke' => 'blue', 'fill' => 'green', 'stroke-linecap' => 'Round' })
       expect(subject.stroke).to eq Prawn::SVG::Paint.new(Prawn::SVG::Color::RGB.new('0000ff'))
       expect(subject.fill).to eq Prawn::SVG::Paint.new(Prawn::SVG::Color::RGB.new('008000'))
       expect(subject.stroke_linecap).to eq 'round'

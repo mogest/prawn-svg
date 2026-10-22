@@ -37,8 +37,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     source = clone_element_source(referenced_element_source)
 
     if referenced_element_class == Prawn::SVG::Elements::Viewport
-      source.attributes['width'] = @width || '100%'
-      source.attributes['height'] = @height || '100%'
+      source.attributes['width'] = usable_length(@width) || '100%'
+      source.attributes['height'] = usable_length(@height) || '100%'
     end
 
     child = referenced_element_class.new(document, source, calls, state.dup)
@@ -48,6 +48,10 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   end
 
   private
+
+  def usable_length(value)
+    value if value && Prawn::SVG::AttributeValue.valid?(:length, value)
+  end
 
   def resolve_local_reference(id)
     referenced_element = @document.elements_by_id[id]
@@ -101,10 +105,10 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       root = begin
         REXML::Document.new(data).root
       rescue REXML::ParseException
-        raise SkipElementError, "use tag references external SVG at '#{url}' which could not be parsed"
+        raise SkipElementError.new("use tag references external SVG at '#{url}' which could not be parsed", :resource)
       end
 
-      raise SkipElementError, "use tag references external URL '#{url}' which does not contain SVG" unless root
+      raise SkipElementError.new("use tag references external URL '#{url}' which does not contain SVG", :resource) unless root
 
       css_parser = CssParser::Parser.new
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root)
@@ -113,7 +117,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       [root, element_styles]
     end
   rescue Prawn::SVG::UrlLoader::Error => e
-    raise SkipElementError, "use tag could not load external SVG from '#{url}': #{e.message}"
+    raise SkipElementError.new("use tag could not load external SVG from '#{url}': #{e.message}", :resource)
   end
 
   def import_external_styles(element, external_element_styles)

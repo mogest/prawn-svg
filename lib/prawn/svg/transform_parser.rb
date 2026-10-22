@@ -34,7 +34,7 @@ module Prawn::SVG::TransformParser
           matrix *= rotation
           matrix *= translation_matrix(-x_pixels(x.to_f), -flip * y_pixels(y.to_f))
         else
-          warnings << "transform 'rotate' must have either one or three arguments"
+          add_issue(:invalid, "transform 'rotate' must have either one or three arguments")
         end
 
       when 'scale'
@@ -55,11 +55,11 @@ module Prawn::SVG::TransformParser
           a, b, c, d, e, f = arguments.collect(&:to_f)
           matrix *= Matrix[[a, flip * c, e], [flip * b, d, flip * f], [0, 0, 1]]
         else
-          warnings << "transform 'matrix' must have six arguments"
+          add_issue(:invalid, "transform 'matrix' must have six arguments")
         end
 
       else
-        warnings << "Unknown/unsupported transformation '#{name}'; ignoring"
+        add_issue(:invalid, "Unknown transformation '#{name}'; ignoring")
       end
     end
 

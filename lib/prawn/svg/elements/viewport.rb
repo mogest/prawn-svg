@@ -4,6 +4,8 @@ class Prawn::SVG::Elements::Viewport < Prawn::SVG::Elements::Base
 
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(parent_dimensions, attributes)
     @sizing.calculate
+    raise SkipElementError, "Invalid attributes on tag #{name}; skipping tag" if @sizing.negative?
+    raise SkipElementQuietly if @sizing.invalid?
 
     @x = x_pixels(attributes['x'] || 0)
     @y = y_pixels(attributes['y'] || 0)

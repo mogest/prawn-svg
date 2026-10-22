@@ -1,13 +1,13 @@
 module Prawn::SVG::CSS
   class Stylesheets
-    attr_reader :css_parser, :root, :media, :font_face_rules
+    attr_reader :css_parser, :root, :media, :font_face_rules, :issues
 
-    def initialize(css_parser, root, media = :all, url_loader: nil, warnings: [])
+    def initialize(css_parser, root, media = :all, url_loader: nil)
       @css_parser = css_parser
       @root = root
       @media = media
-      @warnings = warnings
       @font_face_rules = []
+      @issues = []
 
       @has_url_loader = !url_loader.nil?
       install_url_loader_on_css_parser(url_loader) if url_loader
@@ -22,7 +22,7 @@ module Prawn::SVG::CSS
     private
 
     def install_url_loader_on_css_parser(url_loader)
-      warnings = @warnings
+      issues = @issues
 
       css_parser.define_singleton_method(:load_uri!) do |uri, options = {}, _deprecated = nil|
         uri = Addressable::URI.parse(uri) unless uri.respond_to?(:scheme)
@@ -36,7 +36,7 @@ module Prawn::SVG::CSS
         rescue CssParser::CircularReferenceError
           # Silently ignore circular @import references
         rescue Prawn::SVG::UrlLoader::Error => e
-          warnings << "Failed to load @import CSS from #{import_url}: #{e.message}"
+          issues << Prawn::SVG::Issue.new(:resource, "Failed to load @import CSS from #{import_url}: #{e.message}")
         end
       end
     end

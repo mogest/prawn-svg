@@ -83,6 +83,24 @@ describe Prawn::SVG::Elements::Pattern do
     end
   end
 
+  describe 'objectBoundingBox pattern with units, percentages and exponents' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <pattern id="pat" x="10%" y="0.2px" width="0.5px" height="2.5e-1" patternUnits="objectBoundingBox">
+            <rect width="100%" height="100%" fill="blue"/>
+          </pattern>
+          <rect id="r" x="100" y="100" width="200" height="100" fill="url(#pat)"/>
+        </svg>
+      SVG
+    end
+
+    it 'computes the same tile geometry as plain numbers' do
+      args = element.pattern_arguments(double(bounding_box: [100, 500, 300, 400], stroke_width: 0))
+      expect(args.values_at(:tile_x, :tile_y, :tile_width, :tile_height)).to eq [120.0, 455.0, 100.0, 25.0]
+    end
+  end
+
   describe 'patternTransform' do
     let(:svg) do
       <<-SVG

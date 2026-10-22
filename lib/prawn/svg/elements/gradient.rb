@@ -89,7 +89,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
   def assert_compatible_prawn_version
     if (Prawn::VERSION.split('.').map(&:to_i) <=> [2, 2, 0]) == -1
-      raise SkipElementError, "Prawn 2.2.0+ must be used if you'd like prawn-svg to render gradients"
+      raise SkipElementError.new("Prawn 2.2.0+ must be used if you'd like prawn-svg to render gradients", :unsupported)
     end
   end
 
@@ -151,7 +151,7 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     end
 
     @stops = stop_elements.each_with_object([]) do |child, result|
-      offset = percentage_or_proportion(child.attributes['offset']).clamp(0.0, 1.0)
+      offset = stop_offset(child.attributes['offset'])
 
       # Offsets must be strictly increasing (SVG 13.2.4)
       offset = result.last[:offset] if result.last && result.last[:offset] > offset
@@ -180,5 +180,11 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
         stops.push(end_stop)
       end
     end
+  end
+
+  def stop_offset(value)
+    return 0.0 unless Prawn::SVG::AttributeValue.valid?(:number_or_percentage, value)
+
+    percentage_or_proportion(value).clamp(0.0, 1.0)
   end
 end

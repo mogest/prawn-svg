@@ -97,7 +97,13 @@ describe Prawn::SVG::Elements::Base do
       expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError, 'hello')
       expect(element).to_not receive(:apply)
       element.process
-      expect(document.warnings).to eq ['hello']
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'hello')]
+    end
+
+    it 'records the category of a SkipElementError' do
+      expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError.new('hello', :unsupported))
+      element.process
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, 'hello')]
     end
   end
 
@@ -189,6 +195,186 @@ describe Prawn::SVG::Elements::Base do
 
       fill_colors = calls.select { |cmd, _, _| cmd == 'fill_color' }.map { |_, args, _| args.first }
       expect(fill_colors).to eq ['000000', 'ff0000', '008000', 'ffff00']
+    end
+  end
+
+  describe 'zero and negative sizes' do
+    let(:svg) do
+      '<svg><rect width="0" height="10"/><circle r="0"/><ellipse rx="5" ry="0"/><rect width="-1" height="10"/></svg>'
+    end
+
+    it 'skips zero-sized shapes quietly, and reports negative sizes' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Invalid attributes on tag rect; skipping tag')]
+    end
+  end
+
+  describe 'inline styles' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <style>rect { fill: red !important; }</style>
+        <rect width="10" height="10" style=" Fill : blue ;stroke:green !important;stroke: red"></rect>
+      </svg>
+    SVG
+
+    it 'parses declarations with whitespace and !important' do
+      rect = Prawn::SVG::Elements::Base.new(document, document.root.elements['rect'], [], fake_state)
+      rect.process
+      expect(document.issues).to be_empty
+      expect(rect.properties.fill).to eq Prawn::SVG::Paint.parse('red')
+      expect(rect.properties.stroke).to eq Prawn::SVG::Paint.parse('green')
+    end
+
+    it 'splits declarations on semicolons outside quotes and brackets, skipping empty ones' do
+      expect(element.send(:parse_css_declarations, %{;; : x; fill:; mask: url("a;b"); clip-path: url(data:x;y); font: 12px 'A;B' ! IMPORTANT})).to eq [
+        ['fill', '', false],
+        ['mask', 'url("a;b")', false],
+        ['clip-path', 'url(data:x;y)', false],
+        ['font', "12px 'A;B'", true]
+      ]
+    end
+  end
+
+  describe 'attribute issues' do
+    let(:svg) { <<-SVG }
+      <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+        <rect width="10" height="10" pathLength="5" zIndex="1" r="2" data-x="1" inkscape:label="a" sodipodi:nodetypes="cc" xml:space="preserve" onclick="x()"
+          role="img" version="1.1" aria-label="x" filter="url(#f)" vector-effect="none" clip="auto" systemLanguage="en"
+          Width="5" mix-blend-mode="multiply"></rect>
+        <switch><rect width="10" height="10" systemLanguage="en"></rect></switch>
+        <text x="0" y="10" zIndex="1"><tspan transform="scale(2)">hello</tspan><textPath side="right">x</textPath></text>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'adds unsupported and unknown issues, ignoring attributes with no effect' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'pathLength' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'r' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'systemLanguage' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'Width' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'mix-blend-mode' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <text>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'transform' on <tspan>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'side' on <textPath>"),
+        Prawn::SVG::Issue.new(:invalid, '<textPath> must reference a path element')
+      ]
+    end
+  end
+
+  describe 'element issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <foo/>
+        <foreignObject/>
+        <script/>
+        <rect width="10" height="10"><animate/></rect>
+        <g><set/></g>
+        <text x="0" y="10">hi<animateColor/><a>x</a><bar/></text>
+        <switch><foreignObject requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><rect width="1" height="1"/></switch>
+        <symbol refX="1"/>
+        <switch><script/><rect id="fallback" width="1" height="1"/></switch>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'reports unknown tags as unknown, and SVG tags that prawn-svg ignores as unsupported' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.elements_by_id['fallback'].base_calls).not_to be_empty
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'script'; ignoring"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'foreignObject'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animate'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'set'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animateColor'; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'a' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'bar' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'refX' on <symbol>")
+      ]
+    end
+  end
+
+  describe 'attribute value issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <rect x="2no" y="1e1" width="10" height="calc(1px)" rx="auto"></rect>
+        <linearGradient id="g" gradientUnits="userspaceonuse" spreadMethod="pad"><stop offset="0" stop-color="red"/></linearGradient>
+        <text x="1 2 x" y="5"><tspan dx="1,2" rotate="45deg">hi</tspan></text>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'adds an issue for each value that prawn-svg cannot use' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues.map(&:message)).to eq [
+        "Unsupported value '2no' for attribute 'x' on <rect>",
+        "Unsupported value 'calc(1px)' for attribute 'height' on <rect>",
+        "Unsupported value 'auto' for attribute 'rx' on <rect>",
+        "Unsupported value 'userspaceonuse' for attribute 'gradientUnits' on <linearGradient>",
+        "Unsupported value '1 2 x' for attribute 'x' on <text>",
+        "Unsupported value '45deg' for attribute 'rotate' on <tspan>"
+      ]
+      expect(document.issues.map(&:category).uniq).to eq [:unsupported]
+    end
+  end
+
+  describe 'property issues' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <style>
+          rect { filter: blur(2px); stroke: nope; cursor: pointer; -webkit-font-smoothing: auto; }
+        </style>
+        <rect width="100" height="100" fill="gren" stroke-linecap="round" data-x="1" style="paint-order: stroke; fill-opacity: lots; --var: 1; pointer-events: none; zindex: 1"></rect>
+        <title style="paint-order: stroke"></title>
+      </svg>
+    SVG
+
+    it 'adds an issue for each unsupported property or value, except ones that have no effect or are vendor-prefixed' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'gren' for property 'fill' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'nope' for property 'stroke' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'lots' for property 'fill-opacity' on <rect>"),
+        Prawn::SVG::Issue.new(:unknown, "Unknown property 'zindex' on <rect>")
+      ]
+    end
+
+    context 'on a text element' do
+      let(:svg) { '<svg><text style="paint-order: stroke">hello</text></svg>' }
+      let(:document) do
+        Prawn::SVG::Document.new(svg, [800, 600], { enable_web_requests: false },
+          font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+      end
+
+      it 'adds the issue once' do
+        Prawn::SVG::Elements::Root.new(document, document.root, []).process
+        expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <text>")]
+      end
+    end
+
+    it 'does not treat a presentation attribute with a rejected value as a plain attribute' do
+      rect = Prawn::SVG::Elements::Base.new(document, document.root.elements['rect'], [], fake_state)
+      rect.process
+      expect(rect.attributes.keys).to eq ['width', 'height', 'data-x', 'style']
     end
   end
 end

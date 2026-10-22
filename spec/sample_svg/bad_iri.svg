@@ -1,0 +1,5 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g fill="red">
+        <rect x="2no" y="20" width="60" height="60" fill="url(#bad)" stroke="blue" />
+    </g>
+</svg>

@@ -42,16 +42,13 @@ module Prawn::SVG::Calculators::Pixels
 
   def percentage_or_proportion(string, default = 0)
     string = string.to_s.strip
-    percentage = false
 
-    if string[-1] == '%'
-      percentage = true
-      string = string[0..-2]
+    if (percentage = Prawn::SVG::Percentage.parse(string))
+      percentage.to_factor
+    elsif (length = Prawn::SVG::Length.parse(string))
+      length.to_pixels(nil, computed_properties.numeric_font_size)
+    else
+      default
     end
-
-    value = Float(string, exception: false)
-    return default unless value
-
-    percentage ? value / 100.0 : value
   end
 end

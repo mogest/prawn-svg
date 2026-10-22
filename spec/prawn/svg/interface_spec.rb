@@ -15,6 +15,18 @@ describe Prawn::SVG::Interface do
         end.to raise_error(Prawn::Errors::UnknownOption)
       end
 
+      it 'accepts a single raise_on_issue category' do
+        expect do
+          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: :unsupported, enable_web_requests: false)
+        end.not_to raise_error
+      end
+
+      it 'rejects unknown raise_on_issue categories' do
+        expect do
+          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: [:unsuported], enable_web_requests: false)
+        end.to raise_error(ArgumentError, /unsuported/)
+      end
+
       it 'does nothing if an invalid option is given and debug is off' do
         Prawn::SVG::Interface.new(svg, prawn, invalid: 'option', enable_web_requests: false)
       end
@@ -32,24 +44,116 @@ describe Prawn::SVG::Interface do
     end
 
     context 'when the sizing object indicates the sizes are invalid' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, { enable_web_requests: false }) }
 
       it "doesn't draw anything and adds a warning" do
         interface.draw
-        expect(interface.document.warnings).to eq ['Zero or negative sizing data means this SVG cannot be rendered']
+        expect(interface.document.warnings).to eq ['Negative sizing data means this SVG cannot be rendered']
+      end
+    end
+
+    context 'when the SVG has a zero size' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
+
+      it "doesn't draw anything or add an issue" do
+        interface.draw
+        expect(interface.document.issues).to be_empty
+      end
+    end
+
+    context 'when an @import fails to load' do
+      it 'includes the issue in the result' do
+        result = Prawn::Document.new.svg('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>', enable_web_requests: false)
+        expect(result[:issues].map(&:category)).to eq [:resource]
+        expect(result[:warnings]).to include(/Failed to load @import CSS from missing.css/)
       end
     end
 
     context 'when log_warnings is true' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, log_warnings: true, enable_web_requests: false) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_warnings: true, enable_web_requests: false) }
 
       it 'outputs warnings to stderr via warn' do
-        expect { interface.draw }.to output("Zero or negative sizing data means this SVG cannot be rendered\n").to_stderr
+        expect { interface.draw }.to output("Negative sizing data means this SVG cannot be rendered\n").to_stderr
+      end
+    end
+
+    context 'when log_issues is true' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_issues: true, enable_web_requests: false) }
+
+      it 'outputs issues to stderr via warn' do
+        expect { interface.draw }.to output("Negative sizing data means this SVG cannot be rendered\n").to_stderr
+      end
+    end
+
+    describe 'raise_on_issue' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, raise_on_issue: raise_on_issue, enable_web_requests: false) }
+
+      context 'when true' do
+        let(:raise_on_issue) { true }
+
+        it 'raises an IssueError containing the issues' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError, 'Negative sizing data means this SVG cannot be rendered') { |e|
+            expect(e.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Negative sizing data means this SVG cannot be rendered')]
+          }
+        end
+      end
+
+      context 'when given a list including the issue category' do
+        let(:raise_on_issue) { [:unsupported, :invalid] }
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError)
+        end
+      end
+
+      context 'when given a single category' do
+        let(:raise_on_issue) { :invalid }
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError)
+        end
+      end
+
+      context 'when an issue was recorded while parsing the document' do
+        let(:interface) do
+          Prawn::SVG::Interface.new('<svg width="10" height="10"><style>@import url("missing.css");</style></svg>', Prawn::Document.new,
+            raise_on_issue: [:resource], enable_web_requests: false)
+        end
+
+        it 'raises' do
+          expect { interface.draw }.to raise_error(Prawn::SVG::IssueError, /Failed to load @import CSS/)
+        end
+      end
+
+      context 'when given a list not including the issue category' do
+        let(:raise_on_issue) { [:resource] }
+
+        it 'does not raise' do
+          expect { interface.draw }.not_to raise_error
+        end
+      end
+    end
+
+    context 'when an SVG image is drawn more than once' do
+      let(:image_uri) { "data:image/svg+xml;base64,#{['<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><foo/></svg>'].pack('m0')}" }
+      let(:svg) do
+        <<~SVG
+          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+            <mask id="m" maskUnits="userSpaceOnUse"><image width="10" height="10" href="#{image_uri}"/></mask>
+            <rect width="10" height="10" mask="url(#m)"/>
+            <rect width="10" height="10" mask="url(#m)"/>
+          </svg>
+        SVG
+      end
+
+      it 'records the image issues once' do
+        result = Prawn::Document.new.svg(svg, enable_web_requests: false)
+        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring")]
       end
     end
 
     context 'when log_warnings is not set' do
-      let(:interface) { Prawn::SVG::Interface.new('<svg width="0"></svg>', prawn, { enable_web_requests: false }) }
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, { enable_web_requests: false }) }
 
       it 'does not output warnings to stderr' do
         expect { interface.draw }.not_to output.to_stderr

@@ -36,9 +36,12 @@ module Prawn::SVG
 
     private
 
+    # The root text component processes the same source element and reports its issues
+    def add_source_issue(category, message); end
+
     def vertical_writing_mode?
       wm = @root_component.computed_properties.writing_mode
-      ['vertical-rl', 'vertical-lr'].include?(wm)
+      ['vertical-rl', 'vertical-lr', 'tb-rl', 'tb'].include?(wm)
     end
 
     def render_vertical(prawn, renderer, cursor, translate_x, origin_x, origin_y)

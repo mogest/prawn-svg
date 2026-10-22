@@ -34,7 +34,8 @@ Option      | Data type | Description
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
-:log_warnings | boolean | If true, warnings that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  Defaults to false.
+:log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
+:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See [Issues](#issues).  Defaults to false.
 
 ## Examples
 
@@ -47,7 +48,7 @@ Option      | Data type | Description
 
   # Render the logo at the current Y cursor position, and serve file: links relative to its directory
   root_path = "/apps/myapp/current/images"
-  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_warnings: true
+  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_issues: true
 ```
 
 ## Supported features
@@ -87,7 +88,7 @@ prawn-svg supports almost all of the full SVG 1.1 specification:
    Nested patterns (a pattern whose content references another pattern) are not supported.
 
  - `<switch>` with conditional processing (`requiredFeatures`, `requiredExtensions`, `systemLanguage`).
-   `<foreignObject>` tags are always ignored as prawn-svg cannot handle non-SVG data.
+   `<foreignObject>` tags are ignored as prawn-svg cannot handle non-SVG data.
 
  - `<view>` element for defining named views.  Fragment identifiers (`#viewId` and `#svgView(...)`) on
    `<image>` hrefs select which view to render an external SVG with.
@@ -137,7 +138,7 @@ the screen.
 
 prawn-svg does not support filters, as rasterised effects is not something the PDF format was designed to handle.
 
-writing-mode is partially supported: vertical-rl and vertical-lr rotate the text 90 degrees, which
+writing-mode is partially supported: vertical-rl and vertical-lr (and SVG 1.1's tb-rl and tb) rotate the text 90 degrees, which
 handles the common case of sideways Latin text.  CJK upright glyph orientation is not supported.
 
 direction and unicode-bidi are not supported.
@@ -145,6 +146,20 @@ direction and unicode-bidi are not supported.
 Features that will probably never be supported because either they don't make sense for PDF, they were deprecated
 in SVG 2, and/or they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering
 hints, ICC color profiles, color-interpolation, enable-background, deprecated CSS clip, @media.
+
+## Issues
+
+When prawn-svg can't render something as a browser would, it records an issue and carries on.  `svg` returns them
+in `result[:issues]` as `Prawn::SVG::Issue` objects, each with a `category` and `message`.  The categories are
+`:unsupported` (a valid feature prawn-svg ignores), `:unknown` (a tag, attribute or property it doesn't recognise,
+usually one browsers ignore too), `:invalid` (malformed SVG) and `:resource` (an image, font or stylesheet couldn't
+be loaded).
+
+To reject SVGs that won't render as they would in a browser:
+
+```ruby
+  svg data, raise_on_issue: [:unsupported, :invalid, :resource]
+```
 
 ## Configuration
 

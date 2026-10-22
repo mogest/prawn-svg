@@ -95,6 +95,22 @@ describe 'Integration test' do
   describe 'sample file rendering' do
     files = Dir["#{root}/spec/sample_svg/*.svg"]
 
+    expected_issues = {
+      'bad.svg'                => ["Unknown attribute 'lineHeight' on <text>"],
+      'bad_iri.svg'            => ["Unsupported value '2no' for attribute 'x' on <rect>"],
+      'bad_lengths.svg'        => ["Unsupported value '2no' for attribute 'x' on <rect>"],
+      'cap_styles.svg'         => ["Unsupported value 'invalid' for property 'stroke-linecap' on <line>"],
+      'clip_path.svg'          => ["Unknown attribute 'viewPort' on <svg>"],
+      'default_color.svg'      => ["Unsupported value 'gren' for property 'fill' on <rect>"],
+      'gistfile1.svg'          => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
+      'gradient_transform.svg' => ["Unknown attribute 'xgradientTransform' on <linearGradient>"],
+      'marker_shorthand.svg'   => ["Unsupported value 'auto-start-reverse' for attribute 'orient' on <marker>"],
+      'highcharts.svg'         => ["Unknown attribute 'zIndex' on <g>", "Unknown attribute 'zIndex' on <text>", "Unknown attribute 'isShadow' on <rect>"],
+      'positioning.svg'        => ["Unknown attribute 'transform' on <tspan>"],
+      'subfamilies.svg'        => ["Unknown attribute 'r' on <rect>"],
+      'tspan04.svg'            => ["Unknown attribute 'width' on <text>"]
+    }
+
     let(:ttf_directory) { Pathname.new(__dir__).join('sample_ttf') }
     let(:noto_sans_ttf) { ttf_directory.join('NotoSansJP-Regular.ttf') }
 
@@ -113,7 +129,7 @@ describe 'Integration test' do
     end
 
     files.each do |file|
-      it "renders the #{File.basename file} sample file without warnings or crashing" do
+      it "renders the #{File.basename file} sample file with only the expected issues" do
         expect(Net::HTTP).to_not receive(:get)
 
         warnings = nil
@@ -138,7 +154,7 @@ describe 'Integration test' do
             (w =~ /Verdana/ && w =~ /is not a known font/) || w =~ /(render gradients$|waiting on the Prawn project)/
           end
         end
-        warnings.should == []
+        expect(warnings).to eq expected_issues.fetch(File.basename(file), [])
       end
     end
   end

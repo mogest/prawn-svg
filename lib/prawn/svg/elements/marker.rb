@@ -14,7 +14,11 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
     sizing.calculate
 
     if sizing.invalid?
-      document.warnings << '<marker> cannot be rendered due to invalid sizing information'
+      if [attributes['markerWidth'], attributes['markerHeight']].any? { |value| value&.strip&.end_with?('%') && value.to_f.nonzero? }
+        document.add_issue(:unsupported, '<marker> with a percentage markerWidth or markerHeight is not supported')
+      elsif sizing.negative?
+        document.add_issue(:invalid, '<marker> cannot be rendered due to negative sizing information')
+      end
       return
     end
 
@@ -28,9 +32,8 @@ class Prawn::SVG::Elements::Marker < Prawn::SVG::Elements::Base
 
       element.add_call 'transformation_matrix', 1, 0, 0, 1, point[0], -point[1]
 
-      if attributes['orient'] != 'auto'
-        angle = attributes['orient'].to_f # defaults to 0 if not specified
-      end
+      orient = attributes['orient'].to_s.strip
+      angle = Prawn::SVG::Angle.parse(orient) || 0 unless orient == 'auto'
 
       element.push_call_position
       element.add_call_and_enter 'rotate', -angle, origin: [0, y('0')] if angle != 0

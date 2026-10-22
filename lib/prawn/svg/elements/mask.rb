@@ -13,7 +13,7 @@ class Prawn::SVG::Elements::Mask < Prawn::SVG::Elements::Base
     content_units = attributes['maskContentUnits'] || 'userSpaceOnUse'
 
     if content_units == 'objectBoundingBox' && bbox.nil?
-      document.warnings << 'mask with maskContentUnits="objectBoundingBox" requires element to have a bounding box'
+      document.add_issue(:unsupported, 'mask with maskContentUnits="objectBoundingBox" requires element to have a bounding box')
       return []
     end
 
@@ -34,10 +34,10 @@ class Prawn::SVG::Elements::Mask < Prawn::SVG::Elements::Base
 
   def build_clip_calls(bbox, mask_units)
     if mask_units == 'objectBoundingBox'
-      mask_x = Float(attributes['x'] || '-0.1')
-      mask_y = Float(attributes['y'] || '-0.1')
-      mask_w = Float(attributes['width'] || '1.2')
-      mask_h = Float(attributes['height'] || '1.2')
+      mask_x = percentage_or_proportion(attributes['x'], -0.1)
+      mask_y = percentage_or_proportion(attributes['y'], -0.1)
+      mask_w = percentage_or_proportion(attributes['width'], 1.2)
+      mask_h = percentage_or_proportion(attributes['height'], 1.2)
 
       bbox_left = bbox[0]
       bbox_top = bbox[1]

@@ -7,7 +7,7 @@ module Prawn::SVG
 
     def initialize(document, source, _calls, state, parent_component = nil)
       if parent_component.nil? && source.name != 'text'
-        raise SkipElementError, 'attempted to <use> a component inside a text element, this is not supported'
+        raise SkipElementError.new('attempted to <use> a component inside a text element, this is not supported', :unsupported)
       end
 
       super(document, source, [], state)
@@ -36,8 +36,13 @@ module Prawn::SVG
             build_child(child)
           when 'textPath'
             build_text_path(child)
+          when 'title', 'desc', 'metadata', *Elements::REPORTED_BY_PARENT_ELEMENTS
+            []
+          when 'a', 'altGlyph'
+            add_issue(:unsupported, "Unsupported tag '#{child.name}' inside text tag; ignoring")
+            []
           else
-            warnings << "Unknown tag '#{child.name}' inside text tag; ignoring"
+            add_issue(:unknown, "Unknown tag '#{child.name}' inside text tag; ignoring")
             []
           end
         end
@@ -218,7 +223,10 @@ module Prawn::SVG
 
       return [fonts.first, fallback_font_names] if fonts.any?
 
-      warnings << "Font family '#{computed_properties.font_family}' style '#{computed_properties.font_style}' is not a known font, and the fallback font could not be found."
+      add_issue(
+        :resource,
+        "Font family '#{computed_properties.font_family}' style '#{computed_properties.font_style}' is not a known font, and the fallback font could not be found."
+      )
       []
     end
 
@@ -340,7 +348,7 @@ module Prawn::SVG
     end
 
     def parse_wsp(name)
-      (attributes[name] || '').split(COMMA_WSP_REGEXP)
+      (attributes[name] || '').strip.split(COMMA_WSP_REGEXP)
     end
   end
 end

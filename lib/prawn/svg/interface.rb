@@ -8,7 +8,7 @@ module Prawn
       VALID_OPTIONS = %i[
         at position vposition width height cache_images enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode language
-        log_warnings
+        log_issues log_warnings raise_on_issue
       ].freeze
 
       INHERITABLE_OPTIONS = %i[
@@ -27,6 +27,7 @@ module Prawn
       #
       def initialize(data, prawn, options, &block)
         Prawn.verify_options VALID_OPTIONS, options
+        verify_raise_on_issue(options[:raise_on_issue])
 
         @data = data
         @prawn = prawn
@@ -48,7 +49,8 @@ module Prawn
       def draw
         @renderer.draw
 
-        document.warnings.each { |w| warn w } if options[:log_warnings]
+        document.warnings.each { |w| warn w } if options[:log_issues] || options[:log_warnings]
+        raise_on_issues
       end
 
       def sizing
@@ -66,6 +68,22 @@ module Prawn
       # backwards support for when the font_path used to be stored on this class
       def self.font_path
         Prawn::SVG::FontRegistry.font_path
+      end
+
+      private
+
+      def verify_raise_on_issue(categories)
+        return if [true, false].include?(categories)
+
+        unknown = Array(categories) - Issue::CATEGORIES
+        raise ArgumentError, "Unknown issue categories for raise_on_issue: #{unknown.join(', ')}" if unknown.any?
+      end
+
+      def raise_on_issues
+        return unless (categories = options[:raise_on_issue])
+
+        issues = document.issues.select { |issue| categories == true || Array(categories).include?(issue.category) }
+        raise IssueError, issues if issues.any?
       end
     end
   end

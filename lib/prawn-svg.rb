@@ -2,6 +2,7 @@ require 'rexml/document'
 
 require 'prawn'
 require 'prawn/svg/version'
+require 'prawn/svg/issue'
 
 require 'css_parser'
 
@@ -20,6 +21,8 @@ require 'prawn/svg/loaders/file'
 require 'prawn/svg/loaders/web'
 require 'prawn/svg/color'
 require 'prawn/svg/funciri'
+require 'prawn/svg/angle'
+require 'prawn/svg/attribute_value'
 require 'prawn/svg/length'
 require 'prawn/svg/paint'
 require 'prawn/svg/percentage'
