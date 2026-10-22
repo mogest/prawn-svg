@@ -233,11 +233,11 @@ class Prawn::SVG::Elements::Base
 
     # Apply presentation attributes, and set attributes that aren't presentation attributes
     source.attributes.each do |name, value|
-      if Prawn::SVG::Properties.known?(name)
+      if Prawn::SVG::Properties.known?(name) || Prawn::SVG::Properties::OTHER_PRESENTATION_ATTRIBUTES.include?(name)
         set_property(name, value)
       else
         @attributes[name] = value
-        if (category = attribute_issue_category(name, value))
+        if (category = attribute_issue_category(name))
           add_source_issue(category, "#{category.to_s.capitalize} attribute '#{name}' on <#{self.name}>")
         elsif (type = attribute_type(name)) && !Prawn::SVG::AttributeValue.valid?(type, value)
           add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for attribute '#{name}' on <#{self.name}>")
@@ -271,7 +271,7 @@ class Prawn::SVG::Elements::Base
     end
   end
 
-  def attribute_issue_category(attribute, value)
+  def attribute_issue_category(attribute)
     elements = Prawn::SVG::Elements
     supported = elements::ATTRIBUTES[name.to_sym] or return
     in_switch = source.parent&.name == 'switch'
@@ -285,8 +285,6 @@ class Prawn::SVG::Elements::Base
 
     if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute) || elements::CONDITIONAL_ATTRIBUTES.include?(attribute)
       :unsupported
-    elsif Prawn::SVG::Properties::OTHER_PRESENTATION_ATTRIBUTES.include?(attribute)
-      Prawn::SVG::Properties.issue_category(attribute, value)
     else
       :unknown
     end

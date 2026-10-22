@@ -21,7 +21,7 @@ module Prawn
       #
       def draw
         if sizing.invalid?
-          document.add_issue(:invalid, 'Zero or negative sizing data means this SVG cannot be rendered')
+          document.add_issue(:invalid, 'Negative sizing data means this SVG cannot be rendered') if sizing.negative?
           return
         end
 

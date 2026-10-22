@@ -90,6 +90,18 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     end
   end
 
+  describe 'zero size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="0"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'renders nothing without an issue' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(line_element.base_calls.map(&:first)).not_to include('save')
+      expect(document.issues).to be_empty
+    end
+  end
+
   describe 'orient' do
     def rotation
       subject.process

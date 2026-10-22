@@ -36,6 +36,8 @@ module Prawn::SVG
             build_child(child)
           when 'textPath'
             build_text_path(child)
+          when 'title', 'desc', 'metadata'
+            []
           else
             add_issue(:unsupported, "Unknown tag '#{child.name}' inside text tag; ignoring")
             []

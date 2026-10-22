@@ -1,6 +1,6 @@
 module Prawn::SVG
-  # +category+ is one of :unsupported, :unknown, :invalid or :resource
   Issue = Struct.new(:category, :message)
+  Issue::CATEGORIES = %i[unsupported unknown invalid resource].freeze
 
   class IssueError < StandardError
     attr_reader :issues

@@ -148,7 +148,6 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
   describe '@import' do
     let(:url_loader) { instance_double(Prawn::SVG::UrlLoader) }
-    let(:issues) { [] }
 
     it 'loads @import url() rules via the url_loader' do
       imported_css = 'rect { stroke: blue; }'
@@ -166,7 +165,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
         CssParser::Parser.new, REXML::Document.new(svg),
-        url_loader: url_loader, issues: issues
+        url_loader: url_loader
       )
       result = stylesheets.load
 
@@ -192,7 +191,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
         CssParser::Parser.new, REXML::Document.new(svg),
-        url_loader: url_loader, issues: issues
+        url_loader: url_loader
       )
       result = stylesheets.load
 
@@ -213,7 +212,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
         CssParser::Parser.new, REXML::Document.new(svg),
-        url_loader: url_loader, issues: issues
+        url_loader: url_loader
       )
       result = stylesheets.load
 
@@ -235,7 +234,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
         CssParser::Parser.new, REXML::Document.new(svg),
-        url_loader: url_loader, issues: issues
+        url_loader: url_loader
       )
       result = stylesheets.load
 
@@ -259,11 +258,11 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
         CssParser::Parser.new, REXML::Document.new(svg),
-        url_loader: url_loader, issues: issues
+        url_loader: url_loader
       )
       result = stylesheets.load
 
-      expect(issues).to include(Prawn::SVG::Issue.new(:resource, 'Failed to load @import CSS from missing.css: not found'))
+      expect(stylesheets.issues).to include(Prawn::SVG::Issue.new(:resource, 'Failed to load @import CSS from missing.css: not found'))
       styles = result.values.first
       expect(styles).to include(['fill', 'red', false])
     end

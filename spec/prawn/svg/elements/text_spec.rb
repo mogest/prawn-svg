@@ -15,6 +15,15 @@ describe Prawn::SVG::Elements::Text do
     element.render(prawn, renderer)
   end
 
+  describe 'non-rendering children' do
+    let(:svg) { '<text>Hi<title>a</title><desc>b</desc><metadata/><tspan><title>c</title>there</tspan></text>' }
+
+    it 'ignores them without an issue' do
+      element.process
+      expect(document.issues).to be_empty
+    end
+  end
+
   describe 'coordinate lists' do
     let(:svg) { '<text x=" 10, 20 " y="  30">Hi</text>' }
 

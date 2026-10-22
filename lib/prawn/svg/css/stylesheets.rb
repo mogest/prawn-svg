@@ -1,13 +1,13 @@
 module Prawn::SVG::CSS
   class Stylesheets
-    attr_reader :css_parser, :root, :media, :font_face_rules
+    attr_reader :css_parser, :root, :media, :font_face_rules, :issues
 
-    def initialize(css_parser, root, media = :all, url_loader: nil, issues: [])
+    def initialize(css_parser, root, media = :all, url_loader: nil)
       @css_parser = css_parser
       @root = root
       @media = media
-      @issues = issues
       @font_face_rules = []
+      @issues = []
 
       @has_url_loader = !url_loader.nil?
       install_url_loader_on_css_parser(url_loader) if url_loader

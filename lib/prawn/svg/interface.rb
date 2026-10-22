@@ -27,6 +27,7 @@ module Prawn
       #
       def initialize(data, prawn, options, &block)
         Prawn.verify_options VALID_OPTIONS, options
+        verify_raise_on_issue(options[:raise_on_issue])
 
         @data = data
         @prawn = prawn
@@ -70,6 +71,13 @@ module Prawn
       end
 
       private
+
+      def verify_raise_on_issue(categories)
+        return if [nil, true, false].include?(categories)
+
+        unknown = Array(categories) - Issue::CATEGORIES
+        raise ArgumentError, "Unknown issue categories for raise_on_issue: #{unknown.join(', ')}" if unknown.any?
+      end
 
       def raise_on_issues
         return unless (categories = options[:raise_on_issue])

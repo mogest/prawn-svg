@@ -224,6 +224,7 @@ RSpec.describe Prawn::SVG::Properties do
     it 'is nil for unsupported properties with values that have no effect' do
       expect(described_class.issue_category('mix-blend-mode', ' Normal ')).to be nil
       expect(described_class.issue_category('paint-order', 'fill  stroke')).to be nil
+      expect(described_class.issue_category('overflow-x', 'hidden')).to be nil
     end
 
     it 'is :unsupported for other values of unsupported properties' do

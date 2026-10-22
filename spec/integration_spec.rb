@@ -103,7 +103,6 @@ describe 'Integration test' do
       'clip_path.svg'          => ["Unknown attribute 'viewPort' on <svg>"],
       'default_color.svg'      => ["Unsupported value 'gren' for property 'fill' on <rect>"],
       'gistfile1.svg'          => ["Unsupported property 'width' on <svg>", "Unsupported property 'height' on <svg>"],
-      'google_charts.svg'      => ["Unsupported property 'overflow-x' on <svg>", "Unsupported property 'overflow-y' on <svg>"],
       'gradient_transform.svg' => ["Unknown attribute 'xgradientTransform' on <linearGradient>"],
       'marker_shorthand.svg'   => ["Unsupported value 'auto-start-reverse' for attribute 'orient' on <marker>"],
       'highcharts.svg'         => ["Unknown attribute 'zIndex' on <g>", "Unknown attribute 'zIndex' on <text>", "Unknown attribute 'isShadow' on <rect>"],

@@ -99,6 +99,10 @@ module Prawn::SVG::Calculators
       @requested_height = value&.to_f
     end
 
+    def negative?
+      [@viewport_width, @viewport_height, @output_width, @output_height, @requested_width, @requested_height].any? { |size| size&.negative? }
+    end
+
     private
 
     def parse_view_box

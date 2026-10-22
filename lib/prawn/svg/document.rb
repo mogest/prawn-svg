@@ -60,8 +60,9 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, issues: issues)
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader)
     @element_styles = stylesheets.load
+    stylesheets.issues.each { |issue| add_issue(issue.category, issue.message) }
     process_font_face_rules(stylesheets.font_face_rules)
 
     yield self if block_given?

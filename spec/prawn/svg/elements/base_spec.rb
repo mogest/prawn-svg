@@ -257,7 +257,7 @@ describe Prawn::SVG::Elements::Base do
         Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'pathLength' on <rect>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <rect>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'r' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'systemLanguage' on <rect>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'Width' on <rect>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'mix-blend-mode' on <rect>"),
