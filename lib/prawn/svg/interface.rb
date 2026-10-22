@@ -73,7 +73,7 @@ module Prawn
       private
 
       def verify_raise_on_issue(categories)
-        return if [nil, true, false].include?(categories)
+        return if [true, false].include?(categories)
 
         unknown = Array(categories) - Issue::CATEGORIES
         raise ArgumentError, "Unknown issue categories for raise_on_issue: #{unknown.join(', ')}" if unknown.any?

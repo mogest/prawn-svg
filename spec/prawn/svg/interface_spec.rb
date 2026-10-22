@@ -15,6 +15,12 @@ describe Prawn::SVG::Interface do
         end.to raise_error(Prawn::Errors::UnknownOption)
       end
 
+      it 'accepts a single raise_on_issue category' do
+        expect do
+          Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: :unsupported, enable_web_requests: false)
+        end.not_to raise_error
+      end
+
       it 'rejects unknown raise_on_issue categories' do
         expect do
           Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: [:unsuported], enable_web_requests: false)

@@ -17,7 +17,7 @@ describe Prawn::SVG::AttributeValue do
   check :number_or_percentage, valid: ['0.5', '50%', '1e-1'], invalid: ['5px', '0x1A', '5.']
   check :length_list, valid: ['10 20', '10,20%', ''], invalid: ['10 x']
   check :number_list, valid: ['10 -20.5', '45'], invalid: ['45deg']
-  check :view_box, valid: ['0 0 100 100', '-10,-10,20,20', '0 0 0 0'], invalid: ['0 0 100', '0 0 100px 100', '0 0 -1 10']
+  check :view_box, valid: ['0 0 100 100', '-10,-10,20,20', '0 0 0 0', '0 0 -1 10'], invalid: ['0 0 100', '0 0 100px 100']
   check :preserve_aspect_ratio, valid: ['none', 'xMidYMid', 'defer xMinYMax slice'], invalid: ['xmidymid', 'xMidYMid fill', 'meet']
   check :orient, valid: ['auto', '45', '1rad', '100grad'], invalid: ['up', 'auto-start-reverse', '0.5turn']
   check %w[pad reflect], valid: ['pad', 'reflect'], invalid: ['Pad', ' reflect ', 'repeat']

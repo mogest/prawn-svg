@@ -34,6 +34,6 @@ module Prawn::SVG::AttributeValue
   end
 
   def self.view_box?(values)
-    values.length == 4 && values.all? { |item| number?(item) } && values[2].to_f >= 0 && values[3].to_f >= 0
+    values.length == 4 && values.all? { |item| number?(item) }
   end
 end

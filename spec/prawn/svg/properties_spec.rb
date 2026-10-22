@@ -39,7 +39,7 @@ RSpec.describe Prawn::SVG::Properties do
       expect(subject.color).to eq Prawn::SVG::Color::RGB.new('ff0000')
     end
 
-    it 'accepts any CSS display value, treating everything but none as displayed' do
+    it 'accepts CSS display values' do
       %w[block inline-block flex table-cell].each do |value|
         expect(subject.set('display', value)).to be true
       end
@@ -231,6 +231,7 @@ RSpec.describe Prawn::SVG::Properties do
       expect(described_class.issue_category('mix-blend-mode', ' Normal ')).to be nil
       expect(described_class.issue_category('paint-order', 'fill  stroke')).to be nil
       expect(described_class.issue_category('overflow-x', 'hidden')).to be nil
+      expect(described_class.issue_category('overflow-y', 'Hidden')).to be nil
     end
 
     it 'is :unsupported for other values of unsupported properties' do

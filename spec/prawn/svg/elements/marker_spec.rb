@@ -102,6 +102,17 @@ RSpec.describe Prawn::SVG::Elements::Marker do
     end
   end
 
+  describe 'negative size' do
+    let(:svg) { '<svg><marker id="m" markerWidth="-2"><path d="M 0 0 L 1 1"/></marker><line x2="10" y2="10" stroke="black"/></svg>' }
+
+    it 'reports it' do
+      subject.process
+      line_element.process
+      subject.apply_marker(line_element, point: [10, 10], angle: 0)
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<marker> cannot be rendered due to negative sizing information')]
+    end
+  end
+
   describe 'orient' do
     def rotation
       subject.process
@@ -117,7 +128,8 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       '0.5turn'            => nil,
       '1rad'               => -180 / Math::PI,
       'junk'               => nil,
-      'auto-start-reverse' => nil
+      'auto-start-reverse' => nil,
+      ' auto '             => -45
     }.each do |value, expected|
       context "with #{value}" do
         let(:orient) { value }
