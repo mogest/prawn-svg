@@ -51,39 +51,6 @@ Option      | Data type | Description
   svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_issues: true
 ```
 
-## Issues
-
-When prawn-svg can't render part of an SVG as a browser would, it records an issue and carries on.
-`svg` returns them as `Prawn::SVG::Issue` objects, along with the rendered size:
-
-```ruby
-  result = svg IO.read("drawing.svg")
-  result[:issues].each { |issue| puts "#{issue.category}: #{issue.message}" }
-```
-
-Category | Meaning
--------- | -------
-:unsupported | A valid SVG or CSS feature that prawn-svg ignores, so the output may differ from a browser's.  For example, `filter`, `pathLength` or `<foreignObject>`.  Property and attribute values prawn-svg can't use are also reported here, since it can't tell an unsupported value from an invalid one.
-:unknown | A tag, attribute or property prawn-svg doesn't recognise.  Usually specific to the program that generated the SVG, or not valid on that element, and ignored by browsers too.  For example, Highcharts' `zIndex`.
-:invalid | The SVG is malformed, such as bad path data, a missing required attribute, or a reference to an element that doesn't exist.
-:resource | An image, font, stylesheet or external SVG couldn't be loaded.
-
-Attributes and properties with no effect on a static rendering, such as `cursor`, `data-*`, or editor namespaces like `inkscape:`, aren't reported.
-
-Use `raise_on_issue` to make issues fatal:
-
-```ruby
-  # Reject any SVG that prawn-svg doesn't completely understand
-  svg data, raise_on_issue: true
-
-  # Only reject SVGs that won't render as they would in a browser
-  svg data, raise_on_issue: [:unsupported, :invalid, :resource]
-```
-
-`Prawn::SVG::IssueError#issues` lists the issues that caused the error.  The SVG has already been drawn into the PDF by the time it's raised.
-
-The return value also contains `:warnings`, the issue messages only, for backwards compatibility.
-
 ## Supported features
 
 prawn-svg supports almost all of the full SVG 1.1 specification:
@@ -179,6 +146,20 @@ direction and unicode-bidi are not supported.
 Features that will probably never be supported because either they don't make sense for PDF, they were deprecated
 in SVG 2, and/or they are rarely used: filters, SVG fonts, altGlyph, font-size-adjust, glyph-orientation, rendering
 hints, ICC color profiles, color-interpolation, enable-background, deprecated CSS clip, @media.
+
+## Issues
+
+When prawn-svg can't render something as a browser would, it records an issue and carries on.  `svg` returns them
+in `result[:issues]` as `Prawn::SVG::Issue` objects, each with a `category` and `message`.  The categories are
+`:unsupported` (a valid feature prawn-svg ignores), `:unknown` (a tag, attribute or property it doesn't recognise,
+usually one browsers ignore too), `:invalid` (malformed SVG) and `:resource` (an image, font or stylesheet couldn't
+be loaded).
+
+To reject SVGs that won't render as they would in a browser:
+
+```ruby
+  svg data, raise_on_issue: [:unsupported, :invalid, :resource]
+```
 
 ## Configuration
 
