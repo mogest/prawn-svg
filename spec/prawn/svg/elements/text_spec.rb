@@ -520,6 +520,16 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'tspans nested too deeply' do
+    let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg"><text>#{'<tspan>' * 8}x#{'</tspan>' * 8}</text></svg>) }
+
+    it 'skips the deepest and reports an issue' do
+      stub_const('Prawn::SVG::Document::MAX_ELEMENT_DEPTH', 10)
+
+      expect(prawn.svg(svg)[:warnings]).to eq ['elements are nested too deeply']
+    end
+  end
+
   describe 'dx and dy attributes' do
     let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
 

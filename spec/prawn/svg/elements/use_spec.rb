@@ -329,6 +329,14 @@ describe Prawn::SVG::Elements::Use do
       expect(pdf.render.scan(/\bre\b/).length).to be < 20
     end
 
+    it 'limits how deeply elements are nested through use tags' do
+      stub_const('Prawn::SVG::Document::MAX_ELEMENT_DEPTH', 20)
+      groups = (0...5).map { |n| %(<g id="g#{n}">#{'<g>' * 5}<use href="#g#{n + 1}"/>#{'</g>' * 5}</g>) }.join
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs>#{groups}<rect id="g5"/></defs><use href="#g0"/></svg>)
+
+      expect(Prawn::Document.new.svg(svg)[:warnings]).to include 'elements are nested too deeply'
+    end
+
     it 'limits how many external SVGs are loaded' do
       requests = 0
       svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://use.test/0.svg#x"/></svg>)

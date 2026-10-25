@@ -6,6 +6,7 @@ class Prawn::SVG::Document
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
   MAX_NESTED_DOCUMENTS = 50
+  MAX_ELEMENT_DEPTH = 200
 
   # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
   attr_reader :issues
@@ -77,9 +78,13 @@ class Prawn::SVG::Document
     root = REXML::Document.new(data).root
     return unless root
 
-    REXML::XPath.each(root, 'descendant-or-self::*') do |element|
+    stack = [[root, 1]]
+    while (element, depth = stack.pop)
+      raise 'elements are nested too deeply' if depth > MAX_ELEMENT_DEPTH
+
       element.attributes.each_attribute(&:value)
       element.texts.each(&:value)
+      element.elements.each { |child| stack << [child, depth + 1] }
     end
     root
   end

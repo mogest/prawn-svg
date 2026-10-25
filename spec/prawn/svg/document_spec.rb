@@ -111,6 +111,14 @@ describe Prawn::SVG::Document do
       end
     end
 
+    context 'when elements are nested too deeply' do
+      let(:svg) { "<svg>#{'<g>' * 5000}#{'</g>' * 5000}</svg>" }
+
+      it 'raises an exception when the document is loaded' do
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /nested too deeply/
+      end
+    end
+
     context 'when small entities are used' do
       let(:svg) { %(<!DOCTYPE svg [<!ENTITY ns "http://www.w3.org/2000/svg">]><svg xmlns="&ns;"></svg>) }
 

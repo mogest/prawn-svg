@@ -56,6 +56,11 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
+    if (state.depth += 1) > Prawn::SVG::Document::MAX_ELEMENT_DEPTH
+      add_issue(:invalid, 'elements are nested too deeply')
+      return
+    end
+
     report_unsupported_children
     extract_attributes_and_properties
     parse_and_apply

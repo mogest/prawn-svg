@@ -166,6 +166,8 @@ module Prawn::SVG
     def build_child(child)
       component = Elements::TextComponent.new(document, child, [], state.dup, self)
       component.process
+      return [] unless component.children
+
       component
     end
 
