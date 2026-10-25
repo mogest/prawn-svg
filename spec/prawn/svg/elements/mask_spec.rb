@@ -396,4 +396,23 @@ describe Prawn::SVG::Elements::Mask do
       expect(document.warnings).to include 'Could not resolve mask URI to a mask element'
     end
   end
+
+  describe 'nested masks' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <mask id="inner"><rect width="5" height="5" fill="white"/></mask>
+          <mask id="outer"><rect width="5" height="5" fill="white" mask="url(#inner)"/></mask>
+          <rect width="10" height="10" mask="url(#outer)"/>
+        </svg>
+      SVG
+    end
+
+    it 'renders a mask whose content is masked' do
+      pdf = Prawn::Document.new
+
+      expect(pdf.svg(svg)[:warnings]).to be_empty
+      expect(pdf.state.page.singleton_methods).not_to include :dimensions
+    end
+  end
 end

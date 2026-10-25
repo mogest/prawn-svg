@@ -221,11 +221,15 @@ module Prawn
       # Temporarily override dimensions to use a large BBox.
       def with_large_page_dimensions(prawn)
         page = prawn.state.page
+        return yield if page.singleton_methods.include?(:dimensions)
+
         large_bbox = [-10_000, -10_000, 10_000, 10_000]
         page.define_singleton_method(:dimensions) { large_bbox }
-        yield
-      ensure
-        page.singleton_class.remove_method(:dimensions)
+        begin
+          yield
+        ensure
+          page.singleton_class.remove_method(:dimensions)
+        end
       end
 
       def clip_rectangle(x, y, width, height)
