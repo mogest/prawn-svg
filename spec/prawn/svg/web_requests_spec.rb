@@ -113,6 +113,51 @@ RSpec.describe 'web requests' do
     end
   end
 
+  describe 'corrupt content fetched from the web' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <style>@import url("https://web.test/a.css"); @font-face { font-family: "Web"; src: url("https://web.test/font.ttf"); }</style>
+          <text font-family="Web" y="5">hello</text>
+        </svg>
+      SVG
+    end
+
+    it 'is reported as issues rather than crashing' do
+      web['https://web.test/a.css'] = '5 { fill: red; }'
+      web['https://web.test/font.ttf'] = File.binread(font_path)[0, 1000]
+      stub_ssrf_filter
+
+      result = render(svg, web_requests: true)
+
+      expect(result[:warnings]).to contain_exactly(
+        "CSS selector '5' could not be parsed",
+        'Failed to load @font-face font from https://web.test/font.ttf: font data could not be parsed'
+      )
+    end
+
+    it 'reports oversized entities in external and nested SVGs as issues' do
+      entities = %(<!DOCTYPE svg [<!ENTITY a "#{'x' * 1000}"><!ENTITY b "#{'&a;' * 16}">]>)
+      web['https://web.test/e.svg'] = %(#{entities}<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><text>&b;</text></g></svg>)
+      stub_ssrf_filter
+      references = %(<use href="https://web.test/e.svg#x"/><image href="https://web.test/e.svg" width="5" height="5"/>)
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{references}</svg>)
+
+      expect(render(svg, web_requests: true)[:warnings]).to contain_exactly(
+        "use tag references external SVG at 'https://web.test/e.svg' which could not be parsed",
+        'image tag references SVG data which could not be parsed'
+      )
+    end
+
+    it 'reports issues in the stylesheets of external SVGs' do
+      web['https://web.test/e.svg'] = %(<svg xmlns="http://www.w3.org/2000/svg"><style>5 { fill: red; }</style><rect id="x" width="1" height="1"/></svg>)
+      stub_ssrf_filter
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://web.test/e.svg#x"/></svg>)
+
+      expect(render(svg, web_requests: true)[:warnings]).to eq ["CSS selector '5' could not be parsed"]
+    end
+  end
+
   describe 'caching' do
     let(:image) { %(<image href="https://web.test/image.jpg" width="5" height="5"/>) }
     let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image}#{image}</svg>) }

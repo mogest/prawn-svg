@@ -103,8 +103,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       data = @document.url_loader.load(url)
 
       root = begin
-        REXML::Document.new(data).root
-      rescue REXML::ParseException
+        Prawn::SVG::Document.parse_root(data)
+      rescue RuntimeError
         raise SkipElementError.new("use tag references external SVG at '#{url}' which could not be parsed", :resource)
       end
 
@@ -113,6 +113,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       css_parser = CssParser::Parser.new
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root)
       element_styles = stylesheets.load
+      stylesheets.issues.each { |issue| @document.add_issue(issue.category, issue.message) }
 
       [root, element_styles]
     end

@@ -81,7 +81,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   def process_image(data, width, height, preserve_aspect_ratio)
     if (handler = find_image_handler(data))
-      image = handler.new(data)
+      image = parse_image(handler, data)
       ImageData.new([image.width.to_f, image.height.to_f], nil)
 
     elsif potentially_svg?(data)
@@ -145,7 +145,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   end
 
   def find_view_element_attributes(data, fragment)
-    root = REXML::Document.new(data).root
+    root = Prawn::SVG::Document.parse_root(data)
     return unless root
 
     element = REXML::XPath.match(root, %(//*[@id="#{fragment.gsub('"', '\\"')}"])).first
@@ -155,8 +155,18 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     attrs['viewBox'] = element.attributes['viewBox'] if element.attributes['viewBox']
     attrs['preserveAspectRatio'] = element.attributes['preserveAspectRatio'] if element.attributes['preserveAspectRatio']
     attrs.empty? ? nil : attrs
-  rescue REXML::ParseException
+  rescue RuntimeError
     nil
+  end
+
+  def parse_image(handler, data)
+    image = handler.new(data)
+    # Some unsupported images only fail when they're drawn.
+    image.build_pdf_object(Prawn::Document.new)
+    image
+  rescue StandardError
+    # Prawn's image parsers raise arbitrary errors on corrupt data, which may have come from anywhere.
+    raise SkipElementError.new('image tag references image data which could not be parsed', :resource)
   end
 
   def find_image_handler(data)

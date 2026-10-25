@@ -24,8 +24,8 @@ class Prawn::SVG::Document
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
-      @root = REXML::Document.new(data).root or raise_parse_error(data)
-    rescue REXML::ParseException => e
+      @root = self.class.parse_root(data) or raise_parse_error(data)
+    rescue RuntimeError => e
       raise_parse_error(data, e.message)
     end
 
@@ -60,6 +60,19 @@ class Prawn::SVG::Document
     process_font_face_rules(stylesheets.font_face_rules)
 
     yield self if block_given?
+  end
+
+  # REXML expands entities lazily, raising a RuntimeError if they grow too large, so expand them all now where the
+  # error can be handled.  REXML::ParseException is also a RuntimeError.
+  def self.parse_root(data)
+    root = REXML::Document.new(data).root
+    return unless root
+
+    REXML::XPath.each(root, 'descendant-or-self::*') do |element|
+      element.attributes.each_attribute(&:value)
+      element.texts.each(&:value)
+    end
+    root
   end
 
   def add_issue(category, message)
@@ -152,12 +165,22 @@ class Prawn::SVG::Document
     tempfile.write(data)
     tempfile.close
     @font_face_tempfiles << tempfile
+    assert_usable_font(tempfile.path)
 
     font_registry.register_font_face(family, weight, style, stretch, tempfile.path)
     true
   rescue Prawn::SVG::UrlLoader::Error => e
     add_issue(:resource, "Failed to load @font-face font from #{source[:url]}: #{e.message}")
     false
+  end
+
+  def assert_usable_font(path)
+    pdf = Prawn::Document.new
+    pdf.font(path) { pdf.text 'a' }
+    pdf.render
+  rescue StandardError
+    # Prawn's font parser raises arbitrary errors on corrupt data, which may have come from anywhere.
+    raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed'
   end
 
   def unquote_css_string(value)

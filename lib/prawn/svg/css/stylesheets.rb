@@ -74,7 +74,7 @@ module Prawn::SVG::CSS
           specificity << order
           order += 1
 
-          xpath_styles << [xpath, declarations, specificity]
+          xpath_styles << [selector_text, xpath, declarations, specificity]
         end
       end
 
@@ -84,17 +84,25 @@ module Prawn::SVG::CSS
     def associate_xpath_styles_with_elements(xpath_styles)
       element_styles = {}
 
-      xpath_styles.each do |xpath, declarations, _|
+      xpath_styles.each do |selector_text, xpath, declarations, _|
         REXML::XPath.match(root, xpath).each do |element|
           (element_styles[element] ||= []).concat declarations
         end
+      rescue REXML::ParseException
+        issues << Prawn::SVG::Issue.new(:invalid, "CSS selector '#{selector_text}' could not be parsed")
       end
 
       element_styles
     end
 
     def xpath_quote(value)
-      %("#{value.gsub('\\', '\\\\').gsub('"', '\\"')}") if value
+      if !value.include?('"')
+        %("#{value}")
+      elsif !value.include?("'")
+        %('#{value}')
+      else
+        %[concat("#{value.gsub('"', %(", '"', "))}")]
+      end
     end
 
     RECOGNIZED_PSEUDO_CLASSES = %w[first-child last-child link visited hover active focus].freeze
@@ -152,8 +160,8 @@ module Prawn::SVG::CSS
           result << (element[:name] || '*')
         end
 
-        result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), ' #{name} ')]" }.join)
-        result << ((element[:id] || []).map { |name| "[@id='#{name}']" }.join)
+        result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), #{xpath_quote " #{name} "})]" }.join)
+        result << ((element[:id] || []).map { |name| "[@id=#{xpath_quote name}]" }.join)
 
         (element[:attribute] || []).each do |key, operator, value|
           case operator

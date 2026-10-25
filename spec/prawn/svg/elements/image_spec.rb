@@ -212,4 +212,46 @@ describe Prawn::SVG::Elements::Image do
       expect(result[:warnings]).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
     end
   end
+
+  describe 'corrupt image data' do
+    def png(interlace)
+      chunk = ->(type, data) { [data.bytesize].pack('N') + type + data + [Zlib.crc32(type + data)].pack('N') }
+      header = [1, 1, 8, 0, 0, 0, interlace].pack('NNC5')
+      "\x89PNG\r\n\x1a\n".b + chunk['IHDR', header] + chunk['IDAT', Zlib::Deflate.deflate("\0\0")] + chunk['IEND', '']
+    end
+
+    five_channel_jpeg = "\xFF\xD8\xFF\xC0\x00\x11\x08\x00\x01\x00\x01\x05\x01\x11\x00\x02\x11\x00\x03\x11\x00\xFF\xD9".b
+
+    it 'accepts a valid PNG' do
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://x.test/i" width="10" height="10"/></svg>)
+      result = Prawn::Document.new.svg(svg, web_requests: ->(_uri) { png(0) })
+
+      expect(result[:warnings]).to be_empty
+    end
+
+    ["\x89PNG\r\n\x1a\nrubbish".b, "\xFF\xD8\xFFrubbish".b, :interlaced_png, five_channel_jpeg].each do |data|
+      it "reports #{data.inspect} as a resource issue" do
+        data = png(1) if data == :interlaced_png
+        svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://x.test/i" width="10" height="10"/></svg>)
+        result = Prawn::Document.new.svg(svg, web_requests: ->(_uri) { data })
+
+        expect(result[:issues].map(&:category)).to eq [:resource]
+        expect(result[:warnings]).to eq ['image tag references image data which could not be parsed']
+      end
+    end
+  end
+
+  describe 'view fragment in SVG data with oversized entities' do
+    let(:svg) do
+      %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://x.test/e.svg#v" width="10" height="10"/></svg>)
+    end
+
+    it 'reports a resource issue' do
+      entities = %(<!DOCTYPE svg [<!ENTITY a "#{'x' * 1000}"><!ENTITY b "#{'&a;' * 16}">]>)
+      data = %(#{entities}<svg xmlns="http://www.w3.org/2000/svg"><view id="&b;"/></svg>)
+      result = Prawn::Document.new.svg(svg, web_requests: ->(_uri) { data })
+
+      expect(result[:warnings]).to eq ['image tag references SVG data which could not be parsed']
+    end
+  end
 end

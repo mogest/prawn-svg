@@ -402,6 +402,26 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe 'quotes and backslashes in selectors' do
+    it 'matches attribute values containing them' do
+      svg = <<~SVG
+        <svg>
+          <rect width="1" a='x"y' />
+          <rect width="2" a="x'y" />
+          <rect width="3" a="x'&quot;y" />
+          <rect width="4" a="x\\y" />
+          <rect width="5" a="other" xml:lang='"' />
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!(%(rect[a='x"y'], rect[a="x'y"], rect[a="x'\\"y"], rect[a="x\\\\y"], rect:lang(") { fill: red; }))
+
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      expect(result.keys.map { |element| element.attributes['width'] }).to eq %w[1 2 3 4 5]
+    end
+  end
+
   describe ':nth-child() formula syntax' do
     let(:svg) do
       <<~SVG

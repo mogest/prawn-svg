@@ -98,6 +98,25 @@ describe Prawn::SVG::Document do
       end
     end
 
+    context 'when entities expand too far' do
+      let(:svg) do
+        entities = %(<!ENTITY a "#{'x' * 1000}"><!ENTITY b "#{'&a;' * 16}">)
+        %(<!DOCTYPE svg [#{entities}]><svg><text>&b;</text></svg>)
+      end
+
+      it 'raises an exception when the document is loaded' do
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /entity expansion/
+      end
+    end
+
+    context 'when small entities are used' do
+      let(:svg) { %(<!DOCTYPE svg [<!ENTITY ns "http://www.w3.org/2000/svg">]><svg xmlns="&ns;"></svg>) }
+
+      it 'expands them' do
+        expect(Prawn::SVG::Document.new(svg, bounds, options).root.namespace).to eq 'http://www.w3.org/2000/svg'
+      end
+    end
+
     context 'when broken XML is provided' do
       let(:svg) { '<svg><g><rect></rect></svg>' }
 
