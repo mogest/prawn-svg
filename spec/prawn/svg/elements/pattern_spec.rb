@@ -247,4 +247,14 @@ describe Prawn::SVG::Elements::Pattern do
       call_name == name || (children && find_call(children, name))
     end
   end
+
+  describe 'href loop' do
+    let(:svg) do
+      %(<svg><pattern id="p" href="#q" width="5" height="5"/><pattern id="q" href="#p" width="5" height="5"/><rect width="10" height="10" fill="url(#p)"/></svg>)
+    end
+
+    it 'reports an issue' do
+      expect(document.warnings).to include "gradient or pattern 'q' references itself"
+    end
+  end
 end

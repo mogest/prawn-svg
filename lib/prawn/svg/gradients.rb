@@ -3,17 +3,14 @@ module Prawn::SVG
     def initialize(document)
       @document = document
       @gradients_by_id = {}
+      @resolving = Set.new
     end
 
     def [](id)
       id &&= id.strip
       return unless id && id != ''
 
-      if (element = @gradients_by_id[id])
-        element
-      elsif (raw_element = find_raw_gradient_element_by_id(id))
-        create_gradient_element(raw_element)
-      end
+      @gradients_by_id[id] || resolve(id)
     end
 
     def []=(id, gradient)
@@ -23,6 +20,20 @@ module Prawn::SVG
     private
 
     PAINT_SERVER_CLASSES = [Elements::Gradient, Elements::Pattern].freeze
+
+    def resolve(id)
+      unless @resolving.add?(id)
+        @document.add_issue(:invalid, "gradient or pattern '#{id}' references itself")
+        return
+      end
+
+      begin
+        raw_element = find_raw_gradient_element_by_id(id)
+        create_gradient_element(raw_element) if raw_element
+      ensure
+        @resolving.delete(id)
+      end
+    end
 
     def find_raw_gradient_element_by_id(id)
       raw_element = find_raw_element_by_id(id)

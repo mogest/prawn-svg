@@ -222,4 +222,14 @@ describe Prawn::SVG::Elements::Gradient do
       )
     end
   end
+
+  describe 'href loop' do
+    let(:svg) do
+      %(<svg><linearGradient id="p" href="#q"/><linearGradient id="q" href="#p"/><rect width="10" height="10" fill="url(#p)"/></svg>)
+    end
+
+    it 'reports an issue' do
+      expect(document.warnings).to include "gradient or pattern 'q' references itself"
+    end
+  end
 end
