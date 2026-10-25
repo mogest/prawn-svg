@@ -133,7 +133,7 @@ class Prawn::SVG::Elements::Pattern < Prawn::SVG::Elements::Base
   end
 
   def content_source
-    if parent_pattern && source.elements.none? { |e| ['', SVG_NAMESPACE].include?(e.namespace) }
+    if parent_pattern && source.elements.none? { |e| svg_element?(e) }
       parent_pattern.send(:content_source)
     else
       source

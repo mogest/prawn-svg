@@ -172,11 +172,22 @@ class Prawn::SVG::Elements::Base
   end
 
   def svg_child_elements
-    source.elements.select do |elem|
-      # To be strict, we shouldn't treat namespace-less elements as SVG, but for
-      # backwards compatibility, and because it doesn't hurt, we will.
-      [SVG_NAMESPACE, ''].include?(elem.namespace)
+    source.elements.select { |elem| svg_element?(elem) }
+  end
+
+  # To be strict, we shouldn't treat namespace-less elements as SVG, but for backwards compatibility, and because it
+  # doesn't hurt, we will.  REXML's Element#namespace takes time proportional to the square of the element's depth,
+  # so look for the declaration ourselves.
+  def svg_element?(elem)
+    declaration = elem.prefix.empty? ? 'xmlns' : "xmlns:#{elem.prefix}"
+    node = elem
+    while node.is_a?(REXML::Element)
+      node.attributes.each_attribute do |attribute|
+        return [SVG_NAMESPACE, ''].include?(attribute.value) if attribute.expanded_name == declaration
+      end
+      node = node.parent
     end
+    elem.prefix.empty?
   end
 
   def apply_calls_from_standard_attributes

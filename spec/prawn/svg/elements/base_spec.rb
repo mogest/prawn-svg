@@ -235,6 +235,22 @@ describe Prawn::SVG::Elements::Base do
     end
   end
 
+  describe 'namespaces' do
+    let(:svg) { <<-SVG }
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:s="http://www.w3.org/2000/svg" xmlns:o="http://other.test/">
+        <g><rect id="a"/><s:rect id="b"/><o:rect id="c"/></g>
+        <g xmlns="http://other.test/"><rect id="e"/></g><g xmlns=""><rect id="f"/></g>
+        <o:g xmlns:o="http://www.w3.org/2000/svg"><rect id="g"/></o:g>
+      </svg>
+    SVG
+
+    it 'only processes elements in the SVG namespace or no namespace' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.elements_by_id.keys.sort).to eq %w[a b f g]
+    end
+  end
+
   describe 'attribute issues' do
     let(:svg) { <<-SVG }
       <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
