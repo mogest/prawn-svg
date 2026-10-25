@@ -68,7 +68,7 @@ module Prawn::SVG::Loaders
 
     def build_uri(url)
       URI(url)
-    rescue URI::InvalidURIError
+    rescue URI::Error
     end
 
     def assert_valid_path!(path)

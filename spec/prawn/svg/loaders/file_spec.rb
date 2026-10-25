@@ -103,4 +103,12 @@ RSpec.describe Prawn::SVG::Loaders::File do
       expect(subject).to eq 'data'
     end
   end
+
+  context 'when a URL can be split but not built, such as mailto:x' do
+    let(:url) { 'mailto:x' }
+
+    it 'returns nil' do
+      expect(subject).to be_nil
+    end
+  end
 end
