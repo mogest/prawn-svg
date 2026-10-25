@@ -52,6 +52,8 @@ module Prawn::SVG::CSS
           # Silently ignore circular @import references
         rescue Prawn::SVG::UrlLoader::Error => e
           issues << Prawn::SVG::Issue.new(:resource, "Failed to load @import CSS from #{import_url}: #{e.message}")
+        rescue Addressable::URI::InvalidURIError => e
+          issues << Prawn::SVG::Issue.new(:invalid, "stylesheet from #{import_url} has an invalid @import URL: #{e.message}")
         end
       end
     end
@@ -65,6 +67,8 @@ module Prawn::SVG::CSS
         else
           css_parser.add_block!(data)
         end
+      rescue Addressable::URI::InvalidURIError => e
+        issues << Prawn::SVG::Issue.new(:invalid, "stylesheet has an invalid @import URL: #{e.message}")
       end
     end
 

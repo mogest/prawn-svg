@@ -175,6 +175,19 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       expect(styles).to include(['fill', 'red', false])
     end
 
+    it 'reports invalid @import URLs' do
+      allow(url_loader).to receive(:load).with('external.css').and_return('@import url("http://x:-1/");')
+      svg = '<svg><style>@import url("external.css");</style><style>@import url(":");</style></svg>'
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets.load
+
+      expect(stylesheets.issues.map(&:message)).to eq [
+        'stylesheet from external.css has an invalid @import URL: Invalid port number: "-1"',
+        "stylesheet has an invalid @import URL: Cannot assemble URI string with ambiguous path: ':'"
+      ]
+    end
+
     it 'loads @import with bare string syntax' do
       imported_css = 'circle { fill: green; }'
       allow(url_loader).to receive(:load).with('styles.css').and_return(imported_css)
