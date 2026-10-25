@@ -192,4 +192,24 @@ describe Prawn::SVG::Elements::Image do
       expect(requests).to be <= (Prawn::SVG::Elements::Image::MAX_NESTED_DOCUMENTS * 6) + 6
     end
   end
+
+  describe 'nested SVG image' do
+    let(:inner_svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <image href="spec/sample_images/mushroom-wide.jpg" width="5" height="5"/>
+          <text y="5">hello</text>
+        </svg>
+      SVG
+    end
+    let(:svg) do
+      %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="data:image/svg+xml;base64,#{[inner_svg].pack('m0')}" width="10" height="10"/></svg>)
+    end
+
+    it "renders text, but can't load files even when the parent can" do
+      result = Prawn::Document.new.svg(svg, enable_file_requests_with_root: '.')
+
+      expect(result[:warnings]).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
+    end
+  end
 end

@@ -79,6 +79,7 @@ class Prawn::SVG::Document
     self.class.new(
       data, [width, height],
       options.merge(width: width, height: height),
+      font_registry:       font_registry,
       attribute_overrides: attribute_overrides,
       root_document:       root_document
     )
