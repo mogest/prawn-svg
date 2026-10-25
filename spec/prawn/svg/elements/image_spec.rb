@@ -214,9 +214,9 @@ describe Prawn::SVG::Elements::Image do
   end
 
   describe 'corrupt image data' do
-    def png(interlace)
+    def png(interlace, size = 1)
       chunk = ->(type, data) { [data.bytesize].pack('N') + type + data + [Zlib.crc32(type + data)].pack('N') }
-      header = [1, 1, 8, 0, 0, 0, interlace].pack('NNC5')
+      header = [size, size, 8, 0, 0, 0, interlace].pack('NNC5')
       "\x89PNG\r\n\x1a\n".b + chunk['IHDR', header] + chunk['IDAT', Zlib::Deflate.deflate("\0\0")] + chunk['IEND', '']
     end
 
@@ -229,9 +229,20 @@ describe Prawn::SVG::Elements::Image do
       expect(result[:warnings]).to be_empty
     end
 
-    ["\x89PNG\r\n\x1a\nrubbish".b, "\xFF\xD8\xFFrubbish".b, :interlaced_png, five_channel_jpeg].each do |data|
+    it 'checks each image once per render' do
+      allow(Prawn::Images::PNG).to receive(:new).and_call_original
+      image = '<image href="https://x.test/i" width="10" height="10"/>'
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image * 3}</svg>)
+      Prawn::Document.new.svg(svg, web_requests: ->(_uri) { png(0) })
+
+      # Once by prawn-svg, and once by Prawn when it draws the image.
+      expect(Prawn::Images::PNG).to have_received(:new).twice
+    end
+
+    ["\x89PNG\r\n\x1a\nrubbish".b, "\xFF\xD8\xFFrubbish".b, :interlaced_png, :huge_png, five_channel_jpeg].each do |data|
       it "reports #{data.inspect} as a resource issue" do
         data = png(1) if data == :interlaced_png
+        data = png(0, 100_000) if data == :huge_png
         svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://x.test/i" width="10" height="10"/></svg>)
         result = Prawn::Document.new.svg(svg, web_requests: ->(_uri) { data })
 

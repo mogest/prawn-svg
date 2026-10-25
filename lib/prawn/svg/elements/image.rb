@@ -79,8 +79,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   def process_image(data, width, height, preserve_aspect_ratio)
     if (handler = find_image_handler(data))
-      image = parse_image(handler, data)
-      ImageData.new([image.width.to_f, image.height.to_f], nil)
+      ImageData.new(image_dimensions(handler, data), nil)
 
     elsif potentially_svg?(data)
       attribute_overrides = {}
@@ -157,13 +156,26 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     nil
   end
 
-  def parse_image(handler, data)
-    image = handler.new(data)
-    # Some unsupported images only fail when they're drawn.
-    image.build_pdf_object(Prawn::Document.new)
-    image
+  def image_dimensions(handler, data)
+    @document.root_document.image_dimensions[data] ||= begin
+      image = handler.new(data)
+      raise_unparseable_image if image.is_a?(Prawn::Images::PNG) && truncated_png?(image)
+      # Some unsupported images only fail when they're drawn.
+      image.build_pdf_object(Prawn::Document.new)
+      [image.width.to_f, image.height.to_f]
+    end
   rescue StandardError
     # Prawn's image parsers raise arbitrary errors on corrupt data, which may have come from anywhere.
+    raise_unparseable_image
+  end
+
+  # Prawn allocates memory for the dimensions a PNG declares, however little data it has.
+  def truncated_png?(image)
+    channels = [4, 6].include?(image.color_type) ? image.colors + 1 : image.colors
+    image.img_data.bytesize < image.height * ((((image.width * channels * image.bits) + 7) / 8) + 1)
+  end
+
+  def raise_unparseable_image
     raise SkipElementError.new('image tag references image data which could not be parsed', :resource)
   end
 

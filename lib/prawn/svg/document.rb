@@ -20,6 +20,7 @@ class Prawn::SVG::Document
     :element_styles,
     :color_mode,
     :external_svg_cache,
+    :image_dimensions,
     :root_document
 
   attr_accessor :nested_document_count, :use_count
@@ -40,6 +41,7 @@ class Prawn::SVG::Document
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}
+    @image_dimensions = {}
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
     @color_mode = load_color_mode
