@@ -79,11 +79,13 @@ describe Prawn::SVG::Document do
         expect(child.url_loader.loaders).not_to include(an_instance_of(Prawn::SVG::Loaders::File))
       end
 
-      it 'counts nested documents on the root document' do
-        grandchild = child.replicate('<svg></svg>', 10, 20)
+      it 'shares the root document' do
+        expect(child.replicate('<svg></svg>', 10, 20).root_document).to be parent
+      end
 
-        expect(grandchild.root_document).to be parent
-        expect(parent.nested_document_count).to eq 2
+      it 'limits the number of nested documents across the whole render' do
+        expect(Prawn::SVG::Document::MAX_NESTED_DOCUMENTS.times.map { child.reserve_nested_document }).to all(be_truthy)
+        expect(parent.reserve_nested_document).to be false
       end
     end
 

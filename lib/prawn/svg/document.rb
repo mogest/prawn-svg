@@ -5,6 +5,7 @@ class Prawn::SVG::Document
   InvalidSVGData = Class.new(Error)
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
+  MAX_NESTED_DOCUMENTS = 50
 
   # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
   attr_reader :issues
@@ -20,7 +21,7 @@ class Prawn::SVG::Document
     :external_svg_cache,
     :root_document
 
-  attr_accessor :nested_document_count
+  attr_accessor :nested_document_count, :use_count
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
@@ -34,6 +35,7 @@ class Prawn::SVG::Document
     @options = options
     @root_document = root_document || self
     @nested_document_count = 0
+    @use_count = 0
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}
@@ -62,6 +64,13 @@ class Prawn::SVG::Document
     yield self if block_given?
   end
 
+  # SVG documents referenced by <image> and <use> can reference further documents, so limit how many a render loads.
+  def reserve_nested_document
+    return false if root_document.nested_document_count >= MAX_NESTED_DOCUMENTS
+
+    root_document.nested_document_count += 1
+  end
+
   # REXML expands entities lazily, raising a RuntimeError if they grow too large, so expand them all now where the
   # error can be handled.  REXML::ParseException is also a RuntimeError.
   def self.parse_root(data)
@@ -87,7 +96,6 @@ class Prawn::SVG::Document
 
   def replicate(data, width, height, attribute_overrides: {})
     options = @options.reject { |key, _| key == :enable_file_requests_with_root }
-    root_document.nested_document_count += 1
 
     self.class.new(
       data, [width, height],

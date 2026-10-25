@@ -13,8 +13,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   ImageData = Struct.new(:dimensions, :document)
 
-  MAX_NESTED_DOCUMENTS = 50
-
   def parse
     require_attributes 'width', 'height'
 
@@ -93,7 +91,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
         attribute_overrides.merge!(view_attrs) if view_attrs
       end
 
-      raise SkipElementError.new('too many nested SVG images', :resource) if @document.root_document.nested_document_count >= MAX_NESTED_DOCUMENTS
+      raise SkipElementError.new('too many nested SVG documents', :resource) unless @document.reserve_nested_document
 
       document = @document.replicate(data, width, height, attribute_overrides: attribute_overrides)
 

@@ -1,9 +1,16 @@
 class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
+  MAX_DEPTH = 50
+  MAX_PER_RENDER = 300_000
+
   attr_reader :referenced_element_class, :referenced_element_source
 
   def parse
     href = href_attribute
     raise SkipElementError, 'use tag must have an href or xlink:href' if href.nil?
+    raise SkipElementError.new('use tags are nested too deeply, or reference themselves', :invalid) if state.use_depth >= MAX_DEPTH
+    raise SkipElementError.new('too many use tags are rendered', :invalid) if (@document.root_document.use_count += 1) > MAX_PER_RENDER
+
+    state.use_depth += 1
 
     if href.start_with?('#')
       resolve_local_reference(href[1..])
@@ -100,6 +107,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def load_external_svg(url)
     @document.external_svg_cache[url] ||= begin
+      raise SkipElementError.new('too many nested SVG documents', :resource) unless @document.reserve_nested_document
+
       data = @document.url_loader.load(url)
 
       root = begin

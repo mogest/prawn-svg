@@ -293,4 +293,55 @@ describe Prawn::SVG::Elements::Use do
       end
     end
   end
+
+  describe 'recursive references' do
+    it 'stops a local reference to itself' do
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><g id="x"><rect width="1" height="1"/><use href="#x"/></g></svg>)
+      result = Prawn::Document.new.svg(svg)
+
+      expect(result[:issues].map(&:category)).to eq [:invalid]
+      expect(result[:warnings]).to eq ['use tags are nested too deeply, or reference themselves']
+    end
+
+    it 'stops external SVGs referencing each other' do
+      requested = []
+      web = {
+        'https://use.test/a.svg' => %(<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><use href="b.svg#x"/></g></svg>),
+        'https://use.test/b.svg' => %(<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><use href="a.svg#x"/></g></svg>)
+      }
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://use.test/a.svg#x"/></svg>)
+
+      result = Prawn::Document.new.svg(svg, web_requests: ->(uri) { (requested << uri.to_s) && web.fetch(uri.to_s) })
+
+      expect(requested).to eq ['https://use.test/a.svg', 'https://use.test/b.svg']
+      expect(result[:warnings]).to eq ['use tags are nested too deeply, or reference themselves']
+    end
+
+    it 'limits how many use tags are rendered when they fan out' do
+      stub_const('Prawn::SVG::Elements::Use::MAX_PER_RENDER', 20)
+      groups = (0...10).map { |n| %(<g id="g#{n}"><use href="#g#{n + 1}"/><use href="#g#{n + 1}"/></g>) }.join
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs>#{groups}<rect id="g10" width="1" height="1"/></defs><use href="#g0"/></svg>)
+
+      pdf = Prawn::Document.new
+      result = pdf.svg(svg)
+
+      expect(result[:warnings]).to eq ['too many use tags are rendered']
+      expect(pdf.render.scan(/\bre\b/).length).to be < 20
+    end
+
+    it 'limits how many external SVGs are loaded' do
+      requests = 0
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://use.test/0.svg#x"/></svg>)
+      web_requests = lambda do |uri|
+        n = uri.path[/\d+/].to_i
+        requests += 1
+        %(<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><use href="#{n + 1}.svg#x"/><use href="#{n + 1000}.svg#x"/></g></svg>)
+      end
+
+      result = Prawn::Document.new.svg(svg, web_requests: web_requests)
+
+      expect(requests).to eq Prawn::SVG::Document::MAX_NESTED_DOCUMENTS
+      expect(result[:warnings]).to include 'too many nested SVG documents'
+    end
+  end
 end

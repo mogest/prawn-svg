@@ -4,10 +4,11 @@ class Prawn::SVG::State
     :stroke_width,
     :computed_properties,
     :viewport_sizing,
-    :inside_use, :inside_clip_path, :anchor_href
+    :inside_use, :use_depth, :inside_clip_path, :anchor_href
 
   def initialize
     @stroke_width = 1
+    @use_depth = 0
     @opacity = 1
     @last_fill_opacity = 1
     @last_stroke_opacity = 1

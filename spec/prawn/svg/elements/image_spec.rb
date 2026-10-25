@@ -181,15 +181,15 @@ describe Prawn::SVG::Elements::Image do
     it 'stops nesting and reports a resource issue' do
       requests, result = render_self_referencing(1)
 
-      expect(requests).to eq Prawn::SVG::Elements::Image::MAX_NESTED_DOCUMENTS + 1
+      expect(requests).to eq Prawn::SVG::Document::MAX_NESTED_DOCUMENTS + 1
       expect(result[:issues].map(&:category)).to eq [:resource]
-      expect(result[:warnings]).to eq ['too many nested SVG images']
+      expect(result[:warnings]).to eq ['too many nested SVG documents']
     end
 
     it 'limits the total number of nested documents when they fan out' do
       requests, = render_self_referencing(6)
 
-      expect(requests).to be <= (Prawn::SVG::Elements::Image::MAX_NESTED_DOCUMENTS * 6) + 6
+      expect(requests).to be <= (Prawn::SVG::Document::MAX_NESTED_DOCUMENTS * 6) + 6
     end
   end
 
