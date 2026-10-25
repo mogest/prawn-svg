@@ -164,7 +164,7 @@ module Prawn::SVG
     end
 
     def build_child(child)
-      component = self.class.new(document, child, [], state.dup, self)
+      component = Elements::TextComponent.new(document, child, [], state.dup, self)
       component.process
       component
     end

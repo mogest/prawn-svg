@@ -48,6 +48,29 @@ describe Prawn::SVG::Elements::TextPath do
     end
   end
 
+  describe 'with a tspan' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs><path id="mypath" d="M 10,50 L 310,50"/></defs>
+          <text><textPath href="#mypath">He<tspan fill="red">llo</tspan></textPath></text>
+        </svg>
+      SVG
+    end
+
+    it 'renders the tspan along the path' do
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << text
+        method.call(text, **opts)
+      end
+
+      process_and_render
+
+      expect(drawn.join).to eq 'Hello'
+    end
+  end
+
   describe 'with startOffset' do
     let(:svg) do
       <<~SVG
