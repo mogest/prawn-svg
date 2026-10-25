@@ -123,4 +123,15 @@ RSpec.describe Prawn::SVG::Attributes::Stroke do
       end
     end
   end
+
+  describe 'stroke-dasharray' do
+    context 'with a negative value' do
+      let(:svg) { '<line x1="0" y1="0" x2="100" y2="0" stroke="black" stroke-dasharray="10,-5"/>' }
+
+      it 'ignores the dasharray' do
+        subject.process
+        expect(subject.base_calls.map(&:first)).not_to include 'dash'
+      end
+    end
+  end
 end

@@ -349,7 +349,7 @@ module Prawn::SVG
         FuncIRI.parse(value)
       when :dasharray
         value.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP).map do |value|
-          Length.parse(value) || Percentage.parse(value) || break
+          Length.parse(value, positive_only: true) || Percentage.parse(value, positive_only: true) || break
         end
       when :number
         Float(value, exception: false)
