@@ -201,7 +201,7 @@ module Prawn::SVG
 
       if href && href[0..0] == '#'
         element = document.elements_by_id[href[1..]]
-        element if element.name == 'text'
+        element if element&.name == 'text'
       end
     end
 

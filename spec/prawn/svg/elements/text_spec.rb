@@ -490,6 +490,14 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe '<tref> to a missing id' do
+    let(:svg) { '<svg xmlns="http://www.w3.org/2000/svg"><text>a<tref href="#missing"/></text></svg>' }
+
+    it 'renders nothing for the tref' do
+      expect(prawn.svg(svg)[:warnings]).to be_empty
+    end
+  end
+
   describe 'dx and dy attributes' do
     let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
 
