@@ -190,7 +190,7 @@ class Prawn::SVG::Color
         rgb =
           args.map do |arg|
             number = to_float(arg, 2.55) or break
-            format('%02x', number.round.clamp(0, 255))
+            format('%02x', number.clamp(0, 255).round)
           end
 
         rgb && RGB.new(rgb.join)

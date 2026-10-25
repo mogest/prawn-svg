@@ -22,6 +22,7 @@ describe Prawn::SVG::Color do
     it 'converts an rgb function to an RGB color' do
       expect(parse('rgb(16, 32, 48)')).to eq Prawn::SVG::Color::RGB.new('102030')
       expect(parse('rgb(-5, 50%, 120%)')).to eq Prawn::SVG::Color::RGB.new('007fff')
+      expect(parse('rgb(1e999, -1e999, 1e999%)')).to eq Prawn::SVG::Color::RGB.new('ff00ff')
     end
 
     it 'converts a CMYK string to an array of numbers' do
