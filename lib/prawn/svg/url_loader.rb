@@ -1,6 +1,20 @@
 class Prawn::SVG::UrlLoader
   Error = Class.new(StandardError)
 
+  # Content fetched from the web may only refer to other web or data URLs, resolved against its own URL, so it can
+  # never reach the local filesystem.  Returns nil for any other reference.
+  def self.resolve_remote_reference(base_url, reference)
+    return reference if reference.match?(/\Adata:/i)
+
+    url = URI.join(base_url, reference.strip)
+    url.to_s if url.is_a?(URI::HTTP)
+  rescue URI::Error
+  end
+
+  def self.web_url?(url)
+    url.to_s.match?(/\Ahttps?:/i)
+  end
+
   attr_reader :enable_cache, :loaders
 
   def initialize(enable_cache: false, web_requests: false, enable_file_with_root: nil)

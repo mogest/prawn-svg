@@ -110,6 +110,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
       raise SkipElementError.new("use tag references external URL '#{url}' which does not contain SVG", :resource) unless root
 
+      restrict_remote_references(root, url) if Prawn::SVG::UrlLoader.web_url?(url)
+
       css_parser = CssParser::Parser.new
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root)
       element_styles = stylesheets.load
@@ -119,6 +121,26 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     end
   rescue Prawn::SVG::UrlLoader::Error => e
     raise SkipElementError.new("use tag could not load external SVG from '#{url}': #{e.message}", :resource)
+  end
+
+  def restrict_remote_references(root, url)
+    REXML::XPath.match(root, '//*[local-name()="image" or local-name()="use"]').each do |element|
+      element.attributes.each_attribute.select { |attribute| %w[xlink:href href].include?(attribute.expanded_name) }.each do |attribute|
+        name = attribute.expanded_name
+        reference = attribute.value
+        resolved = Prawn::SVG::UrlLoader.resolve_remote_reference(url, reference)
+        # A data: SVG used by <use> would be rendered as part of this document, with its file access.
+        resolved = nil if element.name == 'use' && resolved&.match?(/\Adata:/i)
+
+        if resolved
+          element.add_attribute(name, resolved)
+        else
+          @document.add_issue(:resource, "external SVG from '#{url}' may not reference '#{reference}'")
+          element.remove
+          break
+        end
+      end
+    end
   end
 
   def import_external_styles(element, external_element_styles)

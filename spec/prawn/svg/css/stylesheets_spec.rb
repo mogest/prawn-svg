@@ -117,7 +117,8 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
 
       expect(stylesheets.font_face_rules.length).to eq(1)
 
-      rule = stylesheets.font_face_rules.first
+      rule, base_url = stylesheets.font_face_rules.first
+      expect(base_url).to be_nil
       decl_hash = {}
       rule.each { |name, value, _| decl_hash[name] = value }
 

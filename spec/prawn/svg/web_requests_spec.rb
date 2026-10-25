@@ -113,6 +113,98 @@ RSpec.describe 'web requests' do
     end
   end
 
+  describe 'content fetched from the web' do
+    before { expect_any_instance_of(Prawn::SVG::Loaders::File).not_to receive(:from_url) }
+
+    let!(:requested) { stub_ssrf_filter }
+    let(:options) { { web_requests: true, enable_file_requests_with_root: File.expand_path('../..', __dir__) } }
+
+    it 'resolves an external SVG\'s references against its URL, and may not reference files' do
+      web['https://web.test/icons.svg'] = <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <g id="icon">
+            <image href="nested.jpg" width="5" height="5"/>
+            <image xlink:href="file:///etc/passwd" width="5" height="5"/>
+          </g>
+        </svg>
+      SVG
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://web.test/icons.svg#icon"/></svg>)
+
+      result = render(svg, **options)
+
+      expect(requested).to eq ['https://web.test/icons.svg', 'https://web.test/nested.jpg']
+      expect(result[:warnings]).to eq ["external SVG from 'https://web.test/icons.svg' may not reference 'file:///etc/passwd'"]
+    end
+
+    it 'resolves a stylesheet\'s references against its URL, and may not reference files' do
+      web['https://web.test/a.css'] = <<~CSS
+        @import "b.css";
+        @import url("file:///etc/passwd");
+        @font-face { font-family: "Web"; src: url("font.ttf"); }
+        @font-face { font-family: "Local"; src: url("spec/sample_ttf/OpenSans-SemiboldItalic.ttf"); }
+        @font-face { font-family: "File"; src: url("file:///etc/passwd"); }
+      CSS
+      web['https://web.test/b.css'] = '@import "../../etc/passwd";'
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><style>@import url("https://web.test/a.css");</style></svg>)
+
+      result = render(svg, **options)
+
+      expect(requested).to match_array [
+        'https://web.test/a.css', 'https://web.test/b.css', 'https://web.test/etc/passwd',
+        'https://web.test/font.ttf', 'https://web.test/spec/sample_ttf/OpenSans-SemiboldItalic.ttf'
+      ]
+      expect(result[:warnings]).to include(
+        "stylesheet from 'https://web.test/a.css' may not reference 'file:///etc/passwd'"
+      )
+      expect(result[:warnings].grep(/file:/).length).to eq 2
+    end
+
+    it 'checks @font-face sources after comments are removed' do
+      web['https://web.test/a.css'] = <<~CSS
+        @font-face { font-family: "A"; src: u/**/rl(spec/sample_ttf/OpenSans-SemiboldItalic.ttf); }
+        @font-face { font-family: "B"; src: url/**/(spec/sample_ttf/NotoSansJP-Regular.ttf); }
+        <!-- @font-face { font-family: "C"; src: url(spec/sample_ttf/TestFamily.ttc); } -->
+      CSS
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><style>@import url("https://web.test/a.css");</style></svg>)
+
+      render(svg, **options)
+
+      expect(requested - ['https://web.test/a.css']).to all(start_with('https://web.test/spec/sample_ttf/'))
+    end
+
+    it 'restricts namespace-prefixed elements, rebases fragment references and refuses data: <use>' do
+      inner = %(<svg xmlns="http://www.w3.org/2000/svg"><g id="y"><image href="spec/sample_images/mushroom-wide.jpg" width="5" height="5"/></g></svg>)
+      web['https://web.test/spec/sample_images/mushroom-wide.jpg'] = png
+      web['https://web.test/spec/sample_images/mushroom-long.jpg'] = png
+      web['https://web.test/icons.svg'] = <<~SVG
+        <s:svg xmlns:s="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:x="urn:x">
+          <s:g id="icon">
+            <s:image xlink:href="spec/sample_images/mushroom-wide.jpg" width="5" height="5"/>
+            <s:image href="spec/sample_images/mushroom-long.jpg" x:href="other" width="5" height="5"/>
+            <s:use href="#m"/>
+            <s:use xlink:href="data:image/svg+xml;base64,#{[inner].pack('m0')}#y"/>
+          </s:g>
+        </s:svg>
+      SVG
+      svg = <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <defs><rect id="m" width="5" height="5"/></defs>
+          <use href="https://web.test/icons.svg#icon"/>
+        </svg>
+      SVG
+
+      result = render(svg, **options)
+
+      expect(requested).to eq [
+        'https://web.test/icons.svg', 'https://web.test/spec/sample_images/mushroom-wide.jpg', 'https://web.test/spec/sample_images/mushroom-long.jpg'
+      ]
+      expect(result[:warnings]).to contain_exactly(
+        start_with("external SVG from 'https://web.test/icons.svg' may not reference 'data:"),
+        "use tag references 'https://web.test/icons.svg#m' which could not be resolved"
+      )
+    end
+  end
+
   describe 'corrupt content fetched from the web' do
     let(:svg) do
       <<~SVG

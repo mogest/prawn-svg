@@ -117,7 +117,7 @@ class Prawn::SVG::Document
   def process_font_face_rules(rules)
     return unless font_registry
 
-    rules.each do |declarations|
+    rules.each do |declarations, base_url|
       decl_hash = {}
       declarations.each { |name, value, _| decl_hash[name] = value }
 
@@ -131,11 +131,11 @@ class Prawn::SVG::Document
       style = decl_hash['font-style']
       stretch = decl_hash['font-stretch']
 
-      load_font_face_source(family, weight, style, stretch, src)
+      load_font_face_source(family, weight, style, stretch, src, base_url)
     end
   end
 
-  def load_font_face_source(family, weight, style, stretch, src)
+  def load_font_face_source(family, weight, style, stretch, src, base_url)
     sources = Prawn::SVG::CSS::FontFaceParser.parse_src(src)
 
     sources.detect do |source|
@@ -143,7 +143,7 @@ class Prawn::SVG::Document
       when :local
         load_local_font_face(family, weight, style, stretch, source[:name])
       when :url
-        load_url_font_face(family, weight, style, stretch, source)
+        load_url_font_face(family, weight, style, stretch, source, base_url)
       end
     end
   end
@@ -156,10 +156,16 @@ class Prawn::SVG::Document
     true
   end
 
-  def load_url_font_face(family, weight, style, stretch, source)
+  def load_url_font_face(family, weight, style, stretch, source, base_url)
     return if source[:format] && !Prawn::SVG::CSS::FontFaceParser::SUPPORTED_FORMATS.include?(source[:format])
 
-    data = url_loader.load(source[:url])
+    url = base_url ? Prawn::SVG::UrlLoader.resolve_remote_reference(base_url, source[:url]) : source[:url]
+    unless url
+      add_issue(:resource, "stylesheet from '#{base_url}' may not reference '#{source[:url]}'")
+      return false
+    end
+
+    data = url_loader.load(url)
     tempfile = Tempfile.new(['prawn-svg-font', '.ttf'])
     tempfile.binmode
     tempfile.write(data)

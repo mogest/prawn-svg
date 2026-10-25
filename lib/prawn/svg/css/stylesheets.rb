@@ -8,6 +8,7 @@ module Prawn::SVG::CSS
       @media = media
       @font_face_rules = []
       @issues = []
+      @remote_base_urls = {}.compare_by_identity
 
       @has_url_loader = !url_loader.nil?
       install_url_loader_on_css_parser(url_loader) if url_loader
@@ -23,6 +24,7 @@ module Prawn::SVG::CSS
 
     def install_url_loader_on_css_parser(url_loader)
       issues = @issues
+      remote_base_urls = @remote_base_urls
 
       css_parser.define_singleton_method(:load_uri!) do |uri, options = {}, _deprecated = nil|
         uri = Addressable::URI.parse(uri) unless uri.respond_to?(:scheme)
@@ -31,8 +33,21 @@ module Prawn::SVG::CSS
         begin
           return unless circular_reference_check(import_url)
 
+          if Prawn::SVG::UrlLoader.web_url?(options[:base_uri]) && !Prawn::SVG::UrlLoader.web_url?(import_url)
+            issues << Prawn::SVG::Issue.new(:resource, "stylesheet from '#{options[:base_uri]}' may not @import '#{import_url}'")
+            return
+          end
+
           src = url_loader.load(import_url)
-          add_block!(src, options) if src
+
+          if Prawn::SVG::UrlLoader.web_url?(import_url)
+            existing = Set.new.compare_by_identity
+            each_rule_set { |rule_set, _| existing << rule_set }
+            add_block!(src, options.merge(base_uri: import_url))
+            each_rule_set { |rule_set, _| remote_base_urls[rule_set] ||= import_url unless existing.include?(rule_set) }
+          else
+            add_block!(src, options)
+          end
         rescue CssParser::CircularReferenceError
           # Silently ignore circular @import references
         rescue Prawn::SVG::UrlLoader::Error => e
@@ -63,7 +78,7 @@ module Prawn::SVG::CSS
 
         rule_set.selectors.each do |selector_text|
           if selector_text.strip == '@font-face'
-            @font_face_rules << declarations
+            @font_face_rules << [declarations, @remote_base_urls[rule_set]]
             next
           end
 
