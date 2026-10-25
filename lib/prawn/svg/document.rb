@@ -89,6 +89,11 @@ class Prawn::SVG::Document
     root
   end
 
+  def find_raw_element_by_id(id)
+    @raw_elements_by_id ||= REXML::XPath.match(root, '//*[@id]').reverse.to_h { |element| [element.attributes['id'], element] }
+    @raw_elements_by_id[id]
+  end
+
   def add_issue(category, message)
     issue = Prawn::SVG::Issue.new(category, message)
     issues << issue if @issue_set.add?(issue)

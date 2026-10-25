@@ -67,9 +67,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       @referenced_element_class = referenced_element.class
       @referenced_element_source = referenced_element.source
     else
-      # Perhaps the element is defined further down in the document.  This is not recommended but still valid SVG,
-      # so we'll support it with an exception case that's not particularly performant.
-      raw_element = REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
+      # Perhaps the element is defined further down in the document.  This is not recommended but still valid SVG.
+      raw_element = @document.find_raw_element_by_id(id)
 
       if raw_element
         @referenced_element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]

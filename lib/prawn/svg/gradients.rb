@@ -36,17 +36,13 @@ module Prawn::SVG
     end
 
     def find_raw_gradient_element_by_id(id)
-      raw_element = find_raw_element_by_id(id)
+      raw_element = @document.find_raw_element_by_id(id)
       raw_element if gradient_element?(raw_element)
     end
 
     def create_gradient_element(raw_element)
       element_class = Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]
       element_class.new(@document, raw_element, [], new_state).tap(&:process)
-    end
-
-    def find_raw_element_by_id(id)
-      REXML::XPath.match(@document.root, %(//*[@id="#{id.gsub('"', '\"')}"])).first
     end
 
     def gradient_element?(raw_element)
