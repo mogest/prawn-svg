@@ -11,11 +11,6 @@ module Prawn
         log_issues log_warnings raise_on_issue
       ].freeze
 
-      INHERITABLE_OPTIONS = %i[
-        web_requests enable_web_requests enable_file_requests_with_root
-        cache_images fallback_font_name color_mode
-      ].freeze
-
       attr_reader :data, :prawn, :document, :options
 
       #

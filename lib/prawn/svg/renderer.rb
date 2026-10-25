@@ -185,9 +185,7 @@ module Prawn
 
         when 'svg:render_sub_document'
           sub_document = arguments.first
-          sub_options = inheritable_options.merge({ at: [0, 0] })
-
-          Renderer.new(prawn, sub_document, sub_options).draw
+          Renderer.new(prawn, sub_document, at: [0, 0]).draw
           sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 
@@ -228,10 +226,6 @@ module Prawn
         yield
       ensure
         page.singleton_class.remove_method(:dimensions)
-      end
-
-      def inheritable_options
-        (options || {}).slice(Prawn::SVG::Interface::INHERITABLE_OPTIONS)
       end
 
       def clip_rectangle(x, y, width, height)
