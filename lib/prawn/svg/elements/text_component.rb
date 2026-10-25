@@ -190,7 +190,7 @@ module Prawn::SVG
     def text_children
       if name == 'tref'
         reference = find_referenced_element
-        reference ? reference.source.children : []
+        reference ? REXML::XPath.match(reference.source, './/text()[not(ancestor::title or ancestor::desc or ancestor::metadata)]') : []
       else
         source.children
       end

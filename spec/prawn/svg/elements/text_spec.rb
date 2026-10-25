@@ -498,6 +498,28 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe '<tref> to character data in markup' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <text id="ref">a<tspan>b<title>t</title></tspan><tref href="#ref"/></text>
+        </svg>
+      SVG
+    end
+
+    it 'renders the character data, without following trefs' do
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << text
+        method.call(text, **opts)
+      end
+
+      prawn.svg(svg)
+
+      expect(drawn.join).to eq 'abab'
+    end
+  end
+
   describe 'dx and dy attributes' do
     let(:svg) { '<text x="10 20" dx="30 50 80" dy="2">Hi there, this is a good test</text>' }
 
