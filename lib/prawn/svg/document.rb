@@ -23,7 +23,7 @@ class Prawn::SVG::Document
     :image_dimensions,
     :root_document
 
-  attr_accessor :nested_document_count, :use_count
+  attr_accessor :nested_document_count, :use_count, :duplicated_value_count
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
@@ -38,6 +38,7 @@ class Prawn::SVG::Document
     @root_document = root_document || self
     @nested_document_count = 0
     @use_count = 0
+    @duplicated_value_count = 0
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}

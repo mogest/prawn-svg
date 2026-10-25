@@ -257,4 +257,22 @@ describe Prawn::SVG::Elements::Pattern do
       expect(document.warnings).to include "gradient or pattern 'q' references itself"
     end
   end
+
+  describe 'fan-out through nested patterns' do
+    let(:svg) { '<svg></svg>' }
+
+    it 'stops copying pattern content when the limit is reached' do
+      stub_const('Prawn::SVG::Elements::CallDuplicator::MAX_DUPLICATED_VALUES_PER_RENDER', 10_000)
+      patterns = (0...10).map do |n|
+        rect = %(<rect width="5" height="5" fill="url(#p#{n + 1})"/>)
+        %(<pattern id="p#{n}" width="10" height="10" patternUnits="userSpaceOnUse">#{rect}#{rect}</pattern>)
+      end
+      fan_out = %(<svg>#{patterns.join}<pattern id="p10" width="1" height="1"><rect width="1" height="1"/></pattern><rect width="10" height="10" fill="url(#p0)"/></svg>)
+      document = Prawn::SVG::Document.new(fan_out, [800, 600], {})
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.warnings).to eq ['too much pattern, marker, mask or clip path content is rendered']
+      expect(document.duplicated_value_count).to be < 20_000
+    end
+  end
 end

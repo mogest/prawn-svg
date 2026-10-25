@@ -5,17 +5,18 @@
 # won't affect the subsequent calls.
 #
 module Prawn::SVG::Elements::CallDuplicator
+  # Patterns, markers, masks and clip paths copy their content's calls wherever they're used, and can be nested.
+  MAX_DUPLICATED_VALUES_PER_RENDER = 20_000_000
+
   private
 
   def duplicate_calls(calls)
-    calls.map { |call| duplicate_call(call) }
-  end
-
-  def duplicate_call(call)
-    [call[0], duplicate_array(call[1]), duplicate_hash(call[2]), duplicate_calls(call[3])]
+    duplicate_array(calls)
   end
 
   def duplicate_array(array)
+    count_duplicated_values(array.length)
+
     array.map do |value|
       case value
       when Array then duplicate_array(value)
@@ -26,6 +27,8 @@ module Prawn::SVG::Elements::CallDuplicator
   end
 
   def duplicate_hash(hash)
+    count_duplicated_values(hash.length)
+
     hash.each.with_object({}) do |(key, value), result|
       result[key] = case value
                     when Array then duplicate_array(value)
@@ -33,5 +36,11 @@ module Prawn::SVG::Elements::CallDuplicator
                     else            value
                     end
     end
+  end
+
+  def count_duplicated_values(count)
+    return if (document.root_document.duplicated_value_count += count) <= MAX_DUPLICATED_VALUES_PER_RENDER
+
+    raise Prawn::SVG::Elements::Base::SkipElementError, 'too much pattern, marker, mask or clip path content is rendered'
   end
 end
