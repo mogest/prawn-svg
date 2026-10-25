@@ -436,6 +436,26 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe 'brackets in selector values' do
+    it 'matches attribute and language values containing them' do
+      svg = <<~SVG
+        <svg>
+          <rect width="1" a="[" />
+          <rect width="2" a="x]" />
+          <rect width="3" xml:lang="[']" />
+        </svg>
+      SVG
+
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!(%(rect[a="["], rect[a="x]"], rect:lang([']) { fill: red; }))
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg))
+      result = stylesheets.load
+      expect(result.keys.map { |element| element.attributes['width'] }).to eq %w[1 2 3]
+      expect(stylesheets.issues).to be_empty
+    end
+  end
+
   describe ':nth-child() formula syntax' do
     let(:svg) do
       <<~SVG

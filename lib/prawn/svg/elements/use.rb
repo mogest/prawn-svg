@@ -83,7 +83,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
     external_root, external_element_styles = load_external_svg(url)
 
-    raw_element = REXML::XPath.match(external_root, %(//*[@id="#{fragment.gsub('"', '\"')}"])).first
+    raw_element = REXML::XPath.match(external_root, '//*[@id=$id]', nil, 'id' => fragment).first
     return unless raw_element
 
     @referenced_element_class = Prawn::SVG::Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]

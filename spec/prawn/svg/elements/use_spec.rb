@@ -232,6 +232,29 @@ describe Prawn::SVG::Elements::Use do
       end
     end
 
+    ['a[', 'a]', 'a"b'].each do |id|
+      describe "external href with element ID #{id}" do
+        let(:svg) do
+          <<~SVG
+            <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <use xlink:href="http://use-test.invalid/icons.svg##{id.encode(xml: :attr)[1...-1]}"/>
+            </svg>
+          SVG
+        end
+
+        before do
+          document.url_loader.add_to_cache('http://use-test.invalid/icons.svg',
+            %(<svg xmlns="http://www.w3.org/2000/svg"><rect id=#{id.encode(xml: :attr)} width="5" height="5"/></svg>))
+          element.process
+        end
+
+        it 'renders the external element' do
+          expect(document.warnings).to be_empty
+          expect(flattened_calls.any? { |c| c[0] == 'rectangle' }).to be true
+        end
+      end
+    end
+
     describe 'external href with unreachable URL' do
       let(:svg) do
         <<~SVG

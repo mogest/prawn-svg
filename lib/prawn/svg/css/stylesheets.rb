@@ -9,6 +9,7 @@ module Prawn::SVG::CSS
       @font_face_rules = []
       @issues = []
       @remote_base_urls = {}.compare_by_identity
+      @xpath_variables = {}
 
       @has_url_loader = !url_loader.nil?
       install_url_loader_on_css_parser(url_loader) if url_loader
@@ -104,7 +105,7 @@ module Prawn::SVG::CSS
       element_styles = {}
 
       xpath_styles.each do |selector_text, xpath, declarations, _|
-        REXML::XPath.match(root, xpath).each do |element|
+        REXML::XPath.match(root, xpath, nil, @xpath_variables).each do |element|
           (element_styles[element] ||= []).concat declarations
         end
       rescue REXML::ParseException
@@ -114,14 +115,11 @@ module Prawn::SVG::CSS
       element_styles
     end
 
-    def xpath_quote(value)
-      if !value.include?('"')
-        %("#{value}")
-      elsif !value.include?("'")
-        %('#{value}')
-      else
-        %[concat("#{value.gsub('"', %(", '"', "))}")]
-      end
+    # REXML's XPath parser can't handle some characters, such as '[', in string literals.
+    def xpath_variable(value)
+      name = "v#{@xpath_variables.length}"
+      @xpath_variables[name] = value
+      "$#{name}"
     end
 
     RECOGNIZED_PSEUDO_CLASSES = %w[first-child last-child link visited hover active focus].freeze
@@ -174,35 +172,35 @@ module Prawn::SVG::CSS
         end
 
         if require_function_name
-          result << "[name()=#{xpath_quote element[:name]}]" if element[:name]
+          result << "[name()=#{xpath_variable element[:name]}]" if element[:name]
         else
           result << (element[:name] || '*')
         end
 
-        result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), #{xpath_quote " #{name} "})]" }.join)
-        result << ((element[:id] || []).map { |name| "[@id=#{xpath_quote name}]" }.join)
+        result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), #{xpath_variable " #{name} "})]" }.join)
+        result << ((element[:id] || []).map { |name| "[@id=#{xpath_variable name}]" }.join)
 
         (element[:attribute] || []).each do |key, operator, value|
           case operator
           when nil
             result << "[@#{key}]"
           when '='
-            result << "[@#{key}=#{xpath_quote value}]"
+            result << "[@#{key}=#{xpath_variable value}]"
           when '^='
-            result << "[starts-with(@#{key}, #{xpath_quote value})]"
+            result << "[starts-with(@#{key}, #{xpath_variable value})]"
           when '$='
-            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_quote value}]"
+            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_variable value}]"
           when '*='
-            result << "[contains(@#{key}, #{xpath_quote value})]"
+            result << "[contains(@#{key}, #{xpath_variable value})]"
           when '~='
-            result << "[contains(concat(' ',@#{key},' '), #{xpath_quote " #{value} "})]"
+            result << "[contains(concat(' ',@#{key},' '), #{xpath_variable " #{value} "})]"
           when '|='
-            result << "[contains(concat('-',@#{key},'-'), #{xpath_quote "-#{value}-"})]"
+            result << "[contains(concat('-',@#{key},'-'), #{xpath_variable "-#{value}-"})]"
           end
         end
 
         lang_predicates.each do |lang|
-          result << "[lang(#{xpath_quote lang})]"
+          result << "[lang(#{xpath_variable lang})]"
         end
 
         result << '[@href or @xlink:href]' unless href_predicates.empty?

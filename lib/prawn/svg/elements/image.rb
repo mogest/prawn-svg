@@ -146,7 +146,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     root = Prawn::SVG::Document.parse_root(data)
     return unless root
 
-    element = REXML::XPath.match(root, %(//*[@id="#{fragment.gsub('"', '\\"')}"])).first
+    element = REXML::XPath.match(root, '//*[@id=$id]', nil, 'id' => fragment).first
     return unless element&.name == 'view'
 
     attrs = {}
