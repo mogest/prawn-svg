@@ -213,6 +213,56 @@ describe Prawn::SVG::Elements::Image do
     end
   end
 
+  describe 'nested SVG font definitions' do
+    let(:pdf) { Prawn::Document.new }
+    let(:resources) do
+      {
+        '/child.svg'      => font_svg('Courier', 'child', image_tag('grandchild') + image_tag('inherited')),
+        '/grandchild.svg' => font_svg('Times-Roman', 'grandchild'),
+        '/inherited.svg'  => font_svg(nil, 'inherited'),
+        '/sibling.svg'    => font_svg(nil, 'sibling')
+      }
+    end
+    let(:svg) { font_svg('Helvetica', 'parent', image_tag('child') + image_tag('sibling')) }
+
+    def image_tag(name)
+      %(<image href="https://fonts.test/#{name}.svg" width="100" height="100"/>)
+    end
+
+    def font_svg(font, label, images = '')
+      style = %(<style>@font-face { font-family: Shared; src: local("#{font}"); }</style>) if font
+      %(<svg width="100" height="100">#{style}#{images}<text y="50" font-family="Shared">#{label}</text></svg>)
+    end
+
+    it 'renders each document with its own definitions and inherits fonts without affecting siblings or parents' do
+      rendered_fonts = []
+      allow(pdf).to receive(:draw_text).and_wrap_original do |original, text, **options|
+        rendered_fonts << [text, pdf.font.name]
+        original.call(text, **options)
+      end
+
+      result = pdf.svg(svg, web_requests: ->(uri) { resources.fetch(uri.path) })
+
+      expect(result[:warnings]).to be_empty
+      expect(rendered_fonts).to eq [
+        ['grandchild', 'Times-Roman'], ['inherited', 'Courier'], ['child', 'Courier'],
+        ['sibling', 'Helvetica'], ['parent', 'Helvetica']
+      ]
+      expect(pdf.font_families['Shared']).to eq(normal: 'Helvetica')
+      expect { pdf.render }.not_to raise_error
+    end
+
+    it 'restores the parent font definitions if rendering a nested document fails' do
+      allow(pdf).to receive(:draw_text).and_raise('render failed')
+
+      expect do
+        pdf.svg(svg, web_requests: ->(uri) { resources.fetch(uri.path) })
+      end.to raise_error('render failed')
+
+      expect(pdf.font_families['Shared']).to eq(normal: 'Helvetica')
+    end
+  end
+
   describe 'corrupt image data' do
     def png(interlace, size = 1)
       chunk = ->(type, data) { [data.bytesize].pack('N') + type + data + [Zlib.crc32(type + data)].pack('N') }

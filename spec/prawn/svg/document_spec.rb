@@ -69,10 +69,11 @@ describe Prawn::SVG::Document do
       end
       let(:child) { parent.replicate('<svg></svg>', 10, 20) }
 
-      it "inherits the parent's options and font registry" do
+      it "inherits the parent's options and fonts in a separate registry" do
         expect(child.url_loader.load('https://example.com/image.png')).to eq 'data'
         expect(child.color_mode).to eq :cmyk
-        expect(child.font_registry).to be font_registry
+        expect(child.font_registry).not_to be font_registry
+        expect(child.font_registry.installed_fonts).to eq font_registry.installed_fonts
       end
 
       it "doesn't inherit file access" do

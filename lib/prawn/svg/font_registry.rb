@@ -73,6 +73,10 @@ module Prawn::SVG
       @font_families
     end
 
+    def fork
+      self.class.new(installed_fonts.transform_values(&:dup))
+    end
+
     def correctly_cased_font_name(name)
       merge_external_fonts
       @font_case_mapping[name.downcase]

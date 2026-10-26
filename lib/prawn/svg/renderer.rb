@@ -185,7 +185,9 @@ module Prawn
 
         when 'svg:render_sub_document'
           sub_document = arguments.first
-          Renderer.new(prawn, sub_document, at: [0, 0]).draw
+          with_font_families(sub_document) do
+            Renderer.new(prawn, sub_document, at: [0, 0]).draw
+          end
           sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 
@@ -218,6 +220,18 @@ module Prawn
 
       # Prawn's soft_mask hardcodes BBox to page.dimensions, which causes
       # Chrome and Firefox to clip mask content that extends beyond the page.
+      def with_font_families(sub_document)
+        return yield unless sub_document.font_registry
+
+        families = prawn.font_families.dup
+        begin
+          prawn.font_families.replace(sub_document.font_registry.installed_fonts)
+          yield
+        ensure
+          prawn.font_families.replace(families)
+        end
+      end
+
       # Temporarily override dimensions to use a large BBox.
       def with_large_page_dimensions(prawn)
         page = prawn.state.page
