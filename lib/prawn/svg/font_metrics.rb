@@ -85,34 +85,26 @@ class Prawn::SVG::FontMetrics
     end
 
     def fetch_underline_metrics(pdf, size)
-      units_per_em = nil
-      pos_units = thick_units = nil
-      if pdf.font.is_a?(Prawn::Font::TTF)
+      top = font_thick = nil
+      if pdf.font.is_a?(Prawn::Fonts::TTF)
         ttf = begin
           pdf.font.ttf
         rescue StandardError
           nil
         end
-        if ttf.respond_to?(:post) && ttf.post && ttf.respond_to?(:header) && ttf.header
-          units_per_em = ttf.header.units_per_em.to_f
-          pos_units = ttf.post.underline_position.to_f
-          thick_units = ttf.post.underline_thickness.to_f
+        if ttf&.postscript && ttf.header
+          scale = size / ttf.header.units_per_em.to_f
+          # ttfunk (as of 1.8.0) reads this signed value as unsigned
+          top = [ttf.postscript.underline_position].pack('n').unpack1('s>') * scale
+          font_thick = ttf.postscript.underline_thickness * scale
         end
       end
 
-      offset =
-        if units_per_em && pos_units
-          (pos_units / units_per_em) * size
-        else
-          -0.12 * size
-        end
+      thick = [font_thick&.positive? ? font_thick : size * 0.07, 1.0].max
 
-      thick =
-        if units_per_em && thick_units&.positive?
-          [(thick_units / units_per_em) * size, 1.0].max
-        else
-          [size * 0.07, 1.0].max
-        end
+      # The font gives the top edge of the underline; we return its centre.  An underline at or above the
+      # baseline is broken font data, which browsers also refuse to draw.
+      offset = top&.negative? ? top - (thick / 2.0) : -0.12 * size
 
       [offset, thick]
     end
@@ -127,13 +119,13 @@ class Prawn::SVG::FontMetrics
 
       units_per_em = nil
       strikeout_pos = nil
-      if pdf.font.is_a?(Prawn::Font::TTF)
+      if pdf.font.is_a?(Prawn::Fonts::TTF)
         ttf = begin
           pdf.font.ttf
         rescue StandardError
           nil
         end
-        if ttf.respond_to?(:os2) && ttf.os2 && ttf.respond_to?(:header) && ttf.header
+        if ttf&.os2 && ttf.header
           units_per_em = ttf.header.units_per_em.to_f
           strikeout_pos = ttf.os2.y_strikeout_position.to_f
         end
