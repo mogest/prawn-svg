@@ -218,8 +218,6 @@ module Prawn
         end
       end
 
-      # Prawn's soft_mask hardcodes BBox to page.dimensions, which causes
-      # Chrome and Firefox to clip mask content that extends beyond the page.
       def with_font_families(sub_document)
         return yield unless sub_document.font_registry
 
@@ -232,6 +230,8 @@ module Prawn
         end
       end
 
+      # Prawn's soft_mask hardcodes BBox to page.dimensions, which causes
+      # Chrome and Firefox to clip mask content that extends beyond the page.
       # Temporarily override dimensions to use a large BBox.
       def with_large_page_dimensions(prawn)
         page = prawn.state.page
