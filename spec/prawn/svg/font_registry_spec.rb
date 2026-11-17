@@ -40,6 +40,45 @@ RSpec.describe Prawn::SVG::FontRegistry do
       expect(font_registry.load('')).to be_nil
     end
 
+    context 'with a font file that Prawn cannot use' do
+      let(:broken_font) do
+        Tempfile.new(['broken', '.ttf']).tap do |file|
+          file.write('not a font')
+          file.close
+        end
+      end
+      let(:usable_font) { File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__) }
+
+      after { broken_font.unlink }
+
+      it 'skips the family if none of its fonts are usable' do
+        pdf.font_families.update('Broken' => { normal: broken_font.path })
+        expect(font_registry.load('Broken, serif').name).to eq('Times-Roman')
+      end
+
+      it 'uses another subfamily if the requested one is unusable' do
+        pdf.font_families.update('Mixed' => { normal: broken_font.path, bold: usable_font })
+        expect(font_registry.load('Mixed').weight).to eq(:bold)
+      end
+
+      it 'does not use the family as a fallback if its normal subfamily is unusable' do
+        pdf.font_families.update('Mixed' => { normal: broken_font.path, bold: usable_font })
+        expect(font_registry.usable_fallback?('Mixed')).to be false
+        expect(font_registry.usable_fallback?('Courier')).to be true
+      end
+    end
+
+    it 'does not cache the usability of @font-face fonts beyond the registry' do
+      font_path = File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)
+      allow(described_class).to receive(:usable?).and_call_original
+
+      font_registry.register_font_face('Web Font', nil, nil, nil, font_path)
+
+      expect(font_registry.load('Web Font').name).to eq('Web Font')
+      expect(font_registry.fork.load('Web Font').name).to eq('Web Font')
+      expect(described_class).not_to have_received(:usable?).with(font_path)
+    end
+
     it 'handles CSS font weights' do
       font = font_registry.load('courier', '700')
       expect(font.weight).to eq(:bold)

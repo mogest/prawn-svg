@@ -488,6 +488,34 @@ describe Prawn::SVG::Elements::Text do
         expect(drawn).to include(["\u0167", 'Open Sans'])
       end
     end
+
+    context "when a fallback font family's normal font is unusable" do
+      let(:broken_font) do
+        Tempfile.new(['broken', '.ttf']).tap do |file|
+          file.write('not a font')
+          file.close
+        end
+      end
+      let(:svg) { "<text font-family=\"sans-serif, Mixed, 'Open Sans'\">Hello \u0167</text>" }
+
+      before do
+        prawn.font_families.update('Mixed' => { normal: broken_font.path, bold: prawn.font_families['Open Sans'][:normal] })
+      end
+
+      after { broken_font.unlink }
+
+      it 'skips that family' do
+        drawn = []
+        allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+          drawn << [text, prawn.font.family]
+          method.call(text, **opts)
+        end
+
+        process_and_render
+
+        expect(drawn).to include(["\u0167", 'Open Sans'])
+      end
+    end
   end
 
   describe '<tref>' do

@@ -63,9 +63,11 @@ module Prawn::SVG
     ].freeze
 
     @font_path = DEFAULT_FONT_PATHS.select { |path| Dir.exist?(path) }
+    @usable = Hash.new { |hash, font_data| hash[font_data] = check_usable(font_data) }
 
-    def initialize(font_families)
+    def initialize(font_families, font_face_data = [])
       @font_families = font_families
+      @font_face_data = font_face_data
     end
 
     def installed_fonts
@@ -74,7 +76,7 @@ module Prawn::SVG
     end
 
     def fork
-      self.class.new(installed_fonts.transform_values(&:dup))
+      self.class.new(installed_fonts.transform_values(&:dup), @font_face_data.dup)
     end
 
     def correctly_cased_font_name(name)
@@ -105,7 +107,13 @@ module Prawn::SVG
       font = Font.new(family_name, weight, style, effective_stretch)
       family = (@font_families[family_name] ||= {})
       family[font.subfamily] = font_data
+      @font_face_data << font_data
       @font_case_mapping[family_name.downcase] = family_name
+    end
+
+    # Prawn always uses a fallback font's normal subfamily.
+    def usable_fallback?(name)
+      installed?(Font.new(name, :normal, nil))
     end
 
     def find_local_font_data(local_name, css_weight, css_style, css_stretch)
@@ -136,7 +144,6 @@ module Prawn::SVG
       name = GENERIC_CSS_FONT_MAPPING[name] if GENERIC_CSS_FONT_MAPPING.key?(name) && !installed_fonts.key?(name)
 
       return unless (subfamilies = installed_fonts[name])
-      return if subfamilies.empty?
 
       css_stretch_matching_order(stretch).each do |s|
         effective_stretch = s == :normal ? nil : s
@@ -158,7 +165,8 @@ module Prawn::SVG
         return font if font
       end
 
-      Font.new(name, subfamilies.keys.first, nil)
+      subfamily = subfamilies.keys.detect { |s| usable?(subfamilies[s]) }
+      Font.new(name, subfamily, nil) if subfamily
     end
 
     def find_with_weight_fallback(name, weight, style, stretch = nil)
@@ -220,7 +228,12 @@ module Prawn::SVG
 
     def installed?(font)
       subfamilies = installed_fonts[font.name]
-      !subfamilies.nil? && subfamilies.key?(font.subfamily)
+      !subfamilies.nil? && subfamilies.key?(font.subfamily) && usable?(subfamilies[font.subfamily])
+    end
+
+    # @font-face fonts were checked when they were loaded, and are kept out of the cache as they only last for one render.
+    def usable?(font_data)
+      @font_face_data.include?(font_data) || self.class.usable?(font_data)
     end
 
     def weight_for_css_font_weight(weight)
@@ -262,6 +275,10 @@ module Prawn::SVG
     class << self
       attr_reader :external_font_families, :font_path
 
+      def usable?(font_data)
+        @usable[font_data]
+      end
+
       def load_external_fonts
         @external_font_families = {}
 
@@ -290,6 +307,25 @@ module Prawn::SVG
       end
 
       private
+
+      # Prawn and ttfunk crash when using a font that lacks any of these, either immediately or when rendering.
+      def check_usable(font_data)
+        file, options = font_data.is_a?(Hash) ? [font_data[:file], { font: font_data[:font] }] : [font_data, {}]
+        return true unless File.file?(file.to_s)
+
+        return false unless (font = load_prawn_font(file, options))
+        return true unless font.is_a?(Prawn::Fonts::TTF)
+
+        tables = font.ttf.directory.tables
+        tables.key?('head') && tables.key?('OS/2') && (tables.key?('glyf') || tables.key?('CFF ')) &&
+          font.ttf.cmap.unicode.any?
+      end
+
+      def load_prawn_font(file, options)
+        Prawn::Font.load(Prawn::Document.new, file, options)
+      rescue StandardError
+        nil
+      end
 
       WEIGHT_CLASS_TO_SYMBOL = {
         100 => :thin, 200 => :extralight, 300 => :light, 400 => :normal, 500 => :medium,

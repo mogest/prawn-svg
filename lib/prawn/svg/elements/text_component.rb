@@ -218,6 +218,7 @@ module Prawn::SVG
       end
 
       _, *fallback_font_names = fonts.map(&:name).uniq
+      fallback_font_names.select! { |name| document.font_registry.usable_fallback?(name) }
 
       return [fonts.first, fallback_font_names] if fonts.any?
 
