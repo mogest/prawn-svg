@@ -73,6 +73,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  prawn
   prawn-svg!
   rake (~> 13.0)
   rspec (~> 3.0)
