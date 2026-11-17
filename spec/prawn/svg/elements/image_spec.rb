@@ -241,6 +241,7 @@ describe Prawn::SVG::Elements::Image do
         original.call(text, **options)
       end
 
+      families = pdf.font_families.dup
       result = pdf.svg(svg, web_requests: ->(uri) { resources.fetch(uri.path) })
 
       expect(result[:warnings]).to be_empty
@@ -248,18 +249,19 @@ describe Prawn::SVG::Elements::Image do
         ['grandchild', 'Times-Roman'], ['inherited', 'Courier'], ['child', 'Courier'],
         ['sibling', 'Helvetica'], ['parent', 'Helvetica']
       ]
-      expect(pdf.font_families['Shared']).to eq(normal: 'Helvetica')
+      expect(pdf.font_families).to eq families
       expect { pdf.render }.not_to raise_error
     end
 
     it 'restores the parent font definitions if rendering a nested document fails' do
       allow(pdf).to receive(:draw_text).and_raise('render failed')
+      families = pdf.font_families.dup
 
       expect do
         pdf.svg(svg, web_requests: ->(uri) { resources.fetch(uri.path) })
       end.to raise_error('render failed')
 
-      expect(pdf.font_families['Shared']).to eq(normal: 'Helvetica')
+      expect(pdf.font_families).to eq families
     end
   end
 

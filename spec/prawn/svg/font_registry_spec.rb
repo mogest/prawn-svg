@@ -315,6 +315,18 @@ RSpec.describe Prawn::SVG::FontRegistry do
     end
   end
 
+  describe '#register_font_face' do
+    before do
+      allow(described_class).to receive(:external_font_families).and_return('Installed' => { normal: 'installed.ttf' })
+    end
+
+    it 'does not change the installed fonts seen by other registries' do
+      described_class.new({}).register_font_face('Installed', nil, nil, nil, 'face.ttf')
+
+      expect(described_class.new({}).installed_fonts['Installed']).to eq(normal: 'installed.ttf')
+    end
+  end
+
   describe '#installed_fonts' do
     let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
     let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic', weight_class: 400) }

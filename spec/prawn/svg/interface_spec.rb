@@ -42,6 +42,39 @@ describe Prawn::SVG::Interface do
       expect(curves.map { |line| line.split.length - 1 }).to eq [6, 6]
     end
 
+    describe 'font families' do
+      let(:pdf) { Prawn::Document.new }
+      let(:ttf) { File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__) }
+
+      it 'leaves the font families of the Prawn document unchanged' do
+        families = Marshal.load(Marshal.dump(pdf.font_families))
+        svg = <<~SVG
+          <svg width="100" height="100">
+            <style>@font-face { font-family: Helvetica; src: url("OpenSans-SemiboldItalic.ttf"); }</style>
+            <text y="50" font-family="Helvetica">hello</text>
+          </svg>
+        SVG
+
+        pdf.svg(svg, enable_file_requests_with_root: File.dirname(ttf))
+
+        expect(pdf.font_families).to eq families
+        expect(pdf.font.name).to eq 'Helvetica'
+      end
+
+      it 'renders text in installed fonts' do
+        allow(Prawn::SVG::FontRegistry).to receive(:external_font_families).and_return('Installed' => { normal: ttf })
+        rendered_fonts = []
+        allow(pdf).to receive(:draw_text).and_wrap_original do |original, text, **options|
+          rendered_fonts << pdf.font.family
+          original.call(text, **options)
+        end
+
+        pdf.svg('<svg width="100" height="100"><text y="50" font-family="Installed">hello</text></svg>')
+
+        expect(rendered_fonts).to eq ['Installed']
+      end
+    end
+
     context 'when the sizing object indicates the sizes are invalid' do
       let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, {}) }
 

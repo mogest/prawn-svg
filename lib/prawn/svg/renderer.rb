@@ -26,15 +26,17 @@ module Prawn
         end
 
         prawn.save_font do
-          prawn.bounding_box(position, width: sizing.output_width, height: sizing.output_height) do
-            prawn.save_graphics_state do
-              clip_rectangle 0, 0, sizing.output_width, sizing.output_height
+          with_font_families do
+            prawn.bounding_box(position, width: sizing.output_width, height: sizing.output_height) do
+              prawn.save_graphics_state do
+                clip_rectangle 0, 0, sizing.output_width, sizing.output_height
 
-              calls = []
-              root_element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
-              root_element.process
+                calls = []
+                root_element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
+                root_element.process
 
-              proc_creator(prawn, calls).call
+                proc_creator(prawn, calls).call
+              end
             end
           end
         end
@@ -185,9 +187,7 @@ module Prawn
 
         when 'svg:render_sub_document'
           sub_document = arguments.first
-          with_font_families(sub_document) do
-            Renderer.new(prawn, sub_document, at: [0, 0]).draw
-          end
+          Renderer.new(prawn, sub_document, at: [0, 0]).draw
           sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 
@@ -218,12 +218,12 @@ module Prawn
         end
       end
 
-      def with_font_families(sub_document)
-        return yield unless sub_document.font_registry
+      def with_font_families
+        return yield unless document.font_registry
 
         families = prawn.font_families.dup
         begin
-          prawn.font_families.replace(sub_document.font_registry.installed_fonts)
+          prawn.font_families.replace(document.font_registry.installed_fonts)
           yield
         ensure
           prawn.font_families.replace(families)

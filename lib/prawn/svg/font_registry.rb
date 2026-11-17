@@ -76,7 +76,7 @@ module Prawn::SVG
     end
 
     def fork
-      self.class.new(installed_fonts.transform_values(&:dup), @font_face_data.dup)
+      self.class.new(installed_fonts.dup, @font_face_data.dup)
     end
 
     def correctly_cased_font_name(name)
@@ -105,8 +105,8 @@ module Prawn::SVG
       effective_stretch = stretch == :normal ? nil : stretch
 
       font = Font.new(family_name, weight, style, effective_stretch)
-      family = (@font_families[family_name] ||= {})
-      family[font.subfamily] = font_data
+      # Family hashes are shared with other registries and the installed font cache, so replace rather than modify.
+      @font_families[family_name] = @font_families.fetch(family_name, {}).merge(font.subfamily => font_data)
       @font_face_data << font_data
       @font_case_mapping[family_name.downcase] = family_name
     end

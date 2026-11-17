@@ -28,7 +28,7 @@ module Prawn
         @prawn = prawn
         @options = options
 
-        font_registry = Prawn::SVG::FontRegistry.new(prawn.font_families)
+        font_registry = Prawn::SVG::FontRegistry.new(prawn.font_families.dup)
 
         @document = Document.new(
           data, [prawn.bounds.width, prawn.bounds.height], options,
