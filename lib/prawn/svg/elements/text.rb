@@ -2,8 +2,13 @@ module Prawn::SVG
   class Elements::Text < Elements::DirectRenderBase
     Cursor = Struct.new(:x, :y)
 
+    def process
+      @parent_state = state.dup
+      super
+    end
+
     def parse
-      @root_component = Elements::TextComponent.new(document, source, [], state.dup)
+      @root_component = Elements::TextComponent.new(document, source, [], @parent_state)
       @root_component.process
 
       reintroduce_trailing_and_leading_whitespace if @root_component.children

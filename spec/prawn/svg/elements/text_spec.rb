@@ -128,6 +128,17 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'relative font-size and font-weight' do
+    let(:svg) { '<text font-size="2em" font-weight="bolder">Hi</text>' }
+
+    it 'applies them once' do
+      element.process
+      root = element.instance_variable_get(:@root_component)
+      expect(root.computed_properties.numeric_font_size).to eq 32
+      expect(root.computed_properties.font_weight).to eq '700'
+    end
+  end
+
   describe 'letter-spacing' do
     let(:svg) { '<text letter-spacing="5">spaced</text>' }
 
@@ -521,12 +532,21 @@ describe Prawn::SVG::Elements::Text do
   end
 
   describe 'tspans nested too deeply' do
-    let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg"><text>#{'<tspan>' * 8}x#{'</tspan>' * 8}</text></svg>) }
+    let(:svg) do
+      %(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <text id="t">#{'<tspan>' * 8}x#{'</tspan>' * 8}</text><use xlink:href="#t"/></svg>)
+    end
 
     it 'skips the deepest and reports an issue' do
       stub_const('Prawn::SVG::Document::MAX_ELEMENT_DEPTH', 10)
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << text
+        method.call(text, **opts)
+      end
 
       expect(prawn.svg(svg)[:warnings]).to eq ['elements are nested too deeply']
+      expect(drawn).to eq ['x']
     end
   end
 
