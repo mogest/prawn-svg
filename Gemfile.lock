@@ -4,7 +4,7 @@ PATH
     prawn-svg (0.40.4)
       css_parser (>= 1.17.1, < 4)
       matrix (~> 0.4.2)
-      prawn (>= 0.11.1, < 3)
+      prawn (>= 2.3.0, < 3)
       rexml (>= 3.4.2, < 4)
       ssrf_filter (~> 1.6)
 

@@ -1,3 +1,4 @@
+require 'matrix'
 require 'rexml/document'
 
 require 'prawn'

@@ -15,7 +15,6 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     @transform_matrix = Matrix.identity(3)
     @wrap = :pad
 
-    assert_compatible_prawn_version
     load_gradient_configuration
     load_coordinates
     load_stops
@@ -85,12 +84,6 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
 
   def type
     TAG_NAME_TO_TYPE.fetch(name)
-  end
-
-  def assert_compatible_prawn_version
-    if (Prawn::VERSION.split('.').map(&:to_i) <=> [2, 2, 0]) == -1
-      raise SkipElementError.new("Prawn 2.2.0+ must be used if you'd like prawn-svg to render gradients", :unsupported)
-    end
   end
 
   def load_gradient_configuration

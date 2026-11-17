@@ -7,8 +7,7 @@ An SVG renderer for the [Prawn PDF library](https://github.com/prawnpdf/prawn).
 
 This will take an SVG document as input and render it into your PDF, along with whatever else you build with Prawn.
 
-prawn-svg is compatible with all versions of Prawn from 0.11.1 onwards, including the 1.x and 2.x series, although
-you'll need version 2.2.0 onwards if you want color gradients.  The minimum Ruby version required is 2.7.
+prawn-svg requires Prawn 2.3.0 or later, and Ruby 2.7 or later.
 
 ## Using prawn-svg
 
@@ -80,7 +79,7 @@ prawn-svg supports almost all of the full SVG 1.1 specification:
 
  - `<marker>`
 
- - `<linearGradient>` and `<radialGradient>` are implemented on Prawn 2.2.0+ with attributes `gradientUnits` and
+ - `<linearGradient>` and `<radialGradient>` are implemented with attributes `gradientUnits` and
    `gradientTransform`
 
  - `<pattern>` with attributes `patternUnits`, `patternContentUnits`, `patternTransform`, `viewBox`,
