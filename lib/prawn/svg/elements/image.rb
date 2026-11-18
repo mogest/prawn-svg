@@ -24,6 +24,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     raise SkipElementError, 'image tag must have an href or xlink:href' if @url.nil?
 
     @url, @fragment = extract_fragment(@url)
+    raise SkipElementError, "image tag references '#{@url}', which contains it" if state.image_urls.include?(@url)
 
     x = x(attributes['x'] || 0)
     y = y(attributes['y'] || 0)
@@ -34,7 +35,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     require_positive_value width, height
 
     @image = begin
-      @document.url_loader.load(@url)
+      @document.load_url(@url)
     rescue Prawn::SVG::UrlLoader::Error => e
       raise SkipElementError.new("Error retrieving URL #{@url}: #{e.message}", :resource)
     end
@@ -63,7 +64,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
     if (document = @image_data.document)
       add_call_and_enter 'translate', @x, @y
-      add_call 'svg:render_sub_document', document
+      add_call 'svg:render_sub_document', document, sub_document_calls(document)
     else
       options = { width: @width, height: @height, at: [@x, @y] }
 
@@ -92,8 +93,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
         attribute_overrides.merge!(view_attrs) if view_attrs
       end
 
-      raise SkipElementError.new('too many nested SVG documents', :resource) unless @document.reserve_nested_document
-
       document = @document.replicate(data, width, height, attribute_overrides: attribute_overrides)
 
       dimensions = [document.sizing.output_width, document.sizing.output_height]
@@ -104,6 +103,16 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     end
   rescue Prawn::SVG::Document::InvalidSVGData
     raise SkipElementError.new('image tag references SVG data which could not be parsed', :resource)
+  end
+
+  # Processed now rather than when drawn, so that the whole render's work is done before anything is drawn.
+  def sub_document_calls(document)
+    return [] if document.sizing.invalid?
+
+    root_state = Prawn::SVG::State.new
+    root_state.depth = state.depth
+    root_state.image_urls = [*state.image_urls, @url]
+    [].tap { |calls| Prawn::SVG::Elements::Root.new(document, document.root, calls, root_state).process }
   end
 
   def extract_fragment(url)

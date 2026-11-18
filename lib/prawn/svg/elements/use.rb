@@ -1,7 +1,4 @@
 class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
-  MAX_DEPTH = 50
-  MAX_PER_RENDER = 300_000
-
   attr_reader :referenced_element_class, :referenced_element_source
 
   def parse
@@ -9,10 +6,6 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
     href = href_attribute
     raise SkipElementError, 'use tag must have an href or xlink:href' if href.nil?
-    raise SkipElementError.new('use tags are nested too deeply, or reference themselves', :invalid) if state.use_depth >= MAX_DEPTH
-    raise SkipElementError.new('too many use tags are rendered', :invalid) if (@document.root_document.use_count += 1) > MAX_PER_RENDER
-
-    state.use_depth += 1
 
     if href.start_with?('#')
       resolve_local_reference(href[1..])
@@ -21,6 +14,9 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
     end
 
     raise SkipElementError, "use tag references '#{href}' which could not be resolved" if referenced_element_class.nil?
+    raise SkipElementError, "use tag references '#{href}', which contains it" if circular_reference?
+
+    state.use_chain = [*state.use_chain, referenced_element_source]
 
     @referenced_element_class = Prawn::SVG::Elements::Viewport if referenced_element_source.name == 'symbol'
 
@@ -57,6 +53,15 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   end
 
   private
+
+  def circular_reference?
+    return true if state.use_chain.any? { |element| element.equal?(referenced_element_source) }
+
+    # Referenced elements are shallow copies whose children are the originals, so uses inside them reach their ancestors.
+    node = source
+    node = node.parent until node.nil? || node.equal?(referenced_element_source)
+    node
+  end
 
   def usable_length(value)
     value if value && Prawn::SVG::AttributeValue.valid?(:length, value)
@@ -108,9 +113,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def load_external_svg(url)
     @document.external_svg_cache[url] ||= begin
-      raise SkipElementError.new('too many nested SVG documents', :resource) unless @document.reserve_nested_document
-
-      data = @document.url_loader.load(url)
+      data = @document.load_url(url)
 
       root = begin
         Prawn::SVG::Document.parse_root(data)

@@ -323,7 +323,28 @@ describe Prawn::SVG::Elements::Use do
       result = Prawn::Document.new.svg(svg)
 
       expect(result[:issues].map(&:category)).to eq [:invalid]
-      expect(result[:warnings]).to eq ['use tags are nested too deeply, or reference themselves']
+      expect(result[:warnings]).to eq ["use tag references '#x', which contains it"]
+    end
+
+    it 'stops a reference to an element that contains a use tag that led to it' do
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs><g id="a"><use href="#b"/></g><g id="b"><use href="#a"/></g></defs><use href="#a"/></svg>)
+
+      expect(Prawn::Document.new.svg(svg)[:warnings]).to contain_exactly("use tag references '#a', which contains it", "use tag references '#b', which contains it")
+    end
+
+    it 'stops use tags referencing each other' do
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use id="a" href="#b"/><use id="b" href="#a"/></svg>)
+
+      expect(Prawn::Document.new.svg(svg)[:warnings]).to contain_exactly("use tag references '#a', which contains it", "use tag references '#b', which contains it")
+    end
+
+    it 'follows a long chain of references that does not loop' do
+      groups = (0...60).map { |n| %(<g id="g#{n}"><use href="#g#{n + 1}"/></g>) }.join
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs>#{groups}<rect id="g60" width="1" height="1"/></defs><use href="#g0"/></svg>)
+      pdf = Prawn::Document.new
+
+      expect(pdf.svg(svg)[:warnings]).to be_empty
+      expect(pdf.render.scan(/\bre\b/).length).to eq 1
     end
 
     it 'stops external SVGs referencing each other' do
@@ -337,19 +358,15 @@ describe Prawn::SVG::Elements::Use do
       result = Prawn::Document.new.svg(svg, web_requests: ->(uri) { (requested << uri.to_s) && web.fetch(uri.to_s) })
 
       expect(requested).to eq ['https://use.test/a.svg', 'https://use.test/b.svg']
-      expect(result[:warnings]).to eq ['use tags are nested too deeply, or reference themselves']
+      expect(result[:warnings]).to eq ["use tag references 'https://use.test/a.svg#x', which contains it"]
     end
 
-    it 'limits how many use tags are rendered when they fan out' do
-      stub_const('Prawn::SVG::Elements::Use::MAX_PER_RENDER', 20)
+    it 'counts use tags that fan out towards the work budget' do
       groups = (0...10).map { |n| %(<g id="g#{n}"><use href="#g#{n + 1}"/><use href="#g#{n + 1}"/></g>) }.join
       svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs>#{groups}<rect id="g10" width="1" height="1"/></defs><use href="#g0"/></svg>)
 
-      pdf = Prawn::Document.new
-      result = pdf.svg(svg)
-
-      expect(result[:warnings]).to eq ['too many use tags are rendered']
-      expect(pdf.render.scan(/\bre\b/).length).to be < 20
+      expect(Prawn::Document.new.svg(svg, max_work: 50_000)[:warnings]).to be_empty
+      expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
     end
 
     it 'limits how deeply elements are nested through use tags' do
@@ -360,7 +377,7 @@ describe Prawn::SVG::Elements::Use do
       expect(Prawn::Document.new.svg(svg)[:warnings]).to include 'elements are nested too deeply'
     end
 
-    it 'limits how many external SVGs are loaded' do
+    it 'counts external SVGs that fan out towards the work budget' do
       requests = 0
       svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><use href="https://use.test/0.svg#x"/></svg>)
       web_requests = lambda do |uri|
@@ -369,10 +386,8 @@ describe Prawn::SVG::Elements::Use do
         %(<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><use href="#{n + 1}.svg#x"/><use href="#{n + 1000}.svg#x"/></g></svg>)
       end
 
-      result = Prawn::Document.new.svg(svg, web_requests: web_requests)
-
-      expect(requests).to eq Prawn::SVG::Document::MAX_NESTED_DOCUMENTS
-      expect(result[:warnings]).to include 'too many nested SVG documents'
+      expect { Prawn::Document.new.svg(svg, web_requests: web_requests, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect(requests).to be <= 100
     end
   end
 end

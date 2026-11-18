@@ -5,9 +5,6 @@
 # won't affect the subsequent calls.
 #
 module Prawn::SVG::Elements::CallDuplicator
-  # Patterns, markers, masks and clip paths copy their content's calls wherever they're used, and can be nested.
-  MAX_DUPLICATED_VALUES_PER_RENDER = 20_000_000
-
   private
 
   def duplicate_calls(calls)
@@ -15,7 +12,8 @@ module Prawn::SVG::Elements::CallDuplicator
   end
 
   def duplicate_array(array)
-    count_duplicated_values(array.length)
+    # Calls can also be nested in other calls' arguments.
+    document.record_work(copied_call_work(*array)) if call?(array)
 
     array.map do |value|
       case value
@@ -26,9 +24,21 @@ module Prawn::SVG::Elements::CallDuplicator
     end
   end
 
-  def duplicate_hash(hash)
-    count_duplicated_values(hash.length)
+  def call?(array)
+    array.length == 4 && array[0].is_a?(String) && array[1].is_a?(Array) && array[2].is_a?(Hash) && array[3].is_a?(Array)
+  end
 
+  def copied_call_work(name, arguments, kwarguments, _children)
+    name == 'svg:render' ? arguments.first.work : call_work(name, kwarguments)
+  end
+
+  # Roughly how much drawing a call costs, compared with an ordinary call.
+  def call_work(name, kwarguments)
+    # Each stop becomes several PDF objects every time a gradient is drawn.
+    name.to_s == 'svg:render_gradient' ? kwarguments[:stops].length * 3 : 1
+  end
+
+  def duplicate_hash(hash)
     hash.each.with_object({}) do |(key, value), result|
       result[key] = case value
                     when Array then duplicate_array(value)
@@ -36,11 +46,5 @@ module Prawn::SVG::Elements::CallDuplicator
                     else            value
                     end
     end
-  end
-
-  def count_duplicated_values(count)
-    return if (document.root_document.duplicated_value_count += count) <= MAX_DUPLICATED_VALUES_PER_RENDER
-
-    raise Prawn::SVG::Elements::Base::SkipElementError, 'too much pattern, marker, mask or clip path content is rendered'
   end
 end

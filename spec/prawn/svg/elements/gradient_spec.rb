@@ -232,4 +232,25 @@ describe Prawn::SVG::Elements::Gradient do
       expect(document.warnings).to include "gradient or pattern 'q' is in a reference loop"
     end
   end
+
+  describe 'many references to a gradient with many stops' do
+    let(:svg) do
+      stops = (0..10).map { |n| %(<stop offset="#{n / 10.0}" stop-color="red"/>) }.join
+      %(<svg xmlns="http://www.w3.org/2000/svg"><linearGradient id="flag">#{stops}</linearGradient>#{'<rect width="1" height="1" fill="url(#flag)"/>' * 20}</svg>)
+    end
+
+    it "counts each reference's stops towards the work budget" do
+      expect { Prawn::Document.new.svg(svg, max_work: 5000) }.not_to raise_error
+      expect { Prawn::Document.new.svg(svg, max_work: 500) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+    end
+
+    it 'counts the stops of every copy made by a pattern' do
+      stops = (0..10).map { |n| %(<stop offset="#{n / 10.0}" stop-color="red"/>) }.join
+      pattern = %(<pattern id="p" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="url(#flag)"/></pattern>)
+      rects = '<rect width="1" height="1" fill="url(#p)"/>' * 20
+      patterned = %(<svg xmlns="http://www.w3.org/2000/svg"><linearGradient id="flag">#{stops}</linearGradient>#{pattern}#{rects}</svg>)
+
+      expect { Prawn::Document.new.svg(patterned, max_work: 500) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+    end
+  end
 end

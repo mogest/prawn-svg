@@ -13,13 +13,18 @@ class Prawn::SVG::Elements::DirectRenderBase < Prawn::SVG::Elements::Base
   # Called by Renderer when it finds the svg:render call added below.
   def render(prawn, renderer); end
 
+  # Charged to the work budget each time a copy of the svg:render call is made.
+  def work
+    1
+  end
+
   protected
 
   def parse_and_apply
     parse_standard_attributes
     parse
     apply_calls_from_standard_attributes
-    @parent_calls << ['svg:render', [self], [], []] unless computed_properties.display == 'none'
+    @parent_calls << ['svg:render', [self], {}, []] unless computed_properties.display == 'none'
   rescue SkipElementQuietly
   rescue SkipElementError => e
     @document.add_issue(e.category, e.message)

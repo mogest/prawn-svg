@@ -3,9 +3,10 @@ require 'stringio'
 class Prawn::SVG::Document
   Error = Class.new(StandardError)
   InvalidSVGData = Class.new(Error)
+  WorkLimitExceeded = Class.new(Error)
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
-  MAX_NESTED_DOCUMENTS = 50
+  DEFAULT_MAX_WORK = 1_000_000
   MAX_ELEMENT_DEPTH = 200
 
   # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
@@ -23,8 +24,6 @@ class Prawn::SVG::Document
     :image_dimensions,
     :root_document
 
-  attr_accessor :nested_document_count, :use_count, :duplicated_value_count
-
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
       @root = self.class.parse_root(data) or raise_parse_error(data)
@@ -36,9 +35,7 @@ class Prawn::SVG::Document
     @issue_set = Set.new
     @options = options
     @root_document = root_document || self
-    @nested_document_count = 0
-    @use_count = 0
-    @duplicated_value_count = 0
+    @max_work = @work_remaining = load_max_work unless root_document
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}
@@ -67,11 +64,24 @@ class Prawn::SVG::Document
     yield self if block_given?
   end
 
-  # SVG documents referenced by <image> and <use> can reference further documents, so limit how many a render loads.
-  def reserve_nested_document
-    return false if root_document.nested_document_count >= MAX_NESTED_DOCUMENTS
+  # Bounds the time and memory a render can take, so small hostile input can't run away with either.  A unit is
+  # roughly an element, a drawing call recorded or copied, a character of text or a few hundred bytes of loaded data.
+  # The budget is shared by the whole render, including nested documents.
+  def record_work(units)
+    return root_document.record_work(units) unless root_document.equal?(self)
+    return unless @work_remaining
 
-    root_document.nested_document_count += 1
+    raise WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if (@work_remaining -= units).negative?
+  end
+
+  # Requests for non-data URLs are charged whether or not they succeed, so fan-out can't make endless requests.
+  def load_url(url)
+    record_work(1000) unless url.match?(/\Adata:/i)
+    url_loader.load(url).tap { |data| record_work(data.bytesize / 256) }
+  end
+
+  def reset_work_budget
+    @work_remaining = @max_work
   end
 
   # REXML expands entities lazily, raising a RuntimeError if they grow too large, so expand them all now where the
@@ -123,6 +133,8 @@ class Prawn::SVG::Document
   end
 
   def replicate(data, width, height, attribute_overrides: {})
+    # A nested document holds far more memory than its few elements are charged for.
+    record_work(250)
     options = @options.reject { |key, _| key == :enable_file_requests_with_root }
 
     self.class.new(
@@ -220,6 +232,13 @@ class Prawn::SVG::Document
     else
       value
     end
+  end
+
+  def load_max_work
+    max_work = @options.fetch(:max_work, DEFAULT_MAX_WORK)
+    return max_work if max_work == false || (max_work.is_a?(Integer) && max_work.positive?)
+
+    raise ArgumentError, ':max_work must be a positive integer or false'
   end
 
   def load_color_mode

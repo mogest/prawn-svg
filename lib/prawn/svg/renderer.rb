@@ -19,22 +19,19 @@ module Prawn
       #
       # Draws the SVG to the Prawn::Document object.
       #
-      def draw
+      def draw(calls = nil)
         if sizing.invalid?
           document.add_issue(:invalid, 'Negative sizing data means this SVG cannot be rendered') if sizing.negative?
           return
         end
+
+        calls ||= [].tap { |root_calls| Prawn::SVG::Elements::Root.new(document, document.root, root_calls).process }
 
         prawn.save_font do
           with_font_families do
             prawn.bounding_box(position, width: sizing.output_width, height: sizing.output_height) do
               prawn.save_graphics_state do
                 clip_rectangle 0, 0, sizing.output_width, sizing.output_height
-
-                calls = []
-                root_element = Prawn::SVG::Elements::Root.new(document, document.root, calls)
-                root_element.process
-
                 proc_creator(prawn, calls).call
               end
             end
@@ -197,8 +194,8 @@ module Prawn
           yield
 
         when 'svg:render_sub_document'
-          sub_document = arguments.first
-          Renderer.new(prawn, sub_document, at: [0, 0]).draw
+          sub_document, sub_calls = arguments
+          Renderer.new(prawn, sub_document, at: [0, 0]).draw(sub_calls)
           sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 

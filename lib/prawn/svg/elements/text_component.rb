@@ -149,6 +149,8 @@ module Prawn::SVG
     protected
 
     def build_text_node(child)
+      document.record_work(child.value.length)
+
       if state.preserve_space
         text = child.value.tr("\n\t", ' ')
       else

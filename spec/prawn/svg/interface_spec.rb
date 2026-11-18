@@ -191,6 +191,48 @@ describe Prawn::SVG::Interface do
       end
     end
 
+    describe 'max_work' do
+      let(:image_uri) { "data:image/svg+xml;base64,#{[%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{'<rect width="1" height="1"/>' * 100}</svg>)].pack('m0')}" }
+      let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="5" height="5"/><image width="10" height="10" href="#{image_uri}"/></svg>) }
+
+      it 'renders when the SVG needs no more work than allowed' do
+        expect { Prawn::Document.new.svg(svg, max_work: 1000) }.not_to raise_error
+      end
+
+      it 'raises before anything is drawn when the SVG and its nested images need more work than allowed' do
+        pdf = Prawn::Document.new
+        content = pdf.state.page.content.stream.filtered_stream
+
+        expect { pdf.svg(svg, max_work: 300) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        expect(pdf.state.page.content.stream.filtered_stream).to eq content
+      end
+
+      it 'gives each draw the whole budget' do
+        interface = Prawn::SVG::Interface.new(%(<svg xmlns="http://www.w3.org/2000/svg">#{'<rect width="1" height="1"/>' * 100}</svg>), Prawn::Document.new, max_work: 1000)
+        interface.draw
+
+        expect { interface.draw }.not_to raise_error
+      end
+
+      it 'charges nothing once drawing has started' do
+        pdf = Prawn::Document.new
+        interface = Prawn::SVG::Interface.new('<svg xmlns="http://www.w3.org/2000/svg"><text y="10">hi</text></svg>', pdf, {})
+        drawing = false
+        allow(pdf).to(receive(:save_font).and_wrap_original { |method, *args, &block| (drawing = true) && method.call(*args, &block) })
+        allow(interface.document).to(receive(:record_work).and_wrap_original { |method, units| drawing ? raise('charged while drawing') : method.call(units) })
+
+        expect { interface.draw }.not_to raise_error
+      end
+
+      it 'charges text for every copy drawn' do
+        rects = '<rect width="10" height="10" clip-path="url(#c)"/>' * 20
+        svg = %(<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="c"><text y="10">#{'x' * 1000}</text></clipPath>#{rects}</svg>)
+
+        expect { Prawn::Document.new.svg(svg, max_work: 50_000) }.not_to raise_error
+        expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      end
+    end
+
     context 'when log_warnings is not set' do
       let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, {}) }
 
