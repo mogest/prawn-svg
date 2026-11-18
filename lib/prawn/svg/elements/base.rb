@@ -171,8 +171,9 @@ class Prawn::SVG::Elements::Base
     end
   end
 
+  # REXML's Element#elements re-parses an XPath on every call, so filter children directly.
   def svg_child_elements
-    source.elements.select { |elem| svg_element?(elem) }
+    @svg_child_elements ||= source.children.select { |node| node.is_a?(REXML::Element) && svg_element?(node) }
   end
 
   # To be strict, we shouldn't treat namespace-less elements as SVG, but for backwards compatibility, and because it

@@ -349,6 +349,19 @@ describe Prawn::SVG::Document do
     end
   end
 
+  describe '#find_raw_element_by_id' do
+    let(:svg) { '<svg><g id="a"><rect id="b"/></g><rect id="a"/><circle id="c"/></svg>' }
+
+    it 'finds the first element in document order with the id' do
+      document = Prawn::SVG::Document.new(svg, bounds, options)
+
+      expect(document.find_raw_element_by_id('a').name).to eq 'g'
+      expect(document.find_raw_element_by_id('b').name).to eq 'rect'
+      expect(document.find_raw_element_by_id('c').name).to eq 'circle'
+      expect(document.find_raw_element_by_id('d')).to be_nil
+    end
+  end
+
   describe '#add_issue' do
     subject { Prawn::SVG::Document.new('<svg></svg>', bounds, options) }
 

@@ -86,14 +86,26 @@ class Prawn::SVG::Document
       raise 'elements are nested too deeply' if depth > MAX_ELEMENT_DEPTH
 
       element.attributes.each_attribute(&:value)
-      element.texts.each(&:value)
-      element.elements.each { |child| stack << [child, depth + 1] }
+      element.children.each do |child|
+        case child
+        when REXML::Element then stack << [child, depth + 1]
+        when REXML::Text then child.value
+        end
+      end
     end
     root
   end
 
   def find_raw_element_by_id(id)
-    @raw_elements_by_id ||= REXML::XPath.match(root, '//*[@id]').reverse.to_h { |element| [element.attributes['id'], element] }
+    # Walk the tree rather than use XPath, as REXML sorts XPath results in time proportional to matches x siblings.
+    @raw_elements_by_id ||= {}.tap do |index|
+      stack = [root]
+      while (element = stack.pop)
+        element_id = element.attributes['id']
+        index[element_id] ||= element if element_id
+        stack.concat(element.children.grep(REXML::Element).reverse)
+      end
+    end
     @raw_elements_by_id[id]
   end
 
