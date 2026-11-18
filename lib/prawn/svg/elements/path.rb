@@ -23,20 +23,17 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     'Q' => FOUR_PARAMETER_REGEXP,
     'S' => FOUR_PARAMETER_REGEXP,
     'T' => TWO_PARAMETER_REGEXP,
-    'V' => ONE_PARAMETER_REGEXP,
-    'Z' => //
+    'V' => ONE_PARAMETER_REGEXP
   }.freeze
-
-  PARAMETERLESS_COMMANDS = COMMAND_MATCH_MAP.select { |_, v| v == // }.map(&:first)
 
   FLOAT_ERROR_DELTA = 1e-10
 
   attr_reader :commands
 
   def parse
+    @commands = []
     require_attributes 'd'
 
-    @commands = []
     @last_point = nil
 
     data = attributes['d'].gsub(/#{OUTSIDE_SPACE_REGEXP}$/, '')
@@ -44,11 +41,20 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     matched_commands = match_all(data, COMMAND_REGEXP)
     raise SkipElementError, 'Invalid/unsupported syntax for SVG path data' if matched_commands.nil?
 
+    raise SkipElementError, 'Path data must begin with a moveto' unless matched_commands.empty? || matched_commands[0][0].upcase == 'M'
+
     matched_commands.each do |(command, parameters)|
+      if command.upcase == 'Z'
+        parse_path_command(command, [])
+        break unless parameters.empty?
+
+        next
+      end
+
       regexp = COMMAND_MATCH_MAP[command.upcase] or break
       matched_values = match_all(parameters, regexp) or break
       values = matched_values.map { |value| value.map(&:to_f) }
-      break if values.empty? && !PARAMETERLESS_COMMANDS.include?(command.upcase)
+      break if values.empty?
 
       parse_path_command(command, values)
     end
@@ -80,12 +86,12 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       return parse_path_command(relative ? 'l' : 'L', values) if values.any?
 
     when 'Z' # closepath
-      push_command Prawn::SVG::Pathable::Close.new(@subpath_initial_point) if @subpath_initial_point
+      push_command Prawn::SVG::Pathable::Close.new(@subpath_initial_point)
 
     when 'L' # lineto
       while values.any?
         x, y = values.shift
-        if relative && @last_point
+        if relative
           x += @last_point.first
           y += @last_point.last
         end
@@ -96,14 +102,14 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
     when 'H' # horizontal lineto
       while values.any?
         x = values.shift.first
-        x += @last_point.first if relative && @last_point
+        x += @last_point.first if relative
         push_command Prawn::SVG::Pathable::Line.new([x, @last_point.last])
       end
 
     when 'V' # vertical lineto
       while values.any?
         y = values.shift.first
-        y += @last_point.last if relative && @last_point
+        y += @last_point.last if relative
         push_command Prawn::SVG::Pathable::Line.new([@last_point.first, y])
       end
 
@@ -111,7 +117,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       while values.any?
         x1, y1, x2, y2, x, y = values.shift
 
-        if relative && @last_point
+        if relative
           x += @last_point.first
           x1 += @last_point.first
           x2 += @last_point.first
@@ -128,7 +134,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       while values.any?
         x2, y2, x, y = values.shift
 
-        if relative && @last_point
+        if relative
           x += @last_point.first
           x2 += @last_point.first
           y += @last_point.last
@@ -154,7 +160,7 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
           x1, y1, x, y = values.shift
         end
 
-        if relative && @last_point
+        if relative
           x += @last_point.first
           x1 += @last_point.first if x1
           y += @last_point.last
@@ -182,8 +188,6 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
       end
 
     when 'A'
-      return unless @last_point
-
       while values.any?
         rx, ry, phi, fa, fs, x2, y2 = values.shift
 

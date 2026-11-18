@@ -5,6 +5,8 @@ module Prawn::SVG::Pathable
   Curve = Struct.new(:destination, :point1, :point2)
 
   def bounding_box
+    return if commands.empty?
+
     points = commands.map { |command| translate(command.destination) }
     x1, x2 = points.map(&:first).minmax
     y2, y1 = points.map(&:last).minmax
@@ -33,6 +35,8 @@ module Prawn::SVG::Pathable
   end
 
   def apply_markers
+    return if commands.empty?
+
     if (marker = extract_element_from_url_id_reference(properties.marker_start, 'marker', 'marker-start'))
       marker.apply_marker(self, point: commands.first.destination, angle: angles.first)
     end
@@ -111,7 +115,7 @@ module Prawn::SVG::Pathable
       angles[0] = closing_angle
       angles << closing_angle
     else
-      angles << destination_angles.last.last
+      angles << (destination_angles.last.last || 0)
     end
 
     @angles = angles

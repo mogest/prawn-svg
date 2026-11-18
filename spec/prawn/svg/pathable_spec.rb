@@ -33,6 +33,11 @@ RSpec.describe Prawn::SVG::Pathable do
     it 'determines the bounding box using the translated commands' do
       expect(subject.bounding_box).to eq [10, 590, 30, 570]
     end
+
+    it 'is nil when there are no commands' do
+      subject.instance_variable_set(:@commands, [])
+      expect(subject.bounding_box).to be_nil
+    end
   end
 
   describe '#apply_commands' do
@@ -85,6 +90,31 @@ RSpec.describe Prawn::SVG::Pathable do
 
       it 'calls apply_marker on the marker' do
         expect(marker).to receive(:apply_marker).with(subject, point: [10, 10], angle: -45)
+        subject.apply_markers
+      end
+    end
+
+    context 'with no commands' do
+      before do
+        subject.instance_variable_set(:@commands, [])
+        subject.properties.marker_start = Prawn::SVG::FuncIRI.new('#triangle')
+        subject.properties.marker_end = Prawn::SVG::FuncIRI.new('#triangle')
+      end
+
+      it 'does not apply any markers' do
+        expect(marker).not_to receive(:apply_marker)
+        subject.apply_markers
+      end
+    end
+
+    context 'with a single moveto' do
+      before do
+        subject.instance_variable_set(:@commands, [Prawn::SVG::Pathable::Move.new([5, 5])])
+        subject.properties.marker_end = Prawn::SVG::FuncIRI.new('#triangle')
+      end
+
+      it 'applies the marker with a zero angle' do
+        expect(marker).to receive(:apply_marker).with(subject, point: [5, 5], angle: 0)
         subject.apply_markers
       end
     end

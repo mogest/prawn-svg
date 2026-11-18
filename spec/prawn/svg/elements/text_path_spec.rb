@@ -180,6 +180,22 @@ describe Prawn::SVG::Elements::TextPath do
     end
   end
 
+  describe 'when the referenced path has no d attribute' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs><path id="mypath"/></defs>
+          <text font-size="16"><textPath href="#mypath">Hello</textPath></text>
+        </svg>
+      SVG
+    end
+
+    it 'renders nothing' do
+      expect(prawn).not_to receive(:draw_text)
+      process_and_render
+    end
+  end
+
   describe 'characters past path end' do
     let(:svg) do
       <<~SVG

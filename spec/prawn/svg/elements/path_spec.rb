@@ -48,6 +48,26 @@ describe Prawn::SVG::Elements::Path do
       end
     end
 
+    context 'with numbers after a closepath' do
+      let(:d) { 'M0 0 L1 1 Z1 2 L3 3' }
+
+      it 'stops parsing after the closepath' do
+        calls = []
+        allow(path).to receive(:parse_path_command) { |*args| calls << args }
+        path.parse
+
+        expect(calls).to eq [['M', [[0, 0]]], ['L', [[1, 1]]], ['Z', []]]
+      end
+    end
+
+    context 'with path data not starting with a moveto' do
+      let(:d) { 'L 1 1' }
+
+      it 'raises' do
+        expect { path.parse }.to raise_error(Prawn::SVG::Elements::Base::SkipElementError, /must begin with a moveto/)
+      end
+    end
+
     context 'with an empty path' do
       let(:d) { '' }
 
