@@ -65,9 +65,10 @@ module Prawn::SVG
     @font_path = DEFAULT_FONT_PATHS.select { |path| Dir.exist?(path) }
     @usable = Hash.new { |hash, font_data| hash[font_data] = check_usable(font_data) }
 
-    def initialize(font_families, font_face_data = [])
+    def initialize(font_families, font_face_data = [], font_face_checks = {})
       @font_families = font_families
       @font_face_data = font_face_data
+      @font_face_checks = font_face_checks
     end
 
     def installed_fonts
@@ -76,7 +77,7 @@ module Prawn::SVG
     end
 
     def fork
-      self.class.new(installed_fonts.dup, @font_face_data.dup)
+      self.class.new(installed_fonts.dup, @font_face_data.dup, @font_face_checks)
     end
 
     def correctly_cased_font_name(name)
@@ -109,6 +110,12 @@ module Prawn::SVG
       @font_families[family_name] = @font_families.fetch(family_name, {}).merge(font.subfamily => font_data)
       @font_face_data << font_data
       @font_case_mapping[family_name.downcase] = family_name
+    end
+
+    def usable_font_face_data?(data)
+      @font_face_checks.fetch(Digest::SHA256.digest(data)) do |digest|
+        @font_face_checks[digest] = self.class.usable_font_face_data?(data)
+      end
     end
 
     # Prawn always uses a fallback font's normal subfamily.
@@ -306,25 +313,40 @@ module Prawn::SVG
         end
       end
 
-      private
-
       # Prawn and ttfunk crash when using a font that lacks any of these, either immediately or when rendering.
       def check_usable(font_data)
         file, options = font_data.is_a?(Hash) ? [font_data[:file], { font: font_data[:font] }] : [font_data, {}]
-        return true unless File.file?(file.to_s)
+        return true unless file.respond_to?(:read) || File.file?(file.to_s)
 
-        return false unless (font = load_prawn_font(file, options))
+        usable_font?(Prawn::Font.load(Prawn::Document.new, file, options))
+      rescue StandardError
+        # Prawn and ttfunk raise arbitrary errors on corrupt data, which may have come from anywhere.
+        false
+      end
+
+      # @font-face data comes from the SVG, so it is also test-rendered, which catches corruption that usable_font?
+      # misses.
+      def usable_font_face_data?(data)
+        pdf = Prawn::Document.new
+        pdf.font_families['font-face'] = { normal: StringIO.new(data) }
+        return false unless usable_font?(pdf.font('font-face'))
+
+        pdf.text 'a'
+        pdf.render
+        true
+      rescue StandardError
+        false
+      end
+
+      private
+
+      def usable_font?(font)
         return true unless font.is_a?(Prawn::Fonts::TTF)
 
         tables = font.ttf.directory.tables
         tables.key?('head') && tables.key?('OS/2') && (tables.key?('glyf') || tables.key?('CFF ')) &&
-          font.ttf.cmap.unicode.any?
-      end
-
-      def load_prawn_font(file, options)
-        Prawn::Font.load(Prawn::Document.new, file, options)
-      rescue StandardError
-        nil
+          font.ttf.cmap.unicode.any? && !font.ttf.name.postscript_name.nil? &&
+          (!tables.key?('glyf') || font.ttf.glyph_locations.offsets.max <= tables['glyf'][:length])
       end
 
       WEIGHT_CLASS_TO_SYMBOL = {

@@ -163,7 +163,7 @@ describe Prawn::SVG::Document do
         Prawn::SVG::Document.new(svg, bounds, file_options, font_registry: font_registry)
 
         expect(font_registry.installed_fonts['TestFont']).to be_a(Hash)
-        expect(font_registry.installed_fonts['TestFont'][:bold_italic]).to be_a(String)
+        expect(font_registry.installed_fonts['TestFont'][:bold_italic]).to be_a(StringIO)
       end
 
       it 'skips unsupported font formats' do
@@ -200,7 +200,7 @@ describe Prawn::SVG::Document do
         document = Prawn::SVG::Document.new(svg, bounds, file_options, font_registry: font_registry)
 
         expect(font_registry.installed_fonts['MultiFont']).to be_a(Hash)
-        expect(font_registry.installed_fonts['MultiFont'][:normal]).to be_a(String)
+        expect(font_registry.installed_fonts['MultiFont'][:normal]).to be_a(StringIO)
         expect(document.warnings).to include(/Failed to load.*nonexistent\.ttf/)
       end
 

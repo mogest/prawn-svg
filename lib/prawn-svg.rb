@@ -1,3 +1,4 @@
+require 'digest'
 require 'matrix'
 require 'rexml/document'
 

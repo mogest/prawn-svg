@@ -1,4 +1,4 @@
-require 'tempfile'
+require 'stringio'
 
 class Prawn::SVG::Document
   Error = Class.new(StandardError)
@@ -46,7 +46,6 @@ class Prawn::SVG::Document
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
     @font_registry = font_registry
     @color_mode = load_color_mode
-    @font_face_tempfiles = []
 
     @url_loader = Prawn::SVG::UrlLoader.new(
       enable_cache:          options[:cache_images],
@@ -198,28 +197,14 @@ class Prawn::SVG::Document
       return false
     end
 
-    data = url_loader.load(url)
-    tempfile = Tempfile.new(['prawn-svg-font', '.ttf'])
-    tempfile.binmode
-    tempfile.write(data)
-    tempfile.close
-    @font_face_tempfiles << tempfile
-    assert_usable_font(tempfile.path)
+    font_data = url_loader.load(url)
+    raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
 
-    font_registry.register_font_face(family, weight, style, stretch, tempfile.path)
+    font_registry.register_font_face(family, weight, style, stretch, StringIO.new(font_data))
     true
   rescue Prawn::SVG::UrlLoader::Error => e
     add_issue(:resource, "Failed to load @font-face font from #{source[:url]}: #{e.message}")
     false
-  end
-
-  def assert_usable_font(path)
-    pdf = Prawn::Document.new
-    pdf.font(path) { pdf.text 'a' }
-    pdf.render
-  rescue StandardError
-    # Prawn's font parser raises arbitrary errors on corrupt data, which may have come from anywhere.
-    raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed'
   end
 
   def unquote_css_string(value)

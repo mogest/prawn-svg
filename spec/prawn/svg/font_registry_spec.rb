@@ -68,6 +68,51 @@ RSpec.describe Prawn::SVG::FontRegistry do
       end
     end
 
+    describe '.check_usable' do
+      it 'checks font data held in memory' do
+        font_data = File.binread(File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__))
+
+        expect(described_class.check_usable(StringIO.new(font_data))).to be true
+        expect(described_class.check_usable(StringIO.new(font_data[0, 1000]))).to be false
+        expect(described_class.check_usable(StringIO.new('not a font'))).to be false
+
+        loca_format_offset = font_data.index('head') + 8
+        head_offset = font_data[loca_format_offset, 4].unpack1('N')
+        corrupt = font_data.dup
+        corrupt[head_offset + 50, 2] = [17_408].pack('n')
+        expect(described_class.check_usable(StringIO.new(corrupt))).to be false
+      end
+    end
+
+    describe '.usable_font_face_data?' do
+      let(:font_data) { File.binread(File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)) }
+
+      it 'accepts a usable font and rejects corrupt data' do
+        expect(described_class.usable_font_face_data?(font_data)).to be true
+        expect(described_class.usable_font_face_data?(font_data[0, 1000])).to be false
+        expect(described_class.usable_font_face_data?('not a font')).to be false
+      end
+
+      it 'rejects a font that cannot be rendered' do
+        allow_any_instance_of(Prawn::Document).to receive(:render).and_raise(ArgumentError)
+
+        expect(described_class.usable_font_face_data?(font_data)).to be false
+      end
+    end
+
+    describe '#usable_font_face_data?' do
+      it 'caches results for the registry and its forks only' do
+        allow(described_class).to receive(:usable_font_face_data?).and_return(true)
+        registry = described_class.new({})
+
+        registry.usable_font_face_data?('data')
+        registry.fork.usable_font_face_data?('data'.dup)
+        described_class.new({}).usable_font_face_data?('data')
+
+        expect(described_class).to have_received(:usable_font_face_data?).twice
+      end
+    end
+
     it 'does not cache the usability of @font-face fonts beyond the registry' do
       font_path = File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)
       allow(described_class).to receive(:usable?).and_call_original
