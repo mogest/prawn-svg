@@ -241,7 +241,7 @@ class Prawn::SVG::Elements::Base
           args = color.pattern_arguments(self)
           add_call 'svg:render_pattern', type.to_sym, **args if args
         when nil
-          nil
+          add_issue(:invalid, "Could not resolve #{type} URI to a gradient or pattern element") if paint.color.nil?
         else
           raise "Unknown resolved color type: #{color.inspect}"
         end
@@ -263,10 +263,10 @@ class Prawn::SVG::Elements::Base
         set_property(name, value)
       else
         @attributes[name] = value
-        if (category = attribute_issue_category(name))
+        if (category = attribute_issue_category(name, value))
           add_source_issue(category, "#{category.to_s.capitalize} attribute '#{name}' on <#{self.name}>")
         elsif (type = attribute_type(name)) && !Prawn::SVG::AttributeValue.valid?(type, value)
-          add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for attribute '#{name}' on <#{self.name}>")
+          add_source_issue(:invalid, "Invalid value '#{value.strip}' for attribute '#{name}' on <#{self.name}>")
         end
       end
     end
@@ -292,12 +292,12 @@ class Prawn::SVG::Elements::Base
           add_source_issue(category, "#{category.to_s.capitalize} property '#{property}' on <#{name}>")
         end
       when false
-        add_source_issue(:unsupported, "Unsupported value '#{value.strip}' for property '#{property}' on <#{name}>")
+        add_source_issue(:invalid, "Invalid value '#{value.strip}' for property '#{property}' on <#{name}>")
       end
     end
   end
 
-  def attribute_issue_category(attribute)
+  def attribute_issue_category(attribute, value)
     elements = Prawn::SVG::Elements
     supported = elements::ATTRIBUTES[name.to_sym] or return
     in_switch = source.parent&.name == 'switch'
@@ -310,7 +310,7 @@ class Prawn::SVG::Elements::Base
               (in_switch && elements::CONDITIONAL_ATTRIBUTES.include?(attribute))
 
     if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute) || elements::CONDITIONAL_ATTRIBUTES.include?(attribute)
-      :unsupported
+      :unsupported unless elements::UNSUPPORTED_ATTRIBUTE_DEFAULTS[attribute] == value.strip
     else
       :unknown
     end
@@ -354,12 +354,19 @@ class Prawn::SVG::Elements::Base
     raise SkipElementQuietly if args.any?(&:zero?)
   end
 
-  def extract_element_from_url_id_reference(value, expected_type = nil)
-    case value
-    when Prawn::SVG::FuncIRI
-      element = document.elements_by_id[value.url[1..]] if value.url.start_with?('#')
-      element if element && (expected_type.nil? || element.name == expected_type)
+  def extract_element_from_url_id_reference(value, expected_type, property)
+    return unless value.is_a?(Prawn::SVG::FuncIRI)
+
+    id = value.url[1..] if value.url.start_with?('#')
+    element = document.elements_by_id[id] if id
+    return element if element&.name == expected_type
+
+    if document.find_raw_element_by_id(id)&.name == expected_type
+      add_issue(:unsupported, "Unsupported #{property} reference to a #{expected_type} that is defined later or not rendered")
+    else
+      add_issue(:invalid, "Could not resolve #{property} URI to a #{expected_type} element")
     end
+    nil
   end
 
   def href_attribute

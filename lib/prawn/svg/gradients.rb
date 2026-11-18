@@ -23,7 +23,7 @@ module Prawn::SVG
 
     def resolve(id)
       unless @resolving.add?(id)
-        @document.add_issue(:invalid, "gradient or pattern '#{id}' references itself")
+        @document.add_issue(:invalid, "gradient or pattern '#{id}' is in a reference loop")
         return
       end
 

@@ -151,8 +151,8 @@ hints, ICC color profiles, color-interpolation, enable-background, deprecated CS
 When prawn-svg can't render something as a browser would, it records an issue and carries on.  `svg` returns them
 in `result[:issues]` as `Prawn::SVG::Issue` objects, each with a `category` and `message`.  The categories are
 `:unsupported` (a valid feature prawn-svg ignores), `:unknown` (a tag, attribute or property it doesn't recognise,
-usually one browsers ignore too), `:invalid` (malformed SVG) and `:resource` (an image, font or stylesheet couldn't
-be loaded).
+usually one browsers ignore too), `:invalid` (malformed SVG, such as an unusable value or a reference to a missing
+element) and `:resource` (an image, font or stylesheet couldn't be loaded).
 
 To reject SVGs that won't render as they would in a browser:
 

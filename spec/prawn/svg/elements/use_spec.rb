@@ -67,7 +67,7 @@ describe Prawn::SVG::Elements::Use do
     before { element.process }
 
     it 'reports the width once, and renders the symbol at full width' do
-      expect(document.warnings).to eq ["Unsupported value '2no' for attribute 'width' on <use>"]
+      expect(document.warnings).to eq ["Invalid value '2no' for attribute 'width' on <use>"]
       expect(flattened_calls).to include ['fill_color', ['0000ff'], {}]
     end
   end

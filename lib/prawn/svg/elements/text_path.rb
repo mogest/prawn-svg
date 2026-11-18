@@ -7,7 +7,7 @@ module Prawn::SVG
         raise SkipElementQuietly
       end
 
-      @path_element = document.elements_by_id[href[1..]]
+      @path_element = document.elements_by_id[href[1..]] || load_later_path(href[1..])
       unless @path_element.is_a?(Elements::Path)
         add_issue(:invalid, "<textPath> reference '#{href}' is not a path element")
         raise SkipElementQuietly
@@ -137,6 +137,13 @@ module Prawn::SVG
       else
         :invisible
       end
+    end
+
+    def load_later_path(id)
+      source = document.find_raw_element_by_id(id)
+      return unless source&.name == 'path'
+
+      Elements::Path.new(document, source, [], State.new.tap { |state| state.viewport_sizing = document.sizing }).tap(&:process)
     end
 
     def parse_start_offset

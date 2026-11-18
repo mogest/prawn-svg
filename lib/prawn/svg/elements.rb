@@ -16,36 +16,40 @@ module Prawn::SVG::Elements
   REPORTED_BY_PARENT_ELEMENTS = %w[animate animateColor animateMotion animateTransform set script].freeze
 
   TAG_CLASS_MAPPING = {
-    g:              Prawn::SVG::Elements::Container,
-    symbol:         Prawn::SVG::Elements::Container,
-    defs:           Prawn::SVG::Elements::Container,
-    a:              Prawn::SVG::Elements::Anchor,
-    clipPath:       Prawn::SVG::Elements::ClipPath,
-    switch:         Prawn::SVG::Elements::Switch,
-    svg:            Prawn::SVG::Elements::Viewport,
-    text:           Prawn::SVG::Elements::Text,
-    line:           Prawn::SVG::Elements::Line,
-    polyline:       Prawn::SVG::Elements::Polyline,
-    polygon:        Prawn::SVG::Elements::Polygon,
-    circle:         Prawn::SVG::Elements::Circle,
-    ellipse:        Prawn::SVG::Elements::Ellipse,
-    rect:           Prawn::SVG::Elements::Rect,
-    path:           Prawn::SVG::Elements::Path,
-    use:            Prawn::SVG::Elements::Use,
-    image:          Prawn::SVG::Elements::Image,
-    linearGradient: Prawn::SVG::Elements::Gradient,
-    radialGradient: Prawn::SVG::Elements::Gradient,
-    pattern:        Prawn::SVG::Elements::Pattern,
-    marker:         Prawn::SVG::Elements::Marker,
-    style:          Prawn::SVG::Elements::Ignored, # because it is pre-parsed by Document
-    title:          Prawn::SVG::Elements::Ignored,
-    desc:           Prawn::SVG::Elements::Ignored,
-    metadata:       Prawn::SVG::Elements::Ignored,
-    foreignObject:  Prawn::SVG::Elements::Unsupported,
-    'font-face':    Prawn::SVG::Elements::Ignored,
-    filter:         Prawn::SVG::Elements::Ignored, # the filter property is reported instead
-    mask:           Prawn::SVG::Elements::Mask,
-    view:           Prawn::SVG::Elements::Ignored
+    g:               Prawn::SVG::Elements::Container,
+    symbol:          Prawn::SVG::Elements::Container,
+    defs:            Prawn::SVG::Elements::Container,
+    a:               Prawn::SVG::Elements::Anchor,
+    clipPath:        Prawn::SVG::Elements::ClipPath,
+    switch:          Prawn::SVG::Elements::Switch,
+    svg:             Prawn::SVG::Elements::Viewport,
+    text:            Prawn::SVG::Elements::Text,
+    line:            Prawn::SVG::Elements::Line,
+    polyline:        Prawn::SVG::Elements::Polyline,
+    polygon:         Prawn::SVG::Elements::Polygon,
+    circle:          Prawn::SVG::Elements::Circle,
+    ellipse:         Prawn::SVG::Elements::Ellipse,
+    rect:            Prawn::SVG::Elements::Rect,
+    path:            Prawn::SVG::Elements::Path,
+    use:             Prawn::SVG::Elements::Use,
+    image:           Prawn::SVG::Elements::Image,
+    linearGradient:  Prawn::SVG::Elements::Gradient,
+    radialGradient:  Prawn::SVG::Elements::Gradient,
+    pattern:         Prawn::SVG::Elements::Pattern,
+    marker:          Prawn::SVG::Elements::Marker,
+    style:           Prawn::SVG::Elements::Ignored, # because it is pre-parsed by Document
+    title:           Prawn::SVG::Elements::Ignored,
+    desc:            Prawn::SVG::Elements::Ignored,
+    metadata:        Prawn::SVG::Elements::Ignored,
+    foreignObject:   Prawn::SVG::Elements::Unsupported,
+    font:            Prawn::SVG::Elements::Unsupported,
+    altGlyphDef:     Prawn::SVG::Elements::Ignored, # <altGlyph> is reported instead
+    'color-profile': Prawn::SVG::Elements::Ignored, # the colors it's used for have sRGB fallbacks
+    cursor:          Prawn::SVG::Elements::Ignored,
+    'font-face':     Prawn::SVG::Elements::Ignored,
+    filter:          Prawn::SVG::Elements::Ignored, # the filter property is reported instead
+    mask:            Prawn::SVG::Elements::Mask,
+    view:            Prawn::SVG::Elements::Ignored
   }.freeze
 
   # Attributes supported on each element, excluding presentation attributes, which are handled by Properties.
@@ -128,6 +132,9 @@ module Prawn::SVG::Elements
     symbol:   %w[refX refY],
     textPath: %w[method spacing side path]
   }.freeze
+
+  # Default values of unsupported attributes, which leave a rendering unchanged
+  UNSUPPORTED_ATTRIBUTE_DEFAULTS = { 'method' => 'align', 'spacing' => 'exact', 'side' => 'left' }.freeze
 
   # Only evaluated by <switch>, on its children
   CONDITIONAL_ATTRIBUTES = %w[systemLanguage requiredExtensions].freeze

@@ -1,13 +1,8 @@
 module Prawn::SVG::Attributes::ClipPath
   def parse_clip_path_attribute_and_call
-    return unless (clip_path = properties.clip_path)
-    return if clip_path == 'none'
+    clip_path_element = extract_element_from_url_id_reference(properties.clip_path, 'clipPath', 'clip-path')
 
-    clip_path_element = extract_element_from_url_id_reference(clip_path, 'clipPath')
-
-    if clip_path_element.nil?
-      document.add_issue(:invalid, 'Could not resolve clip-path URI to a clipPath element')
-    else
+    if clip_path_element
       clip_calls = clip_path_element.build_clip_calls(self)
       return if clip_calls.nil?
 

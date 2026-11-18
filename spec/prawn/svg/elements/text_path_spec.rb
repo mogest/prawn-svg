@@ -123,6 +123,31 @@ describe Prawn::SVG::Elements::TextPath do
     end
   end
 
+  describe 'when the referenced path is defined later' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs></defs>
+          <text font-size="16"><textPath href="#later">Hello</textPath></text>
+          <path id="later" d="M 10,50 L 310,50"/>
+        </svg>
+      SVG
+    end
+
+    it 'renders characters along the path' do
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << text
+        method.call(text, **opts)
+      end
+
+      process_and_render
+
+      expect(drawn.join).to eq 'Hello'
+      expect(document.warnings).to be_empty
+    end
+  end
+
   describe 'when referenced path does not exist' do
     let(:svg) do
       <<~SVG

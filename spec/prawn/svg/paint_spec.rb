@@ -13,7 +13,7 @@ RSpec.describe Prawn::SVG::Paint do
     end
 
     it 'parses a URL' do
-      expect(described_class.parse('url(#foo)')).to eq(described_class.new(:none, '#foo'))
+      expect(described_class.parse('url(#foo)')).to eq(described_class.new(nil, '#foo'))
     end
 
     it 'parses a keyword' do

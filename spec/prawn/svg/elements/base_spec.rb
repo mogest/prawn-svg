@@ -259,6 +259,11 @@ describe Prawn::SVG::Elements::Base do
           Width="5" mix-blend-mode="multiply"></rect>
         <switch><rect width="10" height="10" systemLanguage="en"></rect></switch>
         <text x="0" y="10" zIndex="1"><tspan transform="scale(2)">hello</tspan><textPath side="right">x</textPath></text>
+        <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Shape" color-interpolation="linearRGB"/>
+        <g color-interpolation="sRGB"/>
+        <g color-interpolation="inherit"/>
+        <text><textPath href="#p" method="align" spacing="exact">x</textPath><textPath href="#p" method="stretch">x</textPath></text>
+        <path id="p" d="M0 0L10 0"/>
       </svg>
     SVG
     let(:document) do
@@ -280,7 +285,9 @@ describe Prawn::SVG::Elements::Base do
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <text>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'transform' on <tspan>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'side' on <textPath>"),
-        Prawn::SVG::Issue.new(:invalid, '<textPath> must reference a path element')
+        Prawn::SVG::Issue.new(:invalid, '<textPath> must reference a path element'),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'color-interpolation' on <g>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'method' on <textPath>")
       ]
     end
   end
@@ -297,6 +304,7 @@ describe Prawn::SVG::Elements::Base do
         <switch><foreignObject requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><rect width="1" height="1"/></switch>
         <symbol refX="1"/>
         <switch><script/><rect id="fallback" width="1" height="1"/></switch>
+        <font/><cursor/><color-profile/><altGlyphDef/>
       </svg>
     SVG
     let(:document) do
@@ -317,7 +325,57 @@ describe Prawn::SVG::Elements::Base do
         Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animateColor'; ignoring"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'a' inside text tag; ignoring"),
         Prawn::SVG::Issue.new(:unknown, "Unknown tag 'bar' inside text tag; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'refX' on <symbol>")
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'refX' on <symbol>"),
+        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'font'; ignoring")
+      ]
+    end
+  end
+
+  describe 'unresolved references' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <rect width="1" height="1" fill="url(#a)" stroke="url(#b) none"/>
+        <rect width="1" height="1" stroke="url(#c) red" clip-path="url(#d)" mask="url(#e)"/>
+        <path d="M0 0L1 1L2 2" marker-start="url(#f)" marker-mid="url(#g)" marker-end="none"/>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], {},
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'reports them as invalid, unless a paint has a fallback' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:invalid, 'Could not resolve fill URI to a gradient or pattern element'),
+        Prawn::SVG::Issue.new(:invalid, 'Could not resolve clip-path URI to a clipPath element'),
+        Prawn::SVG::Issue.new(:invalid, 'Could not resolve mask URI to a mask element'),
+        Prawn::SVG::Issue.new(:invalid, 'Could not resolve marker-start URI to a marker element'),
+        Prawn::SVG::Issue.new(:invalid, 'Could not resolve marker-mid URI to a marker element')
+      ]
+    end
+  end
+
+  describe 'references to elements defined later' do
+    let(:svg) { <<-SVG }
+      <svg>
+        <path d="M0 0L1 1" marker-end="url(#m)" clip-path="url(#c)"/>
+        <marker id="m"><rect width="1" height="1"/></marker>
+        <clipPath id="c"><rect width="1" height="1"/></clipPath>
+      </svg>
+    SVG
+    let(:document) do
+      Prawn::SVG::Document.new(svg, [800, 600], {},
+        font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+    end
+
+    it 'reports them as unsupported' do
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.issues).to eq [
+        Prawn::SVG::Issue.new(:unsupported, 'Unsupported clip-path reference to a clipPath that is defined later or not rendered'),
+        Prawn::SVG::Issue.new(:unsupported, 'Unsupported marker-end reference to a marker that is defined later or not rendered')
       ]
     end
   end
@@ -339,14 +397,14 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues.map(&:message)).to eq [
-        "Unsupported value '2no' for attribute 'x' on <rect>",
-        "Unsupported value 'calc(1px)' for attribute 'height' on <rect>",
-        "Unsupported value 'auto' for attribute 'rx' on <rect>",
-        "Unsupported value 'userspaceonuse' for attribute 'gradientUnits' on <linearGradient>",
-        "Unsupported value '1 2 x' for attribute 'x' on <text>",
-        "Unsupported value '45deg' for attribute 'rotate' on <tspan>"
+        "Invalid value '2no' for attribute 'x' on <rect>",
+        "Invalid value 'calc(1px)' for attribute 'height' on <rect>",
+        "Invalid value 'auto' for attribute 'rx' on <rect>",
+        "Invalid value 'userspaceonuse' for attribute 'gradientUnits' on <linearGradient>",
+        "Invalid value '1 2 x' for attribute 'x' on <text>",
+        "Invalid value '45deg' for attribute 'rotate' on <tspan>"
       ]
-      expect(document.issues.map(&:category).uniq).to eq [:unsupported]
+      expect(document.issues.map(&:category).uniq).to eq [:invalid]
     end
   end
 
@@ -365,11 +423,11 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'gren' for property 'fill' on <rect>"),
+        Prawn::SVG::Issue.new(:invalid, "Invalid value 'gren' for property 'fill' on <rect>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'nope' for property 'stroke' on <rect>"),
+        Prawn::SVG::Issue.new(:invalid, "Invalid value 'nope' for property 'stroke' on <rect>"),
         Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported value 'lots' for property 'fill-opacity' on <rect>"),
+        Prawn::SVG::Issue.new(:invalid, "Invalid value 'lots' for property 'fill-opacity' on <rect>"),
         Prawn::SVG::Issue.new(:unknown, "Unknown property 'zindex' on <rect>")
       ]
     end

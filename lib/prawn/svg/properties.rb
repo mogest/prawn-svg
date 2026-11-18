@@ -82,7 +82,7 @@ module Prawn::SVG
     # Properties that are valid but have no effect on a static rendering
     NO_EFFECT = %w[
       cursor pointer-events user-select shape-rendering text-rendering color-rendering
-      color-interpolation color-interpolation-filters color-profile enable-background line-height position
+      color-interpolation-filters color-profile enable-background line-height position
       solid-color solid-opacity block-progression shape-padding flood-color flood-opacity lighting-color box-sizing
       will-change touch-action caret-color text-align text-indent text-decoration-color text-overflow
       max-width max-height min-width min-height color-scheme isolation z-index
@@ -95,6 +95,7 @@ module Prawn::SVG
       'background'                   => %w[none transparent],
       'background-color'             => %w[transparent],
       'clip'                         => %w[auto],
+      'color-interpolation'          => %w[auto srgb],
       'direction'                    => %w[ltr],
       'filter'                       => %w[none],
       'font-feature-settings'        => %w[normal],
@@ -186,7 +187,8 @@ module Prawn::SVG
       return if name.start_with?(*NO_EFFECT_PREFIXES) || NO_EFFECT.include?(name)
       return :unknown unless (no_effect_values = UNSUPPORTED[name])
 
-      :unsupported unless no_effect_values.include?(value.strip.downcase.squeeze(' '))
+      value = value.strip.downcase.squeeze(' ')
+      :unsupported unless value == 'inherit' || no_effect_values.include?(value)
     end
 
     # Returns true if the value was accepted, false if it was rejected, or nil if the property is not known.

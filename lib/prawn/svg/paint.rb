@@ -13,8 +13,9 @@ module Prawn::SVG
         case CSS::ValuesParser.parse(value)
         in [['url', [url]]]
           # If there is no fallback color, and the URL is unresolvable, the spec says that the document is in error.
-          # Chrome appears to treat this the same as an explicit 'none', so we do the same.
-          new(:none, url)
+          # Chrome appears to treat this the same as an explicit 'none', so we do the same, but with no color to show
+          # that there was no fallback.
+          new(nil, url)
         in [['url', [url]], keyword_or_color]
           parse_keyword_or_color(keyword_or_color, url)
         in [['url', [url]], keyword_or_color, ['icc-color', _args]] # rubocop:disable Lint/DuplicateBranch
@@ -42,7 +43,7 @@ module Prawn::SVG
     end
 
     def none?
-      color == :none && (url.nil? || !!@unresolved_url)
+      [:none, nil].include?(color) && (url.nil? || !!@unresolved_url)
     end
 
     def resolve(gradients, current_color, color_mode)
@@ -57,7 +58,7 @@ module Prawn::SVG
       case color
       when :currentcolor
         current_color
-      when :none
+      when :none, nil
         nil
       else
         color_mode == :cmyk ? color.to_cmyk : color

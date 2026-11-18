@@ -229,7 +229,7 @@ describe Prawn::SVG::Elements::Gradient do
     end
 
     it 'reports an issue' do
-      expect(document.warnings).to include "gradient or pattern 'q' references itself"
+      expect(document.warnings).to include "gradient or pattern 'q' is in a reference loop"
     end
   end
 end
