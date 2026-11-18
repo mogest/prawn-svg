@@ -83,10 +83,36 @@ describe Prawn::SVG::Document do
       it 'shares the root document' do
         expect(child.replicate('<svg></svg>', 10, 20).root_document).to be parent
       end
+    end
 
-      it 'limits the number of nested documents across the whole render' do
-        expect(Prawn::SVG::Document::MAX_NESTED_DOCUMENTS.times.map { child.reserve_nested_document }).to all(be_truthy)
-        expect(parent.reserve_nested_document).to be false
+    describe '#record_work' do
+      let(:parent) { Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: 300 }) }
+
+      it 'raises once the work budget is exhausted, sharing it with nested documents and charging for them' do
+        parent.record_work(46)
+        child = parent.replicate('<svg></svg>', 10, 20)
+        child.record_work(4)
+
+        expect { child.record_work(1) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      end
+
+      it 'never raises when max_work is false' do
+        document = Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: false })
+
+        expect { document.record_work(10**12) }.not_to raise_error
+      end
+
+      it 'rejects an invalid max_work' do
+        [nil, true, 0, 1.5].each do |max_work|
+          expect { Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: max_work }) }.to raise_error ArgumentError, /:max_work/
+        end
+      end
+
+      it 'charges requests for URLs even when they fail' do
+        document = Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: 1500, web_requests: ->(_uri) { raise Prawn::SVG::UrlLoader::Error, 'no' } })
+
+        expect { document.load_url('https://example.com/a.png') }.to raise_error Prawn::SVG::UrlLoader::Error
+        expect { document.load_url('https://example.com/a.png') }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
       end
     end
 

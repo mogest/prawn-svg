@@ -14,6 +14,10 @@ module Prawn::SVG
       reintroduce_trailing_and_leading_whitespace if @root_component.children
     end
 
+    def work
+      @work ||= [].tap { |text_nodes| build_text_node_queue(text_nodes, @root_component) }.sum { |node| node.text.length } + 1
+    end
+
     def render(prawn, renderer)
       return unless @root_component.children
 

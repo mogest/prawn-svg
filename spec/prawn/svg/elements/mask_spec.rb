@@ -415,4 +415,20 @@ describe Prawn::SVG::Elements::Mask do
       expect(pdf.state.page.singleton_methods).not_to include :dimensions
     end
   end
+
+  describe 'a mask with objectBoundingBox content units that references itself' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <mask id="m" maskContentUnits="objectBoundingBox"><rect width="1" height="1" mask="url(#m)"/></mask>
+          <rect width="10" height="10" mask="url(#m)"/>
+        </svg>
+      SVG
+    end
+
+    it 'skips the content that references it and reports an invalid issue' do
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<mask> references itself')]
+      expect(find_call(element.base_calls, 'soft_mask')).not_to be_nil
+    end
+  end
 end

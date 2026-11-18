@@ -178,18 +178,46 @@ describe Prawn::SVG::Elements::Image do
       [requests, result]
     end
 
-    it 'stops nesting and reports a resource issue' do
+    it 'skips the image that references a document containing it and reports an invalid issue' do
       requests, result = render_self_referencing(1)
 
-      expect(requests).to eq Prawn::SVG::Document::MAX_NESTED_DOCUMENTS + 1
-      expect(result[:issues].map(&:category)).to eq [:resource]
-      expect(result[:warnings]).to eq ['too many nested SVG documents']
+      expect(requests).to eq 1
+      expect(result[:issues].map(&:category)).to eq [:invalid]
+      expect(result[:warnings]).to eq ["image tag references '#{url}?1', which contains it"]
     end
 
-    it 'limits the total number of nested documents when they fan out' do
-      requests, = render_self_referencing(6)
+    it 'follows each chain of distinct URLs until it repeats' do
+      requests, = render_self_referencing(3)
 
-      expect(requests).to be <= (Prawn::SVG::Document::MAX_NESTED_DOCUMENTS * 6) + 6
+      expect(requests).to eq 3 + (3 * 2) + (3 * 2 * 1)
+    end
+  end
+
+  describe 'SVG images nested through endless distinct URLs' do
+    it 'stops when elements are nested too deeply' do
+      requests = 0
+      web_requests = lambda do |uri|
+        requests += 1
+        %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://image-test.invalid/#{uri.path[/\d+/].to_i + 1}.svg" width="10" height="10"/></svg>)
+      end
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="https://image-test.invalid/0.svg" width="10" height="10"/></svg>)
+
+      result = Prawn::Document.new.svg(svg, web_requests: web_requests)
+
+      expect(result[:warnings]).to eq ['elements are nested too deeply']
+      expect(requests).to be < Prawn::SVG::Document::MAX_ELEMENT_DEPTH
+    end
+  end
+
+  describe 'the same SVG image drawn many times' do
+    let(:icon) { "data:image/svg+xml;base64,#{['<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle r="4"/></svg>'].pack('m0')}" }
+
+    it 'draws every copy' do
+      images = %(<image width="10" height="10" href='#{icon}'/>) * 60
+      pdf = Prawn::Document.new
+
+      expect(pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{images}</svg>))[:warnings]).to be_empty
+      expect(pdf.render.scan(" c\n").length).to eq 60 * 4
     end
   end
 

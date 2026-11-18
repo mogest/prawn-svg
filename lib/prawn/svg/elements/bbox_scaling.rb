@@ -2,6 +2,8 @@ module Prawn::SVG::Elements::BboxScaling
   private
 
   def build_object_bounding_box_calls(bbox, source_element = source)
+    raise Prawn::SVG::Elements::Base::SkipElementError, "<#{name}> references itself" if @building_object_bounding_box_calls
+
     bbox_left = bbox[0]
     bbox_top = bbox[1]
     bbox_right = bbox[2]
@@ -15,6 +17,7 @@ module Prawn::SVG::Elements::BboxScaling
     unit_sizing.calculate
 
     result_calls = document.with_sizing(unit_sizing) do
+      @building_object_bounding_box_calls = true
       new_state = state.dup
       new_state.viewport_sizing = unit_sizing
       new_state.inside_use = true
@@ -23,6 +26,8 @@ module Prawn::SVG::Elements::BboxScaling
       container.process
 
       container.base_calls
+    ensure
+      @building_object_bounding_box_calls = false
     end
 
     scale_calls_to_bbox(duplicate_calls(result_calls), bbox_left, bbox_top, bbox_w, bbox_h)

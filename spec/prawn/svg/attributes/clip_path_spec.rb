@@ -243,4 +243,19 @@ RSpec.describe Prawn::SVG::Attributes::ClipPath do
       end
     end
   end
+
+  describe 'a clipPath with objectBoundingBox units that references itself' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <clipPath id="c" clipPathUnits="objectBoundingBox"><rect width="1" height="1" clip-path="url(#c)"/></clipPath>
+          <rect width="10" height="10" clip-path="url(#c)"/>
+        </svg>
+      SVG
+    end
+
+    it 'skips the content that references it and reports an invalid issue' do
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<clipPath> references itself')]
+    end
+  end
 end

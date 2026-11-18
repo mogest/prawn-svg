@@ -35,6 +35,7 @@ Option      | Data type | Description
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
 :log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
 :raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See [Issues](#issues).  Defaults to false.
+:max_work | integer, false | Limits how much work rendering may take, so that a small hostile SVG can't use excessive time or memory.  If exceeded, `Prawn::SVG::Document::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers, patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a higher value.  `false` turns the limit off.  Defaults to 1,000,000.
 
 ## Examples
 

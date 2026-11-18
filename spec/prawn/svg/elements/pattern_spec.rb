@@ -258,21 +258,47 @@ describe Prawn::SVG::Elements::Pattern do
     end
   end
 
+  describe 'objectBoundingBox content that references its own pattern' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <pattern id="pat" width="1" height="1" patternContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#pat)"/></pattern>
+          <rect width="10" height="10" fill="url(#pat)"/>
+        </svg>
+      SVG
+    end
+
+    it 'skips the content that references it and reports an invalid issue' do
+      root_element.process
+
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<pattern> references itself')]
+    end
+  end
+
+  describe 'a link in pattern content' do
+    let(:svg) do
+      link = '<a href="svg:render"><rect width="5" height="5"/></a>'
+      pattern = %(<pattern id="pat" width="10" height="10" patternUnits="userSpaceOnUse">#{link}</pattern>)
+      %(<svg xmlns="http://www.w3.org/2000/svg">#{pattern}<rect width="10" height="10" fill="url(#pat)"/></svg>)
+    end
+
+    it 'copies the link, whatever its href' do
+      expect { root_element.process }.not_to raise_error
+    end
+  end
+
   describe 'fan-out through nested patterns' do
     let(:svg) { '<svg></svg>' }
 
-    it 'stops copying pattern content when the limit is reached' do
-      stub_const('Prawn::SVG::Elements::CallDuplicator::MAX_DUPLICATED_VALUES_PER_RENDER', 10_000)
+    it 'counts copied pattern content towards the work budget' do
       patterns = (0...10).map do |n|
         rect = %(<rect width="5" height="5" fill="url(#p#{n + 1})"/>)
         %(<pattern id="p#{n}" width="10" height="10" patternUnits="userSpaceOnUse">#{rect}#{rect}</pattern>)
       end
       fan_out = %(<svg>#{patterns.join}<pattern id="p10" width="1" height="1"><rect width="1" height="1"/></pattern><rect width="10" height="10" fill="url(#p0)"/></svg>)
-      document = Prawn::SVG::Document.new(fan_out, [800, 600], {})
-      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+      document = Prawn::SVG::Document.new(fan_out, [800, 600], { max_work: 10_000 })
 
-      expect(document.warnings).to eq ['too much pattern, marker, mask or clip path content is rendered']
-      expect(document.duplicated_value_count).to be < 20_000
+      expect { Prawn::SVG::Elements::Root.new(document, document.root, []).process }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
     end
   end
 end

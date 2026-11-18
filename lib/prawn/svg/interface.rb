@@ -8,7 +8,7 @@ module Prawn
       VALID_OPTIONS = %i[
         at position vposition width height cache_images web_requests enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode language
-        log_issues log_warnings raise_on_issue
+        log_issues log_warnings raise_on_issue max_work
       ].freeze
 
       attr_reader :data, :prawn, :document, :options
@@ -42,6 +42,7 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
+        document.reset_work_budget
         @renderer.draw
 
         document.warnings.each { |w| warn w } if options[:log_issues] || options[:log_warnings]

@@ -6,7 +6,7 @@ describe Prawn::SVG::Elements::Root do
     instance_double(Prawn::SVG::Calculators::DocumentSizing, x_offset: 0, y_offset: 0, x_scale: 1, y_scale: 1)
   end
   let(:document) do
-    instance_double(Prawn::SVG::Document, color_mode: color_mode, sizing: sizing)
+    instance_double(Prawn::SVG::Document, color_mode: color_mode, sizing: sizing, record_work: nil)
   end
   let(:source) { double(name: 'svg', attributes: {}) }
   let(:state) { Prawn::SVG::State.new }
