@@ -21,7 +21,7 @@ module Prawn::SVG
       @y_values = parse_wsp('y').map { |n| y(n) }
       @dx = parse_wsp('dx').map { |n| x_pixels(n) }
       @dy = parse_wsp('dy').map { |n| y_pixels(n) }
-      @rotation = parse_wsp('rotate').map(&:to_f)
+      @rotation = parse_wsp('rotate').map { |n| Prawn::SVG::Number.parse(n) || 0.0 }
       @text_length = normalize_length(attributes['textLength'])
       @length_adjust = attributes['lengthAdjust']
 

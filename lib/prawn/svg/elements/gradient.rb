@@ -11,7 +11,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     # A gradient tag without an ID is inaccessible and can never be used
     raise SkipElementQuietly if attributes['id'].nil?
 
-    @parent_gradient = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
+    parent = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
+    @parent_gradient = parent if parent.is_a?(Prawn::SVG::Elements::Gradient)
     @transform_matrix = Matrix.identity(3)
     @wrap = :pad
 
@@ -30,23 +31,32 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     stroke_width = element.stroke_width
     bbox_with_stroke = bbox&.zip([-stroke_width, stroke_width, stroke_width, -stroke_width])&.map(&:sum)
 
+    matrix = matrix_for_bounding_box(bbox)
+
+    # SVG ignores a gradient that can't be mapped onto the element, such as objectBoundingBox on a horizontal line.
+    return solid_arguments(stops.last.merge(opacity: 0.0), bbox_with_stroke) if matrix.singular? || !matrix.all?(&:finite?)
+
     if type == :radial
+      return solid_arguments(stops.last, bbox_with_stroke) unless r.positive?
+
       {
-        from:         [fx, fy],
+        from:         focal_point,
         r1:           fr,
         to:           [cx, cy],
         r2:           r,
         stops:        stops,
-        matrix:       matrix_for_bounding_box(bbox),
+        matrix:       matrix,
         wrap:         wrap,
         bounding_box: bbox_with_stroke
       }
     else
+      return solid_arguments(stops.last, bbox_with_stroke) if [x1, y1] == [x2, y2]
+
       {
         from:         [x1, y1],
         to:           [x2, y2],
         stops:        stops,
-        matrix:       matrix_for_bounding_box(bbox),
+        matrix:       matrix,
         wrap:         wrap,
         bounding_box: bbox_with_stroke
       }
@@ -76,6 +86,21 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
     else
       svg_to_pdf_matrix * transform_matrix
     end
+  end
+
+  def solid_arguments(stop, bounding_box)
+    { from: [0.0, 0.0], to: [1.0, 0.0], stops: [stop.merge(offset: 0.0), stop.merge(offset: 1.0)], bounding_box: bounding_box }
+  end
+
+  # SVG 1.1 13.2.3 moves a focal point outside the circle onto it.  Like browsers, move it just inside, where the
+  # gradient is well defined.
+  def focal_point
+    distance = Math.hypot(fx - cx, fy - cy)
+    max_distance = r * 0.999
+    return [fx, fy] if distance <= max_distance
+
+    angle = Math.atan2(fy - cy, fx - cx)
+    [cx + (max_distance * Math.cos(angle)), cy + (max_distance * Math.sin(angle))]
   end
 
   def svg_to_pdf_matrix
@@ -108,10 +133,10 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       @y2 = percentage_or_proportion(derive_attribute('y2'), 0.0)
 
     when [:linear, :user_space]
-      @x1 = x(derive_attribute('x1'))
-      @y1 = y_pixels(derive_attribute('y1'))
-      @x2 = x(derive_attribute('x2'))
-      @y2 = y_pixels(derive_attribute('y2'))
+      @x1 = x(derive_attribute('x1') || '0%')
+      @y1 = y_pixels(derive_attribute('y1') || '0%')
+      @x2 = x(derive_attribute('x2') || '100%')
+      @y2 = y_pixels(derive_attribute('y2') || '0%')
 
     when [:radial, :bounding_box]
       @cx = percentage_or_proportion(derive_attribute('cx'), 0.5)
@@ -125,8 +150,8 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
       @cx = x(derive_attribute('cx') || '50%')
       @cy = y_pixels(derive_attribute('cy') || '50%')
       @r = pixels(derive_attribute('r') || '50%')
-      @fx = x(derive_attribute('fx') || derive_attribute('cx'))
-      @fy = y_pixels(derive_attribute('fy') || derive_attribute('cy'))
+      @fx = derive_attribute('fx') ? x(derive_attribute('fx')) : cx
+      @fy = derive_attribute('fy') ? y_pixels(derive_attribute('fy')) : cy
       @fr = pixels(derive_attribute('fr') || '0%')
 
     else
@@ -135,23 +160,17 @@ class Prawn::SVG::Elements::Gradient < Prawn::SVG::Elements::Base
   end
 
   def load_stops
-    stop_elements = source.elements.map do |child|
-      element = Prawn::SVG::Elements::Base.new(document, child, [], Prawn::SVG::State.new)
-      element.process
-      element
-    end.select do |element|
-      element.name == 'stop' && element.attributes['offset']
-    end
+    @stops = svg_child_elements.each_with_object([]) do |child, result|
+      next unless child.name == 'stop' && child.attributes['offset']
 
-    @stops = stop_elements.each_with_object([]) do |child, result|
+      stop = Prawn::SVG::Elements::Stop.new(document, child, [], state.dup)
+      stop.process
       offset = stop_offset(child.attributes['offset'])
 
       # Offsets must be strictly increasing (SVG 13.2.4)
       offset = result.last[:offset] if result.last && result.last[:offset] > offset
 
-      if (color = child.properties.stop_color&.value)
-        result << { offset: offset, color: color, opacity: (child.properties.stop_opacity || 1.0).clamp(0.0, 1.0) }
-      end
+      result << { offset: offset, color: stop.color.value, opacity: stop.computed_properties.stop_opacity.clamp(0.0, 1.0) }
     end
 
     if stops.empty?

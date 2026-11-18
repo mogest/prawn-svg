@@ -122,12 +122,13 @@ module Prawn::SVG::Pathable
   end
 
   def parse_points(points_string)
-    values = points_string
-             .to_s
-             .strip
-             .gsub(/(\d)-(\d)/, '\1 -\2')
-             .split(Prawn::SVG::Elements::COMMA_WSP_REGEXP)
-             .map(&:to_f)
+    scanner = StringScanner.new(points_string.to_s)
+    numbers = []
+    numbers << Prawn::SVG::Number.parse(scanner[1].chomp('.')) while scanner.scan(Prawn::SVG::Elements::Path::INSIDE_REGEXP)
+    scanner.skip(/[ \t\r\n,]*/)
+
+    values = numbers.take_while(&:itself)
+    document.add_issue(:invalid, 'points attribute has an invalid number; ignoring it and the rest') if values.length < numbers.length || !scanner.eos?
 
     if values.length.odd?
       document.add_issue(:invalid, 'points attribute has an odd number of points; ignoring the last one')

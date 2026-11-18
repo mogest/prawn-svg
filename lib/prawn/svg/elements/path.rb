@@ -53,8 +53,8 @@ class Prawn::SVG::Elements::Path < Prawn::SVG::Elements::Base
 
       regexp = COMMAND_MATCH_MAP[command.upcase] or break
       matched_values = match_all(parameters, regexp) or break
-      values = matched_values.map { |value| value.map(&:to_f) }
-      break if values.empty?
+      values = matched_values.map { |value| value.map { |number| Prawn::SVG::Number.parse(number.chomp('.')) } }
+      break if values.empty? || values.flatten.include?(nil)
 
       parse_path_command(command, values)
     end

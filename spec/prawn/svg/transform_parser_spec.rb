@@ -43,6 +43,26 @@ RSpec.describe Prawn::SVG::TransformParser do
     end
   end
 
+  context 'with a number outside the single-precision range' do
+    let(:transform) { 'translate(10) scale(1e39)' }
+
+    it 'reports it as invalid and ignores the transform' do
+      test = Test.new
+      expect(test).to receive(:add_issue).with(:invalid, "Invalid number in transform 'translate(10) scale(1e39)'; ignoring")
+      expect(test.parse_transform_attribute(transform)).to eq Matrix.identity(3)
+    end
+  end
+
+  context 'with transforms that together are too large' do
+    let(:transform) { 'scale(1e38) scale(1e38) scale(1e38) scale(1e38) scale(1e38) scale(1e38) scale(1e38) scale(1e38) scale(1e38)' }
+
+    it 'reports it as invalid and ignores the transform' do
+      test = Test.new
+      expect(test).to receive(:add_issue).with(:invalid, "transform '#{transform}' is too large; ignoring")
+      expect(test.parse_transform_attribute(transform)).to eq Matrix.identity(3)
+    end
+  end
+
   context 'with translate' do
     let(:transform) { 'translate(10 20)' }
     it { is_expected.to eq Matrix[[1, 0, 10.0], [0, 1, -20.0], [0, 0, 1.0]] }

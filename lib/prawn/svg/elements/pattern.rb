@@ -4,7 +4,8 @@ class Prawn::SVG::Elements::Pattern < Prawn::SVG::Elements::Base
   def parse
     raise SkipElementQuietly if attributes['id'].nil?
 
-    @parent_pattern = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
+    parent = document.gradients[href_attribute[1..]] if href_attribute && href_attribute[0] == '#'
+    @parent_pattern = parent if parent.is_a?(Prawn::SVG::Elements::Pattern)
 
     set_display_none
 
@@ -100,10 +101,9 @@ class Prawn::SVG::Elements::Pattern < Prawn::SVG::Elements::Base
   end
 
   def build_viewbox_content_calls(view_box_attr, par_attr, tile_w, tile_h)
-    vb_values = view_box_attr.strip.split(COMMA_WSP_REGEXP).map(&:to_f)
-    return content_source_calls if vb_values.length != 4
+    return content_source_calls unless Prawn::SVG::AttributeValue.valid?(:view_box, view_box_attr)
 
-    vb_x, vb_y, vb_w, vb_h = vb_values
+    vb_x, vb_y, vb_w, vb_h = view_box_attr.strip.split(COMMA_WSP_REGEXP).map { |value| Prawn::SVG::Number.parse(value) }
     return content_source_calls if vb_w <= 0 || vb_h <= 0
 
     aspect = Prawn::SVG::Calculators::AspectRatio.new(par_attr, [tile_w, tile_h], [vb_w, vb_h])

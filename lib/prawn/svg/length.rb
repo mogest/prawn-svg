@@ -6,7 +6,7 @@ module Prawn::SVG
 
     def self.parse(value, positive_only: false)
       if (matches = value.match(REGEXP))
-        number = Float(matches[1], exception: false)
+        number = Prawn::SVG::Number.parse(matches[1])
         new(number, matches[2]&.downcase&.to_sym) if number && (!positive_only || number >= 0)
       end
     end

@@ -191,6 +191,33 @@ describe Prawn::SVG::Interface do
       end
     end
 
+    describe 'huge and tiny numbers' do
+      nest = ->(n, inner) { ('<g transform="scale(1e38)">' * n) + inner + ('</g>' * n) }
+      stops = '<stop offset="0" stop-color="red"/><stop offset="1" stop-color="blue"/>'
+      {
+        'a link in deeply nested transforms'     => nest[12, '<a href="h"><rect width="10" height="10"/></a>'],
+        'a gradient in deeply nested transforms' => %(<linearGradient id="g" spreadMethod="reflect">#{stops}</linearGradient>#{nest[12,
+          '<rect width="10" height="10" fill="url(#g)"/>']}),
+        'an arc with huge radii'                 => '<path d="M0 0 A1e38 1e38 0 0 1 1e-38 1" stroke="black"/>',
+        'a huge textLength percentage'           => '<text textLength="3e38%" dx="3e38%">hi</text>',
+        'a marker with a tiny viewBox'           => '<marker id="m" viewBox="0 0 1 1e-320"><rect width="1" height="1"/></marker><path d="M0 0L9 9" marker-end="url(#m)"/>',
+        'compounding relative font sizes'        => "#{'<g font-size="3e38em">' * 12}<text>x</text><rect width=\"1em\" height=\"1em\"/>#{'</g>' * 12}",
+        'compounding nested viewport sizes'      => "#{'<svg width="3e38%" height="3e38%">' * 5}<circle r=\"1%\"/>#{'</svg>' * 5}",
+        'a rotation by a huge angle'             => '<rect width="10" height="10" transform="rotate(3e38)"/>'
+      }.each do |description, body|
+        it "writes only finite numbers for #{description}" do
+          pdf = Prawn::Document.new(compress: false)
+          pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">#{body}</svg>))
+          expect(pdf.render).not_to match(/\b(?:NaN|Inf|null)\b/)
+        end
+      end
+
+      it 'treats numbers outside the single-precision range as invalid' do
+        result = Prawn::Document.new.svg('<svg xmlns="http://www.w3.org/2000/svg"><rect x="1e999" width="10" height="10"/></svg>')
+        expect(result[:warnings]).to eq ["Invalid value '1e999' for attribute 'x' on <rect>"]
+      end
+    end
+
     describe 'max_work' do
       let(:image_uri) { "data:image/svg+xml;base64,#{[%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{'<rect width="1" height="1"/>' * 100}</svg>)].pack('m0')}" }
       let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="5" height="5"/><image width="10" height="10" href="#{image_uri}"/></svg>) }

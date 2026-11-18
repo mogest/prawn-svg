@@ -25,6 +25,9 @@ class Prawn::SVG::GradientRenderer
   end
 
   def draw
+    # Nested transforms can make the gradient too large to represent.
+    return unless current_pdf_transform.all?(&:finite?)
+
     key = self.class.next_key
 
     # If we need transparency, add an ExtGState to the page and enable it.
@@ -215,11 +218,11 @@ class Prawn::SVG::GradientRenderer
   end
 
   def bounding_box_corners(matrix)
-    if bounding_box
-      transformed_corners(gradient_matrix.inverse, *bounding_box)
-    else
-      transformed_corners(matrix.inverse, *prawn_bounding_box)
-    end
+    matrix, box = bounding_box ? [gradient_matrix, bounding_box] : [matrix, prawn_bounding_box]
+    return if matrix.singular?
+
+    corners = transformed_corners(matrix.inverse, *box)
+    corners if corners.all? { |corner| corner.all?(&:finite?) }
   end
 
   def prawn_bounding_box
@@ -237,21 +240,24 @@ class Prawn::SVG::GradientRenderer
 
   def compute_wrapping(wrap, from, to, page_transform)
     matrix = page_transform * gradient_matrix
+    (repeat_wrapping(from, to, matrix) unless wrap == :pad) || [1, 0, matrix]
+  end
 
-    return [1, 0, matrix] if wrap == :pad
-
+  # Returns nil if the gradient is too degenerate to repeat, so that it's padded instead.
+  def repeat_wrapping(from, to, matrix)
     from = Vector[from[0], from[1], 1.0]
     to = Vector[to[0], to[1], 1.0]
 
     # Transform the bounding box into gradient space where lines are straight
     # and circles are round.
-    box_corners = bounding_box_corners(matrix)
+    box_corners = bounding_box_corners(matrix) or return
 
     repeat_count, repeat_offset, delta = if shading_type == 2 # Linear
                                            project_bounding_box_for_linear(from, to, box_corners)
                                          else # Radial
                                            project_bounding_box_for_radial(from, to, box_corners)
                                          end
+    return unless repeat_count
 
     repeat_count = [repeat_count, 50].min
 
@@ -260,7 +266,8 @@ class Prawn::SVG::GradientRenderer
                      scale_matrix(repeat_count) *
                      translation_matrix(-from[0], -from[1])
 
-    [repeat_count, repeat_offset, matrix * wrap_transform]
+    transform = matrix * wrap_transform
+    [repeat_count, repeat_offset, transform] if transform.all?(&:finite?)
   end
 
   def project_bounding_box_for_linear(from, to, box_corners)
@@ -281,8 +288,10 @@ class Prawn::SVG::GradientRenderer
       ac = corner - from
       ab.dot(ac) / ab.dot(ab)
     end
+    return unless t_for_corners.all?(&:finite?)
 
     t_min, t_max = t_for_corners.minmax
+    return unless (t_max - t_min).finite?
 
     repeat_count = (t_max - t_min).ceil + 1
 
@@ -314,10 +323,14 @@ class Prawn::SVG::GradientRenderer
       a = cdx.abs2 + cdy.abs2 - dr.abs2
       b = (pdx * cdx) + (pdy * cdy) + (r1 * dr)
       c = pdx.abs2 + pdy.abs2 - r1.abs2
-      det_root = Math.sqrt(b.abs2 - (a * c))
+      discriminant = b.abs2 - (a * c)
+      return nil if discriminant.negative?
+
+      det_root = Math.sqrt(discriminant)
 
       t0 = (b + det_root) / a
       t1 = (b - det_root) / a
+      return nil unless t0.finite? && t1.finite?
 
       [t0, t1, max].max
     end

@@ -60,6 +60,18 @@ describe Prawn::SVG::Elements::Path do
       end
     end
 
+    context 'with a number outside the single-precision range' do
+      let(:d) { 'M1 2. L3 4 L1e39 5 L6 7' }
+
+      it 'stops parsing at the command' do
+        calls = []
+        allow(path).to receive(:parse_path_command) { |*args| calls << args }
+        path.parse
+
+        expect(calls).to eq [['M', [[1, 2]]], ['L', [[3, 4]]]]
+      end
+    end
+
     context 'with path data not starting with a moveto' do
       let(:d) { 'L 1 1' }
 

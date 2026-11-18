@@ -7,7 +7,9 @@ class Prawn::SVG::LinkRenderer
   end
 
   def render(prawn)
-    prawn.link_annotation(transformed_bounding_box(prawn), {
+    box = transformed_bounding_box(prawn) or return
+
+    prawn.link_annotation(box, {
       Border: [0, 0, 0],
       A:      { Type: :Action, S: :URI, URI: PDF::Core::LiteralString.new(href) }
     })
@@ -28,6 +30,9 @@ class Prawn::SVG::LinkRenderer
       matrix * Vector[x1, y0, 1.0],
       matrix * Vector[x1, y1, 1.0]
     ]
+
+    # Nested transforms can make the box too large to represent.
+    return unless corners.flat_map(&:to_a).all?(&:finite?)
 
     xs = corners.map { |c| c[0] }
     ys = corners.map { |c| c[1] }

@@ -6,7 +6,7 @@ require 'prawn/svg/elements/call_duplicator'
 require 'prawn/svg/elements/bbox_scaling'
 
 %w[base direct_render_base root anchor container switch clip_path mask viewport text text_component text_node text_path line polyline polygon circle ellipse
-   rect path use image gradient pattern marker ignored unsupported].each do |filename|
+   rect path use image stop gradient pattern marker ignored unsupported].each do |filename|
   require "prawn/svg/elements/#{filename}"
 end
 

@@ -29,7 +29,9 @@ module Prawn::SVG
 
       begin
         raw_element = find_raw_gradient_element_by_id(id)
+        # An element that turns out to be invalid isn't stored, so isn't returned.
         create_gradient_element(raw_element) if raw_element
+        @gradients_by_id[id]
       ensure
         @resolving.delete(id)
       end
@@ -42,7 +44,7 @@ module Prawn::SVG
 
     def create_gradient_element(raw_element)
       element_class = Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]
-      element_class.new(@document, raw_element, [], new_state).tap(&:process)
+      element_class.new(@document, raw_element, [], new_state).process
     end
 
     def gradient_element?(raw_element)

@@ -6,7 +6,13 @@ module Prawn::SVG::TransformParser
 
     flip = space == :svg ? 1.0 : -1.0
 
-    parse_css_method_calls(transform).each do |name, arguments|
+    calls = parse_css_method_calls(transform)
+    if calls.any? { |_name, arguments| arguments.include?(nil) }
+      add_issue(:invalid, "Invalid number in transform '#{transform}'; ignoring")
+      return matrix
+    end
+
+    calls.each do |name, arguments|
       case name
       when 'translate'
         x, y = arguments
@@ -63,7 +69,10 @@ module Prawn::SVG::TransformParser
       end
     end
 
-    matrix
+    return matrix if matrix.all?(&:finite?)
+
+    add_issue(:invalid, "transform '#{transform}' is too large; ignoring")
+    Matrix.identity(3)
   end
 
   private
@@ -71,7 +80,7 @@ module Prawn::SVG::TransformParser
   def parse_css_method_calls(string)
     string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|
       name, argument_string = call
-      arguments = argument_string.strip.split(/\s*[,\s]\s*/)
+      arguments = argument_string.strip.split(/\s*[,\s]\s*/).map { |argument| Prawn::SVG::Number.parse(argument) }
       [name, arguments]
     end
   end

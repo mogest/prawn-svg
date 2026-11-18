@@ -1,5 +1,4 @@
 module Prawn::SVG::AttributeValue
-  NUMBER_REGEXP = /\A[+-]?\d*\.?\d+(?:e[+-]?\d+)?\z/i.freeze
   PRESERVE_ASPECT_RATIO_REGEXP = /\A(?:defer\s+)?(?:none|x(?:Min|Mid|Max)Y(?:Min|Mid|Max))(?:\s+(?:meet|slice))?\z/.freeze
 
   # Whether prawn-svg can use the value for an attribute of the given type
@@ -26,7 +25,7 @@ module Prawn::SVG::AttributeValue
   end
 
   def self.number?(value)
-    value.match?(NUMBER_REGEXP)
+    !Prawn::SVG::Number.parse(value).nil?
   end
 
   def self.list(value)

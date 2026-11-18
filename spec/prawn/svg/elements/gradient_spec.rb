@@ -253,4 +253,153 @@ describe Prawn::SVG::Elements::Gradient do
       expect { Prawn::Document.new.svg(patterned, max_work: 500) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
     end
   end
+
+  describe 'stop properties' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <g color="red" stop-color="blue" stop-opacity="0.3">
+            <linearGradient id="flag" stop-opacity="0.5">
+              <stop offset="0" stop-color="currentColor"/>
+              <stop offset="0.5" stop-opacity="inherit"/>
+              <stop offset="1" stop-color="inherit"/>
+            </linearGradient>
+          </g>
+        </svg>
+      SVG
+    end
+
+    it 'uses their computed values, defaulting to black' do
+      expect(element.stops).to eq [
+        { offset: 0.0, color: 'ff0000', opacity: 1.0 },
+        { offset: 0.5, color: '000000', opacity: 0.5 },
+        { offset: 1.0, color: '000000', opacity: 1.0 }
+      ]
+    end
+  end
+
+  describe 'stops with lengths, and other children' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <style>* { stroke-dasharray: 2 }</style>
+          <radialGradient id="flag">
+            <stop offset="0" stroke-width="5"/>
+            <rect stroke-width="5"/>
+          </radialGradient>
+        </svg>
+      SVG
+    end
+
+    it 'processes the stops in the viewport' do
+      expect(element.stops.map { |stop| stop[:offset] }).to eq [0.0, 1]
+    end
+  end
+
+  describe 'userSpaceOnUse defaults' do
+    let(:svg) do
+      <<-SVG
+        <svg width="200" height="100">
+          <linearGradient id="flag" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="red"/></linearGradient>
+          <radialGradient id="radial" gradientUnits="userSpaceOnUse" cx="20" cy="30"><stop offset="0" stop-color="red"/></radialGradient>
+        </svg>
+      SVG
+    end
+    let(:shape) { double(bounding_box: [0, 100, 200, 0], stroke_width: 0) }
+
+    it 'runs a linear gradient from 0% 0% to 100% 0%' do
+      expect(element.gradient_arguments(shape)).to include(from: [0.0, 0.0], to: [200.0, 0.0])
+    end
+
+    it 'puts the focal point of a radial gradient at its centre' do
+      expect(document.gradients['radial'].gradient_arguments(shape)).to include(from: [20.0, 30.0], to: [20.0, 30.0])
+    end
+  end
+
+  describe 'degenerate gradients' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <linearGradient id="flag" x1="0.3" x2="0.3"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="blue" stop-opacity="0.5"/></linearGradient>
+          <radialGradient id="radial" r="0" href="#flag"/>
+          <radialGradient id="focal" fx="2" fy="0.5" href="#flag"/>
+          <linearGradient id="singular" gradientTransform="scale(0)" href="#flag"/>
+        </svg>
+      SVG
+    end
+    let(:shape) { double(bounding_box: [0, 100, 200, 0], stroke_width: 0) }
+    let(:last_stop_arguments) do
+      {
+        from:         [0.0, 0.0],
+        to:           [1.0, 0.0],
+        stops:        [{ offset: 0.0, color: '0000ff', opacity: 0.5 }, { offset: 1.0, color: '0000ff', opacity: 0.5 }],
+        bounding_box: [0, 100, 200, 0]
+      }
+    end
+
+    it 'paints a zero-length linear gradient with its last stop' do
+      expect(element.gradient_arguments(shape)).to eq last_stop_arguments
+    end
+
+    it 'paints a zero-radius radial gradient with its last stop' do
+      expect(document.gradients['radial'].gradient_arguments(shape)).to eq last_stop_arguments
+    end
+
+    it 'moves a focal point outside the circle to just inside it' do
+      expect(document.gradients['focal'].gradient_arguments(shape)[:from]).to eq [0.9995, 0.5]
+    end
+
+    it 'paints nothing when the gradient has no area' do
+      expect(document.gradients['singular'].gradient_arguments(shape)[:stops].map { |stop| stop[:opacity] }).to eq [0.0, 0.0]
+      expect(element.gradient_arguments(double(bounding_box: [0, 100, 200, 100], stroke_width: 0))[:stops].map { |stop| stop[:opacity] }).to eq [0.0, 0.0]
+    end
+  end
+
+  describe 'a gradient without valid stops' do
+    let(:svg) { '<svg><rect width="10" height="10" fill="url(#flag)"/><linearGradient id="flag"/></svg>' }
+
+    it 'is not used' do
+      expect(element).to be_nil
+      expect(document.warnings).to include 'gradient does not have any valid stops', 'Could not resolve fill URI to a gradient or pattern element'
+    end
+  end
+
+  describe 'an href to a pattern' do
+    let(:svg) do
+      <<-SVG
+        <svg>
+          <pattern id="p" width="5" height="5"><rect width="2" height="2"/></pattern>
+          <linearGradient id="flag" href="#p"/>
+          <pattern id="q" href="#flag" width="5" height="5"/>
+          <rect width="10" height="10" fill="url(#q)"/>
+        </svg>
+      SVG
+    end
+
+    it 'is ignored' do
+      expect(element).to be_nil
+      expect(document.warnings).to include 'gradient does not have any valid stops'
+    end
+  end
+
+  describe 'spreadMethod on degenerate gradients' do
+    let(:svg) { '<svg/>' }
+
+    stops = '<stop offset="0" stop-color="red"/><stop offset="1" stop-color="blue"/>'
+    {
+      'a tiny vector'                         => %(<linearGradient id="g" x2="1e-320" spreadMethod="reflect">#{stops}</linearGradient>),
+      'a huge vector'                         => %(<linearGradient id="g" x1="1e308%" spreadMethod="reflect">#{stops}</linearGradient>),
+      'a nearly singular transform'           => %(<linearGradient id="g" gradientTransform="matrix(1e-200 0 0 1e-200 0 0)" spreadMethod="repeat">#{stops}</linearGradient>),
+      'a focal circle larger than the circle' => %(<radialGradient id="g" fr="0.7" spreadMethod="reflect">#{stops}</radialGradient>),
+      'a focal point far from a huge centre'  => %(<radialGradient id="g" cx="1e308" fx="-1e308">#{stops}</radialGradient>),
+      'an overflowing transform'              => %(<linearGradient id="g" gradientTransform="scale(1e300)">#{stops}</linearGradient>),
+      'a huge centre'                         => %(<radialGradient id="g" cx="1e308" spreadMethod="reflect">#{stops}</radialGradient>)
+    }.each do |description, gradient|
+      it "pads #{description}" do
+        pdf = Prawn::Document.new(compress: false)
+        pdf.svg(%(<svg width="100" height="100">#{gradient}<rect width="10" height="3e38" fill="url(#g)"/></svg>))
+        expect(pdf.render).not_to match(/\b(?:NaN|Inf|null)\b/)
+      end
+    end
+  end
 end

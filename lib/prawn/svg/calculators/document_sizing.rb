@@ -62,7 +62,7 @@ module Prawn::SVG::Calculators
       return if invalid?
 
       # SVG 1.1 section 7.10
-      @viewport_diagonal = Math.sqrt((@viewport_width**2) + (@viewport_height**2)) / Math.sqrt(2)
+      @viewport_diagonal = Math.hypot(@viewport_width, @viewport_height) / Math.sqrt(2)
 
       if @requested_width
         scale = @requested_width / @output_width
@@ -83,10 +83,8 @@ module Prawn::SVG::Calculators
     end
 
     def invalid?
-      @viewport_width <= 0 ||
-        @viewport_height <= 0 ||
-        @output_width <= 0 ||
-        @output_height <= 0 ||
+      # Nested percentage sizes can compound beyond what's representable.
+      [@viewport_width, @viewport_height, @output_width, @output_height].any? { |size| size <= 0 || !size.finite? } ||
         (@requested_width && @requested_width <= 0) ||
         (@requested_height && @requested_height <= 0)
     end
@@ -108,7 +106,7 @@ module Prawn::SVG::Calculators
     def parse_view_box
       return unless @view_box && Prawn::SVG::AttributeValue.valid?(:view_box, @view_box)
 
-      @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP).map(&:to_f)
+      @view_box.strip.split(Prawn::SVG::Elements::COMMA_WSP_REGEXP).map { |value| Prawn::SVG::Number.parse(value) }
     end
   end
 end

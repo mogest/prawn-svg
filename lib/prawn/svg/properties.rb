@@ -247,7 +247,8 @@ module Prawn::SVG
       @font_stretch = resolve_font_stretch(parent_font_stretch)
       @font_weight = resolve_font_weight(parent_font_weight)
       @important_ids += other.important_ids
-      @numeric_font_size = calculate_numeric_font_size
+      # Relative font sizes can compound beyond what's representable.
+      @numeric_font_size = [calculate_numeric_font_size, Number::MAX].min
       nil
     end
 
@@ -354,13 +355,13 @@ module Prawn::SVG
           Length.parse(value, positive_only: true) || Percentage.parse(value, positive_only: true) || break
         end
       when :number
-        Float(value, exception: false)
+        Number.parse(value)
       when :length
         Length.parse(value)
       when :percentage
         Percentage.parse(value)
       when :positive_number
-        value = Float(value, exception: false)
+        value = Number.parse(value)
         value if value && value >= 1
       when :positive_length
         Length.parse(value, positive_only: true)
