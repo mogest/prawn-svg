@@ -532,8 +532,8 @@ describe Prawn::SVG::Elements::Text do
   describe '<tref> to a missing id' do
     let(:svg) { '<svg xmlns="http://www.w3.org/2000/svg"><text>a<tref href="#missing"/></text></svg>' }
 
-    it 'renders nothing for the tref' do
-      expect(prawn.svg(svg)[:warnings]).to be_empty
+    it 'renders nothing for the tref and reports an issue' do
+      expect(prawn.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, "tref tag references '#missing' which could not be resolved")]
     end
   end
 
@@ -556,6 +556,29 @@ describe Prawn::SVG::Elements::Text do
       prawn.svg(svg)
 
       expect(drawn.join).to eq 'abab'
+    end
+  end
+
+  describe '<tref> to a later element that is not a <text>' do
+    let(:svg) do
+      <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <text><tref href="#later"/></text>
+          <defs><g id="later">Hello<desc>d</desc></g></defs>
+        </svg>
+      SVG
+    end
+
+    it 'renders its character data' do
+      drawn = []
+      allow(prawn).to receive(:draw_text).and_wrap_original do |method, text, **opts|
+        drawn << text
+        method.call(text, **opts)
+      end
+
+      prawn.svg(svg)
+
+      expect(drawn.join).to eq 'Hello'
     end
   end
 

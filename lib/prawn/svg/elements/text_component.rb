@@ -187,20 +187,18 @@ module Prawn::SVG
 
     def text_children
       if name == 'tref'
-        reference = find_referenced_element
-        reference ? REXML::XPath.match(reference.source, './/text()[not(ancestor::title or ancestor::desc or ancestor::metadata)]') : []
+        reference = find_referenced_source
+        reference ? REXML::XPath.match(reference, './/text()[not(ancestor::title or ancestor::desc or ancestor::metadata)]') : []
       else
         source.children
       end
     end
 
-    def find_referenced_element
-      href = href_attribute
-
-      if href && href[0..0] == '#'
-        element = document.elements_by_id[href[1..]]
-        element if element&.name == 'text'
-      end
+    def find_referenced_source
+      href = href_attribute.to_s
+      source = document.find_raw_element_by_id(href[1..]) if href.start_with?('#')
+      add_issue(:invalid, "tref tag references '#{href}' which could not be resolved") unless source
+      source
     end
 
     def select_fonts
