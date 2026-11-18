@@ -92,7 +92,7 @@ class Prawn::SVG::FontMetrics
         rescue StandardError
           nil
         end
-        if ttf&.postscript && ttf.header
+        if ttf&.postscript && ttf&.header
           scale = size / ttf.header.units_per_em.to_f
           # ttfunk (as of 1.8.0) reads this signed value as unsigned
           top = [ttf.postscript.underline_position].pack('n').unpack1('s>') * scale
@@ -125,7 +125,7 @@ class Prawn::SVG::FontMetrics
         rescue StandardError
           nil
         end
-        if ttf&.os2 && ttf.header
+        if ttf&.os2 && ttf&.header
           units_per_em = ttf.header.units_per_em.to_f
           strikeout_pos = ttf.os2.y_strikeout_position.to_f
         end
