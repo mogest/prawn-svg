@@ -26,6 +26,7 @@ module Prawn::SVG::CSS
     def install_url_loader_on_css_parser(url_loader)
       issues = @issues
       remote_base_urls = @remote_base_urls
+      without_invalid_imports = method(:without_invalid_imports)
 
       css_parser.define_singleton_method(:load_uri!) do |uri, options = {}, _deprecated = nil|
         uri = Addressable::URI.parse(uri) unless uri.respond_to?(:scheme)
@@ -39,9 +40,11 @@ module Prawn::SVG::CSS
             return
           end
 
+          web = Prawn::SVG::UrlLoader.web_url?(import_url)
           src = url_loader.load(import_url)
+          src = without_invalid_imports.call(src, web ? import_url : options[:base_uri], "stylesheet from #{import_url}")
 
-          if Prawn::SVG::UrlLoader.web_url?(import_url)
+          if web
             existing = Set.new.compare_by_identity
             each_rule_set { |rule_set, _| existing << rule_set }
             add_block!(src, options.merge(base_uri: import_url))
@@ -53,8 +56,6 @@ module Prawn::SVG::CSS
           # Silently ignore circular @import references
         rescue Prawn::SVG::UrlLoader::Error => e
           issues << Prawn::SVG::Issue.new(:resource, "Failed to load @import CSS from #{import_url}: #{e.message}")
-        rescue Addressable::URI::InvalidURIError => e
-          issues << Prawn::SVG::Issue.new(:invalid, "stylesheet from #{import_url} has an invalid @import URL: #{e.message}")
         end
       end
     end
@@ -64,12 +65,26 @@ module Prawn::SVG::CSS
         data = source.texts.map(&:value).join
 
         if @has_url_loader
-          css_parser.add_block!(data, base_uri: '')
+          css_parser.add_block!(without_invalid_imports(data, '', 'stylesheet'), base_uri: '')
         else
           css_parser.add_block!(data)
         end
+      end
+    end
+
+    # css_parser raises if it can't resolve an @import URL, discarding the rest of the stylesheet, so remove those
+    # imports first, cleaning up and resolving them the same way it does.
+    def without_invalid_imports(css, base_uri, description)
+      css = css.encode('UTF-8', 'UTF-8', invalid: :replace, undef: :replace, replace: ' ')
+      css = css.gsub(CssParser::Parser::STRIP_CSS_COMMENTS_RX, '').gsub(CssParser::Parser::STRIP_HTML_COMMENTS_RX, '')
+      css.gsub(CssParser::Parser::RE_AT_IMPORT_RULE) do |rule|
+        path = Regexp.last_match(1).delete(%('")).strip
+        Addressable::URI.join(base_uri.to_s, path)
+        rule
       rescue Addressable::URI::InvalidURIError => e
-        issues << Prawn::SVG::Issue.new(:invalid, "stylesheet has an invalid @import URL: #{e.message}")
+        issues << Prawn::SVG::Issue.new(:invalid, "#{description} has an invalid @import URL: #{e.message}")
+        # Removing the rule entirely could join the text either side of it into a new @import rule.
+        ' '
       end
     end
 

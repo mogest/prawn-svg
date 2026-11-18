@@ -188,6 +188,52 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       ]
     end
 
+    it 'keeps the rest of a stylesheet that has an invalid @import URL' do
+      allow(url_loader).to receive(:load).with('external.css').and_return('@import url(":::"); circle { fill: blue; }')
+      svg = <<~SVG
+        <svg>
+          <style>@import url(":::"); @import url("external.css"); rect { fill: red; }</style>
+          <rect width="1" height="1"/>
+          <circle r="1"/>
+        </svg>
+      SVG
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      result = stylesheets.load
+
+      expect(result.values).to contain_exactly([['fill', 'red', false]], [['fill', 'blue', false]])
+      expect(stylesheets.issues.map(&:category)).to eq %i[invalid invalid]
+    end
+
+    it 'does not join the text around a removed @import into a new @import' do
+      svg = %(<svg><style>@im@import url(":::");port url(":::"); rect { fill: red; }</style><rect width="1" height="1"/></svg>)
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+
+      expect { stylesheets.load }.not_to raise_error
+      expect(stylesheets.issues.map(&:category)).to eq %i[invalid]
+    end
+
+    it 'checks @import URLs in a binary stylesheet as css_parser will read them' do
+      allow(url_loader).to receive(:load).with('e.css').and_return(%(@import url("//a:b\xFF:80"); circle { fill: blue; }).b)
+      svg = %(<svg><style>@import url("e.css");</style><circle r="1"/></svg>)
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+
+      expect { stylesheets.load }.not_to raise_error
+      expect(stylesheets.issues.map(&:category)).to eq %i[invalid]
+    end
+
+    it 'ignores @import rules in comments, and invalid UTF-8' do
+      allow(url_loader).to receive(:load).with('a.css').and_return(+"/* \xFF */ circle { fill: blue; }")
+      svg = %(<svg><style>/* @import url(":::"); */ /* @import :::*/ @import "a.css"; rect { fill: red; }</style><rect width="1" height="1"/></svg>)
+
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+
+      expect(stylesheets.load.values).to eq [[['fill', 'red', false]]]
+      expect(stylesheets.issues).to be_empty
+    end
+
     it 'loads @import with bare string syntax' do
       imported_css = 'circle { fill: green; }'
       allow(url_loader).to receive(:load).with('styles.css').and_return(imported_css)
