@@ -124,6 +124,7 @@ module Prawn
           raise ArgumentError, "Expected a Prawn::SVG::Elements::DirectRenderBase, got #{element.class}" unless element.is_a?(Prawn::SVG::Elements::DirectRenderBase)
 
           begin
+            use_registry_font_families
             element.render(prawn, self)
           rescue Prawn::SVG::Elements::Base::SkipElementQuietly
           rescue Prawn::SVG::Elements::Base::SkipElementError => e
@@ -229,15 +230,18 @@ module Prawn
       end
 
       def with_font_families
-        return yield unless document.font_registry
+        yield
+      ensure
+        prawn.font_families.replace(@saved_font_families) if @saved_font_families
+        @saved_font_families = nil
+      end
 
-        families = prawn.font_families.dup
-        begin
-          prawn.font_families.replace(document.font_registry.installed_fonts)
-          yield
-        ensure
-          prawn.font_families.replace(families)
-        end
+      # Only text needs the registry's fonts, and loading them scans the installed fonts, so wait until there is some.
+      def use_registry_font_families
+        return if @saved_font_families || document.font_registry.nil?
+
+        @saved_font_families = prawn.font_families.dup
+        prawn.font_families.replace(document.font_registry.installed_fonts)
       end
 
       # Prawn's soft_mask hardcodes BBox to page.dimensions, which causes

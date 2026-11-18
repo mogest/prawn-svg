@@ -61,6 +61,13 @@ describe Prawn::SVG::Interface do
         expect(pdf.font.name).to eq 'Helvetica'
       end
 
+      it 'does not load the installed fonts if there is no text' do
+        expect_any_instance_of(Prawn::SVG::FontRegistry).not_to receive(:installed_fonts)
+        expect(pdf.font_families).not_to receive(:replace)
+
+        pdf.svg('<svg width="100" height="100"><rect width="10" height="10"/></svg>')
+      end
+
       it 'renders text in installed fonts' do
         allow(Prawn::SVG::FontRegistry).to receive(:external_font_families).and_return('Installed' => { normal: ttf })
         rendered_fonts = []
