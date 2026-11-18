@@ -68,8 +68,6 @@ module Prawn::SVG
     end
 
     def render_component(prawn, renderer, cursor, translate_x = nil, accumulated_baseline_shift = 0)
-      raise SkipElementQuietly if computed_properties.display == 'none'
-
       add_yield_call do
         prawn.translate(translate_x, 0) if translate_x
 
@@ -166,7 +164,7 @@ module Prawn::SVG
     def build_child(child)
       component = Elements::TextComponent.new(document, child, [], state.dup, self)
       component.process
-      return [] unless component.children
+      return [] unless component.children && component.computed_properties.display != 'none'
 
       component
     end
@@ -174,7 +172,7 @@ module Prawn::SVG
     def build_text_path(child)
       component = Elements::TextPath.new(document, child, [], state.dup, self)
       component.process
-      return [] unless component.children
+      return [] unless component.children && component.computed_properties.display != 'none'
 
       component
     end

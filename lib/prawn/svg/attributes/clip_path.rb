@@ -21,8 +21,7 @@ module Prawn::SVG::Attributes::ClipPath
         # then elements are unioned. PDF's W* applies even-odd to the entire combined
         # path, which incorrectly creates holes between separate shapes. Only use W*
         # when there's a single child element, where self-intersection matters.
-        child_elements = clip_path_element.svg_child_elements
-        if child_elements.length == 1 && clip_path_element.computed_properties.clip_rule == 'evenodd'
+        if clip_path_element.drawn_child_count == 1 && clip_path_element.computed_properties.clip_rule == 'evenodd'
           add_call 'clip', clip_rule: :even_odd
         else
           add_call 'clip'

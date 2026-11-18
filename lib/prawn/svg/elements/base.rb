@@ -63,6 +63,8 @@ class Prawn::SVG::Elements::Base
 
     report_unsupported_children
     extract_attributes_and_properties
+    # An element whose conditions fail isn't rendered, but can still be referenced.
+    set_display_none unless passes_conditional_processing?(source)
     parse_and_apply
   end
 
@@ -174,6 +176,32 @@ class Prawn::SVG::Elements::Base
   # REXML's Element#elements re-parses an XPath on every call, so filter children directly.
   def svg_child_elements
     @svg_child_elements ||= source.children.select { |node| node.is_a?(REXML::Element) && svg_element?(node) }
+  end
+
+  def passes_conditional_processing?(element)
+    return true unless Prawn::SVG::Elements::CONDITIONAL_PROCESSING_ELEMENTS.include?(element.name)
+
+    passes_required_features?(element) &&
+      element.attributes['requiredExtensions'].nil? &&
+      passes_system_language?(element)
+  end
+
+  def passes_required_features?(element)
+    value = element.attributes['requiredFeatures']
+    return true if value.nil?
+
+    features = value.split
+    features.any? && features.all? { |feature| Prawn::SVG::Elements::SUPPORTED_FEATURES.include?(feature) }
+  end
+
+  def passes_system_language?(element)
+    value = element.attributes['systemLanguage']
+    return true if value.nil?
+
+    user_language = document.language.downcase
+    value.split(',').map { |lang| lang.strip.downcase }.any? do |lang|
+      user_language == lang || lang.start_with?("#{user_language}-")
+    end
   end
 
   # To be strict, we shouldn't treat namespace-less elements as SVG, but for backwards compatibility, and because it
@@ -300,16 +328,16 @@ class Prawn::SVG::Elements::Base
   def attribute_issue_category(attribute, value)
     elements = Prawn::SVG::Elements
     supported = elements::ATTRIBUTES[name.to_sym] or return
-    in_switch = source.parent&.name == 'switch'
 
     return if supported.include?(attribute) ||
               elements::GLOBAL_ATTRIBUTES.include?(attribute) ||
+              (elements::CONDITIONAL_PROCESSING_ATTRIBUTES.include?(attribute) &&
+                elements::CONDITIONAL_PROCESSING_ELEMENTS.include?(name)) ||
               elements::NO_EFFECT_ATTRIBUTES.include?(attribute) ||
               attribute.start_with?(*elements::NO_EFFECT_ATTRIBUTE_PREFIXES) ||
-              attribute.include?(':') ||
-              (in_switch && elements::CONDITIONAL_ATTRIBUTES.include?(attribute))
+              attribute.include?(':')
 
-    if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute) || elements::CONDITIONAL_ATTRIBUTES.include?(attribute)
+    if elements::UNSUPPORTED_ATTRIBUTES.fetch(name.to_sym, []).include?(attribute)
       :unsupported unless elements::UNSUPPORTED_ATTRIBUTE_DEFAULTS[attribute] == value.strip
     else
       :unknown

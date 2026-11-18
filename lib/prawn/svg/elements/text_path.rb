@@ -23,8 +23,6 @@ module Prawn::SVG
     end
 
     def render_component(prawn, renderer, _cursor, _translate_x = nil, accumulated_baseline_shift = 0)
-      raise SkipElementQuietly if computed_properties.display == 'none'
-
       add_yield_call do
         size = computed_properties.numeric_font_size
         y_offset = dominant_baseline_offset(prawn, size || prawn.font_size) || 0

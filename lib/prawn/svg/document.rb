@@ -95,6 +95,10 @@ class Prawn::SVG::Document
     root
   end
 
+  def language
+    @options[:language] || 'en'
+  end
+
   def find_raw_element_by_id(id)
     # Walk the tree rather than use XPath, as REXML sorts XPath results in time proportional to matches x siblings.
     @raw_elements_by_id ||= {}.tap do |index|

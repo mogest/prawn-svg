@@ -8,6 +8,16 @@ class Prawn::SVG::Elements::ClipPath < Prawn::SVG::Elements::Base
     true
   end
 
+  # process_child_elements wraps each child's calls in save and restore, so count the non-empty pairs.
+  def drawn_child_count
+    depth = 0
+    calls.each_cons(2).count do |(call, *), (next_call, *)|
+      depth += 1 if call == 'save'
+      depth -= 1 if call == 'restore'
+      call == 'save' && depth == 1 && next_call != 'restore'
+    end
+  end
+
   def build_clip_calls(element)
     units = attributes['clipPathUnits'] || 'userSpaceOnUse'
 

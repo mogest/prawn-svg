@@ -110,9 +110,17 @@ module Prawn::SVG::Elements
 
   GLOBAL_ATTRIBUTES = %w[id class style].freeze
 
+  CONDITIONAL_PROCESSING_ATTRIBUTES = %w[requiredFeatures requiredExtensions systemLanguage].freeze
+
+  # Elements that SVG 1.1 gives conditional processing attributes
+  CONDITIONAL_PROCESSING_ELEMENTS = %w[
+    a altGlyph circle clipPath defs ellipse foreignObject g image line mask path pattern polygon polyline rect svg switch
+    text textPath tref tspan use
+  ].freeze
+
   # Attributes that are valid but have no effect on a static rendering
   NO_EFFECT_ATTRIBUTES = %w[
-    version baseProfile lang role tabindex focusable autofocus nonce target requiredFeatures
+    version baseProfile lang role tabindex focusable autofocus nonce target
     contentScriptType contentStyleType zoomAndPan externalResourcesRequired
     crossorigin decoding rel download hreflang type referrerpolicy ping
   ].freeze
@@ -136,6 +144,33 @@ module Prawn::SVG::Elements
   # Default values of unsupported attributes, which leave a rendering unchanged
   UNSUPPORTED_ATTRIBUTE_DEFAULTS = { 'method' => 'align', 'spacing' => 'exact', 'side' => 'left' }.freeze
 
-  # Only evaluated by <switch>, on its children
-  CONDITIONAL_ATTRIBUTES = %w[systemLanguage requiredExtensions].freeze
+  FEATURE_PREFIX = 'http://www.w3.org/TR/SVG11/feature#'.freeze
+
+  SUPPORTED_FEATURES = Set.new(
+    %w[
+      SVG
+      SVG-static
+      CoreAttribute
+      Structure
+      BasicStructure
+      ConditionalProcessing
+      Image
+      Style
+      Shape
+      Text
+      BasicText
+      PaintAttribute
+      BasicPaintAttribute
+      OpacityAttribute
+      BasicGraphicsAttribute
+      Marker
+      Gradient
+      Pattern
+      Clip
+      BasicClip
+      Mask
+      Hyperlinking
+      XlinkAttribute
+    ].map { |name| "#{FEATURE_PREFIX}#{name}" }
+  ).freeze
 end

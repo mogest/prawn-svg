@@ -5,6 +5,8 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
   attr_reader :referenced_element_class, :referenced_element_source
 
   def parse
+    raise SkipElementQuietly if computed_properties.display == 'none'
+
     href = href_attribute
     raise SkipElementError, 'use tag must have an href or xlink:href' if href.nil?
     raise SkipElementError.new('use tags are nested too deeply, or reference themselves', :invalid) if state.use_depth >= MAX_DEPTH

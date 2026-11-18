@@ -86,7 +86,8 @@ prawn-svg supports almost all of the full SVG 1.1 specification:
    `preserveAspectRatio`, and `href` inheritance.  Patterns can be used for both fill and stroke.
    Nested patterns (a pattern whose content references another pattern) are not supported.
 
- - `<switch>` with conditional processing (`requiredFeatures`, `requiredExtensions`, `systemLanguage`).
+ - `<switch>`, and conditional processing (`requiredFeatures`, `requiredExtensions`, `systemLanguage`)
+   on the elements SVG 1.1 gives them to.
    `<foreignObject>` tags are ignored as prawn-svg cannot handle non-SVG data.
 
  - `<view>` element for defining named views.  Fragment identifiers (`#viewId` and `#svgView(...)`) on
