@@ -281,14 +281,20 @@ describe Prawn::SVG::Elements::Image do
       expect(result[:warnings]).to be_empty
     end
 
-    it 'checks each image once per render' do
+    it 'checks each image once per render, and only decodes it when drawing' do
       allow(Prawn::Images::PNG).to receive(:new).and_call_original
+      built = 0
+      allow_any_instance_of(Prawn::Images::PNG).to receive(:build_pdf_object).and_wrap_original do |method, *args|
+        built += 1
+        method.call(*args)
+      end
       image = '<image href="https://x.test/i" width="10" height="10"/>'
       svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image * 3}</svg>)
       Prawn::Document.new.svg(svg, web_requests: ->(_uri) { png(0) })
 
       # Once by prawn-svg, and once by Prawn when it draws the image.
       expect(Prawn::Images::PNG).to have_received(:new).twice
+      expect(built).to eq 1
     end
 
     ["\x89PNG\r\n\x1a\nrubbish".b, "\xFF\xD8\xFFrubbish".b, :interlaced_png, :huge_png, five_channel_jpeg].each do |data|

@@ -185,6 +185,16 @@ module Prawn
         when 'noop'
           yield
 
+        when 'svg:image'
+          begin
+            prawn.image(*arguments)
+          rescue StandardError
+            # Prawn's image parsers raise arbitrary errors on corrupt data, which may have come from anywhere.  Some
+            # are only found when the image is drawn, so they aren't checked when the <image> is parsed.
+            document.add_issue(:resource, Prawn::SVG::Elements::Image::UNPARSEABLE_IMAGE_MESSAGE)
+          end
+          yield
+
         when 'svg:render_sub_document'
           sub_document = arguments.first
           Renderer.new(prawn, sub_document, at: [0, 0]).draw

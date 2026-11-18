@@ -13,6 +13,8 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
 
   ImageData = Struct.new(:dimensions, :document)
 
+  UNPARSEABLE_IMAGE_MESSAGE = 'image tag references image data which could not be parsed'.freeze
+
   def parse
     require_attributes 'width', 'height'
 
@@ -65,7 +67,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     else
       options = { width: @width, height: @height, at: [@x, @y] }
 
-      add_call 'image', FakeIO.new(@image), options
+      add_call 'svg:image', FakeIO.new(@image), options
     end
 
     add_call 'restore' if @aspect.slice?
@@ -160,8 +162,6 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     @document.root_document.image_dimensions[data] ||= begin
       image = handler.new(data)
       raise_unparseable_image if image.is_a?(Prawn::Images::PNG) && truncated_png?(image)
-      # Some unsupported images only fail when they're drawn.
-      image.build_pdf_object(Prawn::Document.new)
       [image.width.to_f, image.height.to_f]
     end
   rescue StandardError
@@ -176,7 +176,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   end
 
   def raise_unparseable_image
-    raise SkipElementError.new('image tag references image data which could not be parsed', :resource)
+    raise SkipElementError.new(UNPARSEABLE_IMAGE_MESSAGE, :resource)
   end
 
   def find_image_handler(data)
