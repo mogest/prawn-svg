@@ -45,7 +45,7 @@ module Prawn
         document.work_budget.reset
         @renderer.draw
 
-        document.warnings.each { |w| warn w } if options[:log_issues] || options[:log_warnings]
+        document.warnings.each { |w| warn w } if options.fetch(:log_issues) { options[:log_warnings] }
         raise_on_issues
       end
 

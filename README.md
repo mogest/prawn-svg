@@ -29,11 +29,11 @@ Option      | Data type | Description
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :web_requests | boolean, callable | If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  Defaults to false, which denies all web requests.
 :file_requests | false, string, Pathname, callable | If a directory path, prawn-svg will read `file:` URLs and relative paths for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references from under that directory.  Can also be a callable; see [File requests](#file-requests).  Not available to SVGs loaded by `<image>`, or to content fetched from the web.  Defaults to false, which denies all file requests.
-:cache_requests | boolean | If true, prawn-svg will cache the result of all URL requests (images, fonts, stylesheets and external `<use>` references).  Web requests are always made at most once per render.  `:cache_images` is accepted as an alias.  Defaults to false.
+:cache_requests | boolean | If true, prawn-svg will cache the result of all URL requests (images, fonts, stylesheets and external `<use>` references).  Web requests are always made at most once per render.  Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
-:log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  `:log_warnings` is accepted as an alias.  Defaults to false.
+:log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  Defaults to false.
 :raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See [Issues](#issues).  Defaults to false.
 :max_work | integer, false | Limits how much work rendering may take, so that a small hostile SVG can't use excessive time or memory.  If exceeded, `Prawn::SVG::Document::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers, patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a higher value.  `false` turns the limit off.  Defaults to 1,000,000.
 
@@ -225,6 +225,19 @@ to the font path:
 ### Using with prawn-rails
 
 In your Gemfile, put `gem 'prawn-svg'` before `gem 'prawn-rails'` so that prawn-rails can see the prawn-svg extension.
+
+### Deprecated options
+
+These are still accepted from earlier versions.  If both a deprecated option and its replacement are given, the
+replacement wins.
+
+Deprecated | Replacement
+---------- | -----------
+`:enable_web_requests` | `:web_requests`.  Note that web requests are now off by default.
+`:enable_file_requests_with_root` | `:file_requests`
+`:cache_images` | `:cache_requests`
+`:log_warnings` | `:log_issues`
+`result[:warnings]` | `result[:issues]`, whose `message`s are the same strings
 
 ## Licence
 

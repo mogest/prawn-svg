@@ -118,6 +118,14 @@ describe Prawn::SVG::Interface do
       end
     end
 
+    context 'when log_issues is false and log_warnings is true' do
+      let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, log_issues: false, log_warnings: true) }
+
+      it 'outputs nothing' do
+        expect { interface.draw }.not_to output.to_stderr
+      end
+    end
+
     describe 'raise_on_issue' do
       let(:interface) { Prawn::SVG::Interface.new('<svg width="-1"></svg>', prawn, raise_on_issue: raise_on_issue) }
 
