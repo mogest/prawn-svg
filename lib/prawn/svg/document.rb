@@ -26,8 +26,9 @@ class Prawn::SVG::Document
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     begin
+      data = data.encode(Encoding::UTF_8) if data.is_a?(String) && data.encoding.name.start_with?('UTF-16', 'UTF-32')
       @root = self.class.parse_root(data) or raise_parse_error(data)
-    rescue RuntimeError => e
+    rescue RuntimeError, EncodingError => e
       raise_parse_error(data, e.message)
     end
 
@@ -256,7 +257,7 @@ class Prawn::SVG::Document
   def raise_parse_error(data, exception_message = nil)
     message = 'The data supplied is not a valid SVG document.'
 
-    if data.respond_to?(:end_with?) && data.end_with?('.svg')
+    if data.is_a?(String) && data.b.end_with?('.svg')
       message += "  It looks like you've supplied a filename instead; use File.read(filename) to get the data from the file before you pass it to prawn-svg."
     end
 

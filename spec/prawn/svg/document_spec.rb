@@ -165,6 +165,30 @@ describe Prawn::SVG::Document do
       end
     end
 
+    context 'when the data is a UTF-16 string without a byte order mark' do
+      let(:svg) { '<svg width="5" height="5"></svg>'.encode('UTF-16BE') }
+
+      it 'parses it' do
+        expect(Prawn::SVG::Document.new(svg, bounds, options).sizing.output_width).to eq 5
+      end
+    end
+
+    context 'when the data is invalid UTF-16' do
+      let(:svg) { (+"\xD8\x00").force_encoding('UTF-16BE') }
+
+      it 'raises an exception' do
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData
+      end
+    end
+
+    context 'when binary data with a UTF-16 byte order mark is provided' do
+      let(:svg) { (+"\xFF\xFE").b }
+
+      it 'raises an exception' do
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData
+      end
+    end
+
     context 'with @font-face rules' do
       let(:sample_ttf_dir) { File.expand_path('../../sample_ttf', __dir__) }
       let(:font_filename) { 'OpenSans-SemiboldItalic.ttf' }
