@@ -123,6 +123,8 @@ class Prawn::SVG::Document
   end
 
   def add_issue(category, message)
+    return root_document.add_issue(category, message) unless root_document.equal?(self)
+
     issue = Prawn::SVG::Issue.new(category, message)
     issues << issue if @issue_set.add?(issue)
   end

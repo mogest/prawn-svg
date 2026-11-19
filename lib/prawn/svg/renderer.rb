@@ -196,7 +196,6 @@ module Prawn
         when 'svg:render_sub_document'
           sub_document, sub_calls = arguments
           Renderer.new(prawn, sub_document, at: [0, 0]).draw(sub_calls)
-          sub_document.issues.each { |issue| document.add_issue(issue.category, issue.message) }
           yield
 
         when 'soft_mask'

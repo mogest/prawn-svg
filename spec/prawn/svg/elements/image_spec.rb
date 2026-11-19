@@ -239,6 +239,13 @@ describe Prawn::SVG::Elements::Image do
 
       expect(result[:warnings]).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
     end
+
+    it 'reports issues from the nested document when parsed, whether or not it is drawn' do
+      document = Prawn::SVG::Document.new(svg, [800, 600], options, font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
+      Prawn::SVG::Elements::Root.new(document, document.root, []).process
+
+      expect(document.warnings).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
+    end
   end
 
   describe 'nested SVG font definitions' do
