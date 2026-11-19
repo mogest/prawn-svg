@@ -21,7 +21,7 @@ module Prawn
       # See README.md for the options that can be passed to this method.
       #
       def initialize(data, prawn, options, &block)
-        Prawn.verify_options VALID_OPTIONS, options
+        verify_options(options)
         verify_raise_on_issue(options[:raise_on_issue])
 
         @data = data
@@ -67,6 +67,11 @@ module Prawn
       end
 
       private
+
+      def verify_options(options)
+        unknown = options.keys - VALID_OPTIONS
+        raise ArgumentError, "Unknown options: #{unknown.map(&:inspect).join(', ')}" if unknown.any?
+      end
 
       def verify_raise_on_issue(categories)
         return if [true, false].include?(categories)

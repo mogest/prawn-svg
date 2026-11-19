@@ -18,7 +18,7 @@ end
 ```
 
 prawn-svg will do something sensible if you call it with only an SVG document, but you can also
-pass the following options to tailor its operation:
+pass the following options to tailor its operation.  Unknown options raise `ArgumentError`.
 
 Option      | Data type | Description
 ----------- | --------- | -----------

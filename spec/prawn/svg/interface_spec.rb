@@ -7,12 +7,10 @@ describe Prawn::SVG::Interface do
 
   describe '#initialize' do
     describe 'invalid option detection' do
-      it 'rejects invalid options when debug is on' do
-        allow(Prawn).to receive(:debug).and_return(true)
-
+      it 'rejects unknown options' do
         expect do
-          Prawn::SVG::Interface.new(svg, prawn, invalid: 'option')
-        end.to raise_error(Prawn::Errors::UnknownOption)
+          Prawn::SVG::Interface.new(svg, prawn, invalid: 'option', at: [0, 0])
+        end.to raise_error(ArgumentError, 'Unknown options: :invalid')
       end
 
       it 'accepts a single raise_on_issue category' do
@@ -25,10 +23,6 @@ describe Prawn::SVG::Interface do
         expect do
           Prawn::SVG::Interface.new(svg, prawn, raise_on_issue: [:unsuported])
         end.to raise_error(ArgumentError, /unsuported/)
-      end
-
-      it 'does nothing if an invalid option is given and debug is off' do
-        Prawn::SVG::Interface.new(svg, prawn, invalid: 'option')
       end
     end
   end
