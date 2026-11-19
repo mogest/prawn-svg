@@ -258,6 +258,16 @@ describe Prawn::SVG::Interface do
         expect { Prawn::Document.new.svg(svg, max_work: 50_000) }.not_to raise_error
         expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
       end
+
+      it 'charges for matching CSS selectors against elements' do
+        rects = '<rect width="1" height="1"/>' * 1000
+        style = %(<style>#{(1..500).map { |n| "g.c#{n} rect" }.join(',')} { fill: red; }</style>)
+
+        expect { Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{rects}</svg>), max_work: 20_000) }.not_to raise_error
+        expect do
+          Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{style}#{rects}</svg>), max_work: 20_000)
+        end.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      end
     end
 
     context 'when log_warnings is not set' do

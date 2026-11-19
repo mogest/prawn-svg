@@ -2,14 +2,14 @@ module Prawn::SVG::CSS
   class Stylesheets
     attr_reader :css_parser, :root, :media, :font_face_rules, :issues
 
-    def initialize(css_parser, root, media = :all, url_loader: nil)
+    def initialize(css_parser, root, media = :all, url_loader: nil, record_work: nil)
       @css_parser = css_parser
+      @record_work = record_work
       @root = root
       @media = media
       @font_face_rules = []
       @issues = []
       @remote_base_urls = {}.compare_by_identity
-      @xpath_variables = {}
 
       @has_url_loader = !url_loader.nil?
       install_url_loader_on_css_parser(url_loader) if url_loader
@@ -17,8 +17,7 @@ module Prawn::SVG::CSS
 
     def load
       load_style_elements
-      xpath_styles = gather_xpath_styles
-      associate_xpath_styles_with_elements(xpath_styles)
+      associate_styles_with_elements(gather_styles)
     end
 
     private
@@ -88,8 +87,8 @@ module Prawn::SVG::CSS
       end
     end
 
-    def gather_xpath_styles
-      xpath_styles = []
+    def gather_styles
+      styles = []
       order = 0
 
       css_parser.each_rule_set(media) do |rule_set, _|
@@ -101,163 +100,39 @@ module Prawn::SVG::CSS
             @font_face_rules << [declarations, @remote_base_urls[rule_set]]
             next
           end
+          next if selector_text.lstrip.start_with?('@')
 
-          next unless (selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text))
+          unless (selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text))
+            issues << Prawn::SVG::Issue.new(:unsupported, "CSS selector '#{selector_text}' could not be parsed")
+            next
+          end
 
-          xpath = css_selector_to_xpath(selector)
           specificity = calculate_specificity(selector)
           specificity << order
           order += 1
 
-          xpath_styles << [selector_text, xpath, declarations, specificity]
+          styles << [selector, declarations, specificity]
         end
       end
 
-      xpath_styles.sort_by(&:last)
+      styles.sort_by(&:last)
     end
 
-    def associate_xpath_styles_with_elements(xpath_styles)
-      element_styles = {}
+    def associate_styles_with_elements(styles)
+      return {} if styles.empty?
 
-      xpath_styles.each do |selector_text, xpath, declarations, _|
-        REXML::XPath.match(root, xpath, nil, @xpath_variables).each do |element|
+      matcher = Prawn::SVG::CSS::SelectorMatcher.new(root)
+      @record_work&.call(matcher.size * styles.sum { |selector, _| simple_selector_count(selector) } / 25)
+
+      styles.each_with_object({}) do |(selector, declarations, _), element_styles|
+        matcher.match(selector).each do |element|
           (element_styles[element] ||= []).concat declarations
         end
-      rescue REXML::ParseException
-        issues << Prawn::SVG::Issue.new(:invalid, "CSS selector '#{selector_text}' could not be parsed")
       end
-
-      element_styles
     end
 
-    # REXML's XPath parser can't handle some characters, such as '[', in string literals.
-    def xpath_variable(value)
-      name = "v#{@xpath_variables.length}"
-      @xpath_variables[name] = value
-      "$#{name}"
-    end
-
-    RECOGNIZED_PSEUDO_CLASSES = %w[first-child last-child link visited hover active focus].freeze
-
-    def css_selector_to_xpath(selector)
-      selector.map do |element|
-        pseudo_classes = Set.new(element[:pseudo_class])
-        require_function_name = false
-        never_match = false
-
-        result = case element[:combinator]
-                 when :child
-                   +'/'
-                 when :adjacent
-                   pseudo_classes << 'first-child'
-                   +'/following-sibling::'
-                 when :siblings
-                   +'/following-sibling::'
-                 else
-                   +'//'
-                 end
-
-        positions = []
-        lang_predicates = []
-        href_predicates = []
-        pseudo_classes.each do |pc|
-          case pc
-          when 'first-child' then positions << '1'
-          when 'last-child'  then positions << 'last()'
-          when /^nth-child\((.+)\)$/ then positions << parse_nth_child_expression($1)
-          when /^lang\((.+)\)$/ then lang_predicates << $1
-          when 'link' then href_predicates << true
-          when 'visited', 'hover', 'active', 'focus' then never_match = true
-          else
-            never_match = true unless RECOGNIZED_PSEUDO_CLASSES.include?(pc)
-          end
-        end
-
-        unless positions.empty?
-          result << '*' unless require_function_name
-          require_function_name = true
-
-          logic = if positions.length == 1
-                    positions.first
-                  else
-                    positions.map { |position| "position()=#{position}" }.join(' and ')
-                  end
-
-          result << "[#{logic}]"
-        end
-
-        if require_function_name
-          result << "[name()=#{xpath_variable element[:name]}]" if element[:name]
-        else
-          result << (element[:name] || '*')
-        end
-
-        result << ((element[:class] || []).map { |name| "[contains(concat(' ',@class,' '), #{xpath_variable " #{name} "})]" }.join)
-        result << ((element[:id] || []).map { |name| "[@id=#{xpath_variable name}]" }.join)
-
-        (element[:attribute] || []).each do |key, operator, value|
-          case operator
-          when nil
-            result << "[@#{key}]"
-          when '='
-            result << "[@#{key}=#{xpath_variable value}]"
-          when '^='
-            result << "[starts-with(@#{key}, #{xpath_variable value})]"
-          when '$='
-            result << "[substring(@#{key}, string-length(@#{key}) - #{value.length - 1}) = #{xpath_variable value}]"
-          when '*='
-            result << "[contains(@#{key}, #{xpath_variable value})]"
-          when '~='
-            result << "[contains(concat(' ',@#{key},' '), #{xpath_variable " #{value} "})]"
-          when '|='
-            result << "[contains(concat('-',@#{key},'-'), #{xpath_variable "-#{value}-"})]"
-          end
-        end
-
-        lang_predicates.each do |lang|
-          result << "[lang(#{xpath_variable lang})]"
-        end
-
-        result << '[@href or @xlink:href]' unless href_predicates.empty?
-
-        result << '[false()]' if never_match
-
-        result
-      end.join
-    end
-
-    def parse_nth_child_expression(expr)
-      expr = expr.strip
-
-      return '(position() mod 2 = 1)' if expr == 'odd'
-      return '(position() mod 2 = 0)' if expr == 'even'
-      return expr if expr.match?(/\A\d+\z/)
-
-      match = expr.match(/\A(-?\d*)n\s*([+-]\s*\d+)?\z/)
-      return 'false()' unless match
-
-      a = case match[1]
-          when '', '+' then 1
-          when '-' then -1
-          else match[1].to_i
-          end
-      b = match[2] ? match[2].gsub(/\s/, '').to_i : 0
-
-      if a.zero?
-        b.to_s
-      elsif a.positive?
-        if b <= 0
-          "(position() mod #{a} = #{b % a} and position() >= #{[b, 1].max})"
-        else
-          "(position() mod #{a} = #{b % a} and position() >= #{b})"
-        end
-      elsif b <= 0
-        # a is negative: matches positions b, b+a, b+2a, ... while > 0
-        # i.e. position() <= b and (position() - b) mod |a| = 0
-        'false()'
-      else
-        "((position() - #{b}) mod #{a.abs} = 0 and position() >= 1 and position() <= #{b})"
-      end
+    def simple_selector_count(selector)
+      selector.sum { |compound| 1 + compound.except(:combinator, :name).values.sum(&:length) }
     end
 
     def calculate_specificity(selector)

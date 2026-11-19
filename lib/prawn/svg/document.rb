@@ -56,7 +56,7 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader)
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, record_work: method(:record_work))
     @element_styles = stylesheets.load
     stylesheets.issues.each { |issue| add_issue(issue.category, issue.message) }
     process_font_face_rules(stylesheets.font_face_rules)
@@ -65,7 +65,8 @@ class Prawn::SVG::Document
   end
 
   # Bounds the time and memory a render can take, so small hostile input can't run away with either.  A unit is
-  # roughly an element, a drawing call recorded or copied, a character of text or a few hundred bytes of loaded data.
+  # roughly an element, a drawing call recorded or copied, a character of text, a few hundred bytes of loaded data or
+  # 25 elements checked against a simple CSS selector.
   # The budget is shared by the whole render, including nested documents.
   def record_work(units)
     return root_document.record_work(units) unless root_document.equal?(self)

@@ -53,12 +53,13 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         <square width="13" abc="aghidefjkl" />
         <square width="14" abc="agmnohidefjklx" />
         <square width="15" abc="aeo cnj pqr" />
-        <square width="16" abc="eij-stu-asd" />
+        <square width="16" abc="stu-asd" />
+        <square width="17" abc="eij-stu-asd" />
       </svg>
     SVG
 
     it 'associates styles with elements' do
-      result = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root).load
       width_and_styles = result.map { |k, v| [k.attributes['width'].to_i, v] }.sort_by(&:first)
 
       expected = [
@@ -112,7 +113,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
 
     it 'extracts @font-face rules separately from element styles' do
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg))
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root)
       element_styles = stylesheets.load
 
       expect(stylesheets.font_face_rules.length).to eq(1)
@@ -140,7 +141,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         </svg>
       SVG
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg_with_two))
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg_with_two).root)
       stylesheets.load
 
       expect(stylesheets.font_face_rules.length).to eq(2)
@@ -165,7 +166,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg),
+        CssParser::Parser.new, REXML::Document.new(svg).root,
         url_loader: url_loader
       )
       result = stylesheets.load
@@ -179,7 +180,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       allow(url_loader).to receive(:load).with('external.css').and_return('@import url("http://x:-1/");')
       svg = '<svg><style>@import url("external.css");</style><style>@import url(":");</style></svg>'
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root, url_loader: url_loader)
       stylesheets.load
 
       expect(stylesheets.issues.map(&:message)).to eq [
@@ -198,7 +199,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         </svg>
       SVG
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root, url_loader: url_loader)
       result = stylesheets.load
 
       expect(result.values).to contain_exactly([['fill', 'red', false]], [['fill', 'blue', false]])
@@ -208,7 +209,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     it 'does not join the text around a removed @import into a new @import' do
       svg = %(<svg><style>@im@import url(":::");port url(":::"); rect { fill: red; }</style><rect width="1" height="1"/></svg>)
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root, url_loader: url_loader)
 
       expect { stylesheets.load }.not_to raise_error
       expect(stylesheets.issues.map(&:category)).to eq %i[invalid]
@@ -218,7 +219,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       allow(url_loader).to receive(:load).with('e.css').and_return(%(@import url("//a:b\xFF:80"); circle { fill: blue; }).b)
       svg = %(<svg><style>@import url("e.css");</style><circle r="1"/></svg>)
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root, url_loader: url_loader)
 
       expect { stylesheets.load }.not_to raise_error
       expect(stylesheets.issues.map(&:category)).to eq %i[invalid]
@@ -228,7 +229,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       allow(url_loader).to receive(:load).with('a.css').and_return(+"/* \xFF */ circle { fill: blue; }")
       svg = %(<svg><style>/* @import url(":::"); */ /* @import :::*/ @import "a.css"; rect { fill: red; }</style><rect width="1" height="1"/></svg>)
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg), url_loader: url_loader)
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(CssParser::Parser.new, REXML::Document.new(svg).root, url_loader: url_loader)
 
       expect(stylesheets.load.values).to eq [[['fill', 'red', false]]]
       expect(stylesheets.issues).to be_empty
@@ -250,7 +251,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg),
+        CssParser::Parser.new, REXML::Document.new(svg).root,
         url_loader: url_loader
       )
       result = stylesheets.load
@@ -271,7 +272,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg),
+        CssParser::Parser.new, REXML::Document.new(svg).root,
         url_loader: url_loader
       )
       result = stylesheets.load
@@ -293,7 +294,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg),
+        CssParser::Parser.new, REXML::Document.new(svg).root,
         url_loader: url_loader
       )
       result = stylesheets.load
@@ -317,7 +318,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg),
+        CssParser::Parser.new, REXML::Document.new(svg).root,
         url_loader: url_loader
       )
       result = stylesheets.load
@@ -339,7 +340,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       SVG
 
       stylesheets = Prawn::SVG::CSS::Stylesheets.new(
-        CssParser::Parser.new, REXML::Document.new(svg)
+        CssParser::Parser.new, REXML::Document.new(svg).root
       )
       result = stylesheets.load
 
@@ -362,7 +363,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!('rect:lang(en) { fill: red; } rect:lang(fr) { fill: blue; }')
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       width_and_styles = result.map { |k, v| [k.attributes['width'].to_i, v] }.sort_by(&:first)
 
       expect(width_and_styles).to eq([
@@ -381,7 +382,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!('rect:lang(en) { fill: red; }')
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       styles = result.values.first
 
       expect(styles).to eq([['fill', 'red', false]])
@@ -399,7 +400,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!('rect:lang(en) { fill: red; }')
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       styles = result.values.first
 
       expect(styles).to eq([['fill', 'red', false]])
@@ -419,7 +420,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!('a:link { fill: red; }')
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       matched = result.map { |k, _| k.name }.sort
 
       expect(matched).to eq(%w[a a])
@@ -439,7 +440,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
         css_parser = CssParser::Parser.new
         css_parser.add_block!("a:#{pc} { fill: red; }")
 
-        result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+        result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
         expect(result).to be_empty
       end
     end
@@ -457,7 +458,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!('rect:bogus { fill: red; }')
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       expect(result).to be_empty
     end
   end
@@ -477,7 +478,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!(%(rect[a='x"y'], rect[a="x'y"], rect[a="x'\\"y"], rect[a="x\\\\y"], rect:lang(") { fill: red; }))
 
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       expect(result.keys.map { |element| element.attributes['width'] }).to eq %w[1 2 3 4 5]
     end
   end
@@ -495,7 +496,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       css_parser = CssParser::Parser.new
       css_parser.add_block!(%(rect[a="["], rect[a="x]"], rect:lang([']) { fill: red; }))
 
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg))
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root)
       result = stylesheets.load
       expect(result.keys.map { |element| element.attributes['width'] }).to eq %w[1 2 3]
       expect(stylesheets.issues).to be_empty
@@ -521,7 +522,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     def matched_widths(css_rule)
       css_parser = CssParser::Parser.new
       css_parser.add_block!(css_rule)
-      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      result = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
       result.map { |k, _| k.attributes['width'].to_i }.sort
     end
 
@@ -562,6 +563,62 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
   end
 
+  describe 'combinators' do
+    def matched_widths(svg, css)
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!(css)
+      Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load.keys.map { |element| element.attributes['width'].to_i }
+    end
+
+    it 'applies pseudo-classes to an element\'s position among all its siblings' do
+      svg = '<svg><circle/><rect width="1"/><rect width="2"/><rect width="3"/></svg>'
+
+      expect(matched_widths(svg, 'rect + rect:nth-child(3) { fill: red; }')).to eq [2]
+      expect(matched_widths(svg, 'circle ~ rect:last-child { fill: red; }')).to eq [3]
+    end
+
+    it 'matches deeply nested descendants in linear time' do
+      svg = %(<svg>#{'<g>' * 50}<rect width="1"/>#{'</g>' * 50}</svg>)
+
+      expect(matched_widths(svg, 'g g g g g g g g g g rect { fill: red; }')).to eq [1]
+      expect(matched_widths(svg, 'g > g g > g g rect, svg > rect { fill: red; }')).to eq [1]
+    end
+
+    it 'matches :lang() in deeply nested documents in linear time' do
+      svg = %(<svg xml:lang="en-NZ">#{'<g>' * 150}#{'<rect width="1"/>' * 1000}#{'</g>' * 150}</svg>)
+
+      expect(matched_widths(svg, "rect#{':lang(EN)' * 50} { fill: red; }").length).to eq 1000
+    end
+
+    it 'matches attributes by namespace' do
+      svg = <<~SVG
+        <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:s="http://www.w3.org/2000/svg" xmlns:f="urn:f">
+          <rect width="1" xlink:href="#a"/>
+          <rect width="2" f:class="a"/>
+          <s:rect width="3" class="a" f:class="b"/>
+        </svg>
+      SVG
+
+      expect(matched_widths(svg, '[href], .a { fill: red; }')).to eq [3]
+    end
+
+    it 'ignores the case of :nth-child() keywords' do
+      expect(matched_widths('<svg><rect width="1"/><rect width="2"/></svg>', 'rect:nth-child(EVEN) { fill: red; }')).to eq [2]
+    end
+  end
+
+  describe 'selectors that cannot be matched' do
+    it 'reports selectors it cannot parse and silently ignores at-rules' do
+      css_parser = CssParser::Parser.new
+      css_parser.add_block!('5 { fill: red; } rect > { fill: red; } . { fill: red; } @keyframes spin { from { opacity: 0; } }')
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new('<svg><rect/></svg>').root)
+
+      expect(stylesheets.load).to be_empty
+      expect(stylesheets.issues.map(&:message)).to eq ["CSS selector '5' could not be parsed", "CSS selector 'rect >' could not be parsed", "CSS selector '.' could not be parsed"]
+      expect(stylesheets.issues.map(&:category).uniq).to eq [:unsupported]
+    end
+  end
+
   describe 'style tag parsing' do
     let(:svg) do
       <<~SVG
@@ -592,7 +649,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       expect(css_parser).to receive(:add_block!).with('hello')
       allow(css_parser).to receive(:each_rule_set)
 
-      Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg)).load
+      Prawn::SVG::CSS::Stylesheets.new(css_parser, REXML::Document.new(svg).root).load
     end
   end
 end

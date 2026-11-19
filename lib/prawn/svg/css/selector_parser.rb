@@ -25,7 +25,7 @@ module Prawn::SVG::CSS
         end
       end
 
-      result
+      result unless result.any? { |compound| (parts = compound.except(:combinator)).empty? || parts.values.any?(&:empty?) }
     end
 
     VALID_CSS_IDENTIFIER_CHAR = /[a-zA-Z0-9_\u00a0-\uffff-]/.freeze
@@ -129,6 +129,8 @@ module Prawn::SVG::CSS
           when Identifier
             result.last.name << char
           else
+            return if char.match?(/\d/) # identifiers can't start with a digit
+
             result << Modifier.new(:name) unless result.last.is_a?(Modifier)
             result << Identifier.new(char)
           end
