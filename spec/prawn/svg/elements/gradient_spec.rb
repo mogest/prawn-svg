@@ -278,6 +278,25 @@ describe Prawn::SVG::Elements::Gradient do
     end
   end
 
+  describe 'a gradient referenced before it is defined' do
+    let(:svg) do
+      <<-SVG
+        <svg color="blue">
+          <style>g { color: red }</style>
+          <rect width="10" height="10" fill="url(#flag)"/>
+          <g>
+            <linearGradient id="flag"><stop offset="0" stop-color="currentColor"/></linearGradient>
+          </g>
+          <linearGradient id="flag"><stop offset="0" stop-color="green"/></linearGradient>
+        </svg>
+      SVG
+    end
+
+    it "inherits properties from the gradient's ancestors, and is the first gradient with its id" do
+      expect(element.stops.first).to eq(offset: 0.0, color: 'ff0000', opacity: 1.0)
+    end
+  end
+
   describe 'stops with lengths, and other children' do
     let(:svg) do
       <<-SVG

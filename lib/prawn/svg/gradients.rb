@@ -4,6 +4,7 @@ module Prawn::SVG
       @document = document
       @gradients_by_id = {}
       @resolving = Set.new
+      @ancestor_states = {}.compare_by_identity
     end
 
     def [](id)
@@ -13,13 +14,29 @@ module Prawn::SVG
       @gradients_by_id[id] || resolve(id)
     end
 
+    # The first definition of an id wins, including one resolved early because it was referenced before it was defined.
     def []=(id, gradient)
-      @gradients_by_id[id] = gradient
+      @gradients_by_id[id] ||= gradient
     end
 
     private
 
     PAINT_SERVER_CLASSES = [Elements::Gradient, Elements::Pattern].freeze
+
+    class AncestorProperties < Elements::Base
+      def process
+        extract_attributes_and_properties
+      end
+
+      protected
+
+      def add_to_elements_by_id?
+        false
+      end
+
+      # Issues are reported when the element itself is processed.
+      def add_source_issue(*); end
+    end
 
     def resolve(id)
       unless @resolving.add?(id)
@@ -44,7 +61,15 @@ module Prawn::SVG
 
     def create_gradient_element(raw_element)
       element_class = Elements::TAG_CLASS_MAPPING[raw_element.name.to_sym]
-      element_class.new(@document, raw_element, [], new_state).process
+      element_class.new(@document, raw_element, [], state_inside(raw_element.parent).dup).process
+    end
+
+    def state_inside(node)
+      return new_state unless node.is_a?(REXML::Element)
+
+      @ancestor_states[node] ||= state_inside(node.parent).dup.tap do |state|
+        AncestorProperties.new(@document, node, [], state).process
+      end
     end
 
     def gradient_element?(raw_element)
