@@ -61,6 +61,19 @@ describe Prawn::SVG::Document do
       end
     end
 
+    describe 'request caching' do
+      def cache_enabled_with(options)
+        Prawn::SVG::Document.new('<svg></svg>', bounds, options).url_loader.enable_cache
+      end
+
+      it 'is enabled by cache_requests, or the legacy cache_images option' do
+        expect(cache_enabled_with({})).to be_falsey
+        expect(cache_enabled_with(cache_requests: true)).to be true
+        expect(cache_enabled_with(cache_images: true)).to be true
+        expect(cache_enabled_with(cache_requests: false, cache_images: true)).to be false
+      end
+    end
+
     describe '#replicate' do
       let(:web_requests) { ->(_uri) { 'data' } }
       let(:font_registry) { Prawn::SVG::FontRegistry.new({}) }

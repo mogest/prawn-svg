@@ -6,7 +6,7 @@ module Prawn
   module SVG
     class Interface
       VALID_OPTIONS = %i[
-        at position vposition width height cache_images web_requests enable_web_requests
+        at position vposition width height cache_requests cache_images web_requests enable_web_requests
         enable_file_requests_with_root fallback_font_name color_mode language
         log_issues log_warnings raise_on_issue max_work
       ].freeze

@@ -50,7 +50,7 @@ class Prawn::SVG::Document
     @color_mode = load_color_mode
 
     @url_loader = Prawn::SVG::UrlLoader.new(
-      enable_cache:          options[:cache_images],
+      enable_cache:          options.fetch(:cache_requests) { options[:cache_images] },
       web_requests:          options.fetch(:web_requests) { options[:enable_web_requests] },
       enable_file_with_root: options[:enable_file_requests_with_root]
     )

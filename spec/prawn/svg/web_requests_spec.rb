@@ -256,7 +256,7 @@ RSpec.describe 'web requests' do
     let(:image) { %(<image href="https://web.test/image.jpg" width="5" height="5"/>) }
     let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image}#{image}</svg>) }
 
-    it 'requests a URL once per render, even without cache_images' do
+    it 'requests a URL once per render, even without cache_requests' do
       requested = stub_ssrf_filter
       render(svg, web_requests: true)
       render(svg, web_requests: true)
