@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
+RSpec.describe Prawn::SVG::Requests::SsrfFilter do
   let(:uri) { URI('https://hello.there/path') }
   let(:options) { {} }
 
@@ -25,20 +25,20 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
     end
   end
 
-  it 'raises a UrlLoader error when the response is not a 2xx' do
+  it 'raises a Requests::Error when the response is not a 2xx' do
     expect(SsrfFilter).to receive(:get).and_return(http_response(Net::HTTPNotFound, code: '404', message: 'Not Found'))
-    expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'request failed with status 404 Not Found'
+    expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'request failed with status 404 Not Found'
   end
 
-  it 'raises a UrlLoader error explaining a refused private address' do
+  it 'raises a Requests::Error explaining a refused private address' do
     expect(SsrfFilter).to receive(:get).and_raise(SsrfFilter::PrivateIPAddress, 'no public ip')
-    expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'refused potentially unsafe request: no public ip'
+    expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'refused potentially unsafe request: no public ip'
   end
 
   [Net::OpenTimeout, Net::ReadTimeout].each do |error_class|
-    it "raises a UrlLoader error when the request raises #{error_class}" do
+    it "raises a Requests::Error when the request raises #{error_class}" do
       expect(SsrfFilter).to receive(:get).and_raise(error_class)
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'request timed out'
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'request timed out'
     end
   end
 
@@ -46,9 +46,9 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
     SsrfFilter::UnresolvedHostname, SsrfFilter::TooManyRedirects, Errno::ECONNREFUSED, SocketError,
     OpenSSL::SSL::SSLError, EOFError, URI::InvalidURIError, Net::HTTPBadResponse, Zlib::DataError
   ].each do |error_class|
-    it "raises a UrlLoader error when the request raises #{error_class}" do
+    it "raises a Requests::Error when the request raises #{error_class}" do
       expect(SsrfFilter).to receive(:get).and_raise(error_class, 'argh')
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /argh/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /argh/
     end
   end
 
@@ -65,13 +65,13 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
         allow(Resolv).to receive(:getaddresses).with('internal.test').and_return([address])
         expect(Net::HTTP).not_to receive(:start)
 
-        expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /refused potentially unsafe request/
+        expect { subject }.to raise_error Prawn::SVG::Requests::Error, /refused potentially unsafe request/
       end
     end
 
     it 'refuses an IP address URL' do
       expect(Net::HTTP).not_to receive(:start)
-      expect { described_class.new.call(URI('http://169.254.169.254/latest/meta-data/')) }.to raise_error Prawn::SVG::UrlLoader::Error, /refused/
+      expect { described_class.new.call(URI('http://169.254.169.254/latest/meta-data/')) }.to raise_error Prawn::SVG::Requests::Error, /refused/
     end
 
     it 'refuses a redirect to a private address' do
@@ -84,12 +84,12 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
       allow(http).to receive(:request).and_return(redirect)
       expect(Net::HTTP).to receive(:start).once.with('public.test', 80, nil, hash_including(ipaddr: '93.184.215.14')).and_yield(http)
 
-      expect { described_class.new.call(URI('http://public.test/')) }.to raise_error Prawn::SVG::UrlLoader::Error, /refused potentially unsafe request/
+      expect { described_class.new.call(URI('http://public.test/')) }.to raise_error Prawn::SVG::Requests::Error, /refused potentially unsafe request/
     end
 
     it 'refuses to connect to a local server' do
       with_http_server('/' => raw_http_response('200 OK', 'secret')) do |base_url, requested|
-        expect { described_class.new.call(URI(base_url)) }.to raise_error Prawn::SVG::UrlLoader::Error, /refused/
+        expect { described_class.new.call(URI(base_url)) }.to raise_error Prawn::SVG::Requests::Error, /refused/
         expect(requested).to be_empty
       end
     end

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Prawn::SVG::Elements::Image do
   let(:document) { Prawn::SVG::Document.new(svg, [800, 600], options) }
   let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, []) }
-  let(:options) { { enable_file_requests_with_root: '.' } }
+  let(:options) { { file_requests: '.' } }
   let(:flattened_calls) { flatten_calls(element.base_calls) }
 
   let(:external_svg) do
@@ -236,16 +236,16 @@ describe Prawn::SVG::Elements::Image do
     end
 
     it "renders text, but can't load files even when the parent can" do
-      result = Prawn::Document.new.svg(svg, enable_file_requests_with_root: '.')
+      result = Prawn::Document.new.svg(svg, file_requests: '.')
 
-      expect(result[:warnings]).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
+      expect(result[:warnings]).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: file requests are disabled; see the :file_requests option']
     end
 
     it 'reports issues from the nested document when parsed, whether or not it is drawn' do
       document = Prawn::SVG::Document.new(svg, [800, 600], options, font_registry: Prawn::SVG::FontRegistry.new(Prawn::Document.new.font_families))
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
-      expect(document.warnings).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: No handler available for this URL scheme']
+      expect(document.warnings).to eq ['Error retrieving URL spec/sample_images/mushroom-wide.jpg: file requests are disabled; see the :file_requests option']
     end
   end
 

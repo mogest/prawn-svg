@@ -30,7 +30,7 @@ describe Prawn::SVG::Document do
       end
 
       it 'are disabled by default' do
-        expect { load_with({}) }.to raise_error Prawn::SVG::UrlLoader::Error, /web requests are disabled/
+        expect { load_with({}) }.to raise_error Prawn::SVG::Requests::Error, /web requests are disabled/
       end
 
       it 'are made through the callable given as web_requests' do
@@ -47,8 +47,8 @@ describe Prawn::SVG::Document do
       end
 
       it 'are disabled when web_requests is false or nil, even if enable_web_requests is true' do
-        expect { load_with(web_requests: false, enable_web_requests: true) }.to raise_error Prawn::SVG::UrlLoader::Error, /web requests are disabled/
-        expect { load_with(web_requests: nil, enable_web_requests: true) }.to raise_error Prawn::SVG::UrlLoader::Error, /web requests are disabled/
+        expect { load_with(web_requests: false, enable_web_requests: true) }.to raise_error Prawn::SVG::Requests::Error, /web requests are disabled/
+        expect { load_with(web_requests: nil, enable_web_requests: true) }.to raise_error Prawn::SVG::Requests::Error, /web requests are disabled/
       end
 
       it 'are enabled when web_requests is true, even if enable_web_requests is false' do
@@ -58,6 +58,36 @@ describe Prawn::SVG::Document do
 
       it 'raise an ArgumentError for an invalid web_requests value' do
         expect { load_with(web_requests: 'yes') }.to raise_error ArgumentError, /:web_requests must be/
+      end
+    end
+
+    describe 'file requests' do
+      def load_with(options)
+        Prawn::SVG::Document.new('<svg></svg>', bounds, options).url_loader.load('spec_helper.rb')
+      end
+
+      it 'are disabled by default' do
+        expect { load_with({}) }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
+      end
+
+      it 'are made through the callable given as file_requests' do
+        expect(load_with(file_requests: ->(path) { "read #{path}" })).to eq 'read spec_helper.rb'
+      end
+
+      it 'are made from under the root path given as file_requests' do
+        expect(load_with(file_requests: 'spec')).to start_with 'require'
+      end
+
+      it 'are made from under the root given by the legacy enable_file_requests_with_root option' do
+        expect(load_with(enable_file_requests_with_root: 'spec')).to start_with 'require'
+      end
+
+      it 'are disabled when the legacy enable_file_requests_with_root option is false' do
+        expect { load_with(enable_file_requests_with_root: false) }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
+      end
+
+      it 'are disabled when file_requests is false, even if enable_file_requests_with_root is set' do
+        expect { load_with(file_requests: false, enable_file_requests_with_root: 'spec') }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
       end
     end
 
@@ -78,7 +108,8 @@ describe Prawn::SVG::Document do
       let(:web_requests) { ->(_uri) { 'data' } }
       let(:font_registry) { Prawn::SVG::FontRegistry.new({}) }
       let(:parent) do
-        Prawn::SVG::Document.new('<svg></svg>', bounds, { web_requests: web_requests, enable_file_requests_with_root: '.', color_mode: :cmyk }, font_registry: font_registry)
+        Prawn::SVG::Document.new('<svg></svg>', bounds, { web_requests: web_requests, file_requests: '.', color_mode: :cmyk },
+          font_registry: font_registry)
       end
       let(:child) { parent.replicate('<svg></svg>', 10, 20) }
 
@@ -90,7 +121,7 @@ describe Prawn::SVG::Document do
       end
 
       it "doesn't inherit file access" do
-        expect(child.url_loader.loaders).not_to include(an_instance_of(Prawn::SVG::Loaders::File))
+        expect { child.url_loader.load('spec_helper.rb') }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
       end
 
       it 'shares the root document' do
@@ -122,9 +153,9 @@ describe Prawn::SVG::Document do
       end
 
       it 'charges requests for URLs even when they fail' do
-        document = Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: 1500, web_requests: ->(_uri) { raise Prawn::SVG::UrlLoader::Error, 'no' } })
+        document = Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: 1500, web_requests: ->(_uri) { raise Prawn::SVG::Requests::Error, 'no' } })
 
-        expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::UrlLoader::Error
+        expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::Requests::Error
         expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
       end
     end
@@ -229,7 +260,7 @@ describe Prawn::SVG::Document do
       let(:sample_ttf_dir) { File.expand_path('../../sample_ttf', __dir__) }
       let(:font_filename) { 'OpenSans-SemiboldItalic.ttf' }
       let(:font_path) { File.join(sample_ttf_dir, font_filename) }
-      let(:file_options) { { enable_file_requests_with_root: sample_ttf_dir } }
+      let(:file_options) { { file_requests: sample_ttf_dir } }
 
       it 'registers @font-face fonts with the font registry' do
         svg = <<~SVG
@@ -312,7 +343,7 @@ describe Prawn::SVG::Document do
         expect(font_registry.installed_fonts['AliasFont'][:bold]).to eq('/path/to/bold.ttf')
       end
 
-      it 'does not load file URLs when enable_file_requests_with_root is not set' do
+      it 'does not load file URLs when file_requests is not set' do
         svg = <<~SVG
           <svg>
             <style>
@@ -382,21 +413,21 @@ describe Prawn::SVG::Document do
         SVG
       end
 
-      it 'loads @import CSS from files when enable_file_requests_with_root is set' do
+      it 'loads @import CSS from files when file_requests is set' do
         css_path = File.join(sample_css_dir, 'import_nested.css')
         document = Prawn::SVG::Document.new(
           svg_with_import(css_path), bounds,
-          { enable_file_requests_with_root: sample_css_dir }
+          { file_requests: sample_css_dir }
         )
 
         expect(document.warnings).to be_empty
       end
 
-      it 'does not load @import file URLs when enable_file_requests_with_root is not set' do
+      it 'does not load @import file URLs when file_requests is not set' do
         css_path = File.join(sample_css_dir, 'import_nested.css')
         document = Prawn::SVG::Document.new(svg_with_import(css_path), bounds, {})
 
-        expect(document.warnings).to include(/Failed to load @import CSS.*No handler available/)
+        expect(document.warnings).to include(/Failed to load @import CSS.*file requests are disabled/)
       end
 
       it 'does not load @import files outside the root path' do
@@ -404,7 +435,7 @@ describe Prawn::SVG::Document do
         css_path = File.join(sample_css_dir, 'import_nested.css')
         document = Prawn::SVG::Document.new(
           svg_with_import(css_path), bounds,
-          { enable_file_requests_with_root: other_dir }
+          { file_requests: other_dir }
         )
 
         expect(document.warnings).to include(/Failed to load @import CSS.*not inside the root path/)

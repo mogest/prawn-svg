@@ -53,7 +53,7 @@ module Prawn::SVG::CSS
           end
         rescue CssParser::CircularReferenceError
           # Silently ignore circular @import references
-        rescue Prawn::SVG::UrlLoader::Error => e
+        rescue Prawn::SVG::Requests::Error => e
           issues << Prawn::SVG::Issue.new(:resource, "Failed to load @import CSS from #{import_url}: #{e.message}")
         end
       end

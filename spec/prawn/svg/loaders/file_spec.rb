@@ -2,111 +2,62 @@ require 'spec_helper'
 require 'tmpdir'
 
 RSpec.describe Prawn::SVG::Loaders::File do
-  around do |example|
-    Dir.mktmpdir do |dir|
-      @dir = File.realpath(dir)
-      Dir.mkdir("#{@dir}/root")
-      Dir.mkdir("#{@dir}/root/sub")
-      File.write("#{@dir}/root/sub/path name", 'data')
-      File.write("#{@dir}/secret", 'secret')
-      example.run
-    end
-  end
-
-  let(:root) { "#{@dir}/root" }
-  let(:file_loader) { Prawn::SVG::Loaders::File.new(root) }
+  let(:file_requests) { ->(path) { "read #{path}" } }
+  let(:file_loader) { Prawn::SVG::Loaders::File.new(file_requests) }
   subject { file_loader.from_url(url) }
 
-  context 'when an invalid root path is supplied' do
-    let(:root) { '/does/not/exist' }
-
-    it 'raises with an ArgumentError' do
-      expect { file_loader }.to raise_error ArgumentError, /is not a directory/
-    end
-  end
-
-  context 'when the root path starts with ~' do
-    let(:root) { '~' }
-
-    it 'expands it to the home directory' do
-      expect(file_loader.root_path).to eq Dir.home
-    end
-  end
-
-  context 'when a relative path is supplied' do
-    let(:url) { 'sub/./path%20name' }
-
-    it 'loads the file' do
-      expect(subject).to eq 'data'
-    end
-  end
-
-  context 'when an absolute path without file scheme is supplied' do
-    let(:url) { "#{root}/sub/./path%20name" }
-
-    it 'loads the file' do
-      expect(subject).to eq 'data'
-    end
-  end
-
-  context 'when an absolute path with file scheme is supplied' do
-    let(:url) { "file://#{root}/sub/./path%20name" }
-
-    it 'loads the file' do
-      expect(subject).to eq 'data'
-    end
-  end
-
-  context 'when the root path is reached through a symlink' do
-    let(:root) { "#{@dir}/link" }
-    let(:url) { "#{root}/sub/path%20name" }
-
-    before { File.symlink("#{@dir}/root", root) }
-
-    it 'loads the file' do
-      expect(subject).to eq 'data'
-    end
-  end
-
-  context 'when a path outside of our root is specified' do
-    let(:url) { '../secret' }
+  context 'when file requests are disabled' do
+    let(:file_requests) { false }
+    let(:url) { 'sub/path%20name' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /not inside the root path/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
     end
   end
 
-  context 'when a symlink inside the root points outside it' do
-    let(:url) { 'link' }
+  context 'when file_requests is not false, a root path or a callable' do
+    let(:file_requests) { :yes }
 
-    before { File.symlink("#{@dir}/secret", "#{root}/link") }
-
-    it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /not inside the root path/
+    it 'raises an ArgumentError' do
+      expect { file_loader }.to raise_error ArgumentError, /:file_requests must be/
     end
   end
 
-  context 'when the file does not exist' do
-    let(:url) { 'missing' }
+  [String, Pathname].each do |klass|
+    context "when file_requests is a root path #{klass}" do
+      let(:file_requests) { klass.new(@dir) }
+      let(:url) { 'path%20name' }
 
-    it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /does not exist/
+      around do |example|
+        Dir.mktmpdir do |dir|
+          @dir = dir
+          File.write("#{dir}/path name", 'data')
+          example.run
+        end
+      end
+
+      it 'reads files from under it' do
+        expect(subject).to eq 'data'
+      end
     end
   end
 
-  context 'when the path is a directory' do
-    let(:url) { 'sub' }
+  it 'passes the callable the decoded path' do
+    expect(file_loader.from_url('sub/./path%20name')).to eq 'read sub/./path name'
+    expect(file_loader.from_url('/abs/path%20name')).to eq 'read /abs/path name'
+    expect(file_loader.from_url('file:///abs/path%20name')).to eq 'read /abs/path name'
+  end
 
-    it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /is not a file/
-    end
+  it 'raises a TypeError if the callable returns something other than a String' do
+    loader = Prawn::SVG::Loaders::File.new(->(_path) {})
+    expect { loader.from_url('x') }.to raise_error TypeError, /returned NilClass/
   end
 
   context 'when the path contains a null byte' do
     let(:url) { 'a%00b' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /null byte/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /null byte/
     end
   end
 
@@ -114,7 +65,7 @@ RSpec.describe Prawn::SVG::Loaders::File do
     let(:url) { 'file://somewhere/somefile' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /with a host/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /with a host/
     end
   end
 
@@ -122,22 +73,16 @@ RSpec.describe Prawn::SVG::Loaders::File do
     let(:url) { 'file:sub/path%20name' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /absolute path/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /absolute path/
     end
   end
 
   context "when we're running on Windows" do
     let(:url) { 'file:///c:/path/to/file.png' }
 
-    it "automatically fixes up URI's misparsing of Windows file paths and loads the file" do
+    it "automatically fixes up URI's misparsing of Windows file paths" do
       allow(file_loader).to receive(:windows?).and_return true
-      allow(file_loader).to receive_messages(root_path: 'c:/full', real_root_path: 'c:/full')
-      expect(File).to receive(:expand_path).with('c:/path/to/file.png', 'c:/full').and_return('c:/full/path/to/file.png')
-      expect(File).to receive(:realpath).with('c:/full/path/to/file.png').and_return('c:/full/path/to/file.png')
-      expect(File).to receive(:file?).with('c:/full/path/to/file.png').and_return(true)
-      expect(File).to receive(:binread).with('c:/full/path/to/file.png').and_return('data')
-
-      expect(subject).to eq 'data'
+      expect(subject).to eq 'read c:/path/to/file.png'
     end
   end
 

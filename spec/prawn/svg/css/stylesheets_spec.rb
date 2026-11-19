@@ -305,7 +305,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
     end
 
     it 'warns and continues when @import fails to load' do
-      allow(resource_loader).to receive(:load).with('missing.css').and_raise(Prawn::SVG::UrlLoader::Error, 'not found')
+      allow(resource_loader).to receive(:load).with('missing.css').and_raise(Prawn::SVG::Requests::Error, 'not found')
 
       svg = <<~SVG
         <svg>

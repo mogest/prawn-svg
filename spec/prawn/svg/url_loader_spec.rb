@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Prawn::SVG::UrlLoader do
   let(:enable_cache) { true }
   let(:enable_web)   { true }
-  let(:enable_file)  { '.' }
+  let(:file_requests) { ->(_path) {} }
   let(:loader) do
-    Prawn::SVG::UrlLoader.new(enable_cache: enable_cache, web_requests: enable_web, enable_file_with_root: enable_file)
+    Prawn::SVG::UrlLoader.new(enable_cache: enable_cache, web_requests: enable_web, file_requests: file_requests)
   end
 
   describe '#initialize' do
@@ -23,7 +23,7 @@ describe Prawn::SVG::UrlLoader do
     before do
       allow(Prawn::SVG::Loaders::Data).to receive(:new).and_return(data_loader)
       allow(Prawn::SVG::Loaders::Web).to receive(:new).and_return(web_loader)
-      allow(Prawn::SVG::Loaders::File).to receive(:new).with(enable_file).and_return(file_loader)
+      allow(Prawn::SVG::Loaders::File).to receive(:new).with(file_requests).and_return(file_loader)
     end
 
     subject { loader.load(url) }
@@ -55,7 +55,7 @@ describe Prawn::SVG::UrlLoader do
       expect(web_loader).to receive(:from_url).with(url)
       expect(file_loader).to receive(:from_url).with(url)
 
-      expect { subject }.to raise_error(Prawn::SVG::UrlLoader::Error, /No handler available/)
+      expect { subject }.to raise_error(Prawn::SVG::Requests::Error, /No handler available/)
     end
 
     context 'when caching is enabled' do
@@ -84,18 +84,6 @@ describe Prawn::SVG::UrlLoader do
         expect(web_loader).not_to receive(:from_url)
 
         expect(subject).to eq 'data'
-      end
-    end
-
-    context 'when file requests are disabled' do
-      let(:enable_file) { nil }
-
-      it "doesn't use the file loader" do
-        expect(data_loader).to receive(:from_url)
-        expect(web_loader).to receive(:from_url)
-        expect(file_loader).not_to receive(:from_url)
-
-        expect { subject }.to raise_error(Prawn::SVG::UrlLoader::Error, /No handler available/)
       end
     end
   end

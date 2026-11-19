@@ -28,7 +28,7 @@ class Prawn::SVG::ResourceLoader
   def load_web_url(url)
     result = @web_responses[url] ||= begin
       @web_url_loader.load(url)
-    rescue Prawn::SVG::UrlLoader::Error => e
+    rescue Prawn::SVG::Requests::Error => e
       e
     end
     result.is_a?(Exception) ? raise(result) : result

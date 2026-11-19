@@ -1,5 +1,5 @@
 class Prawn::SVG::UrlLoader
-  Error = Class.new(Prawn::SVG::Error)
+  Error = Prawn::SVG::Requests::Error
 
   # Content fetched from the web may only refer to other web or data URLs, resolved against its own URL, so it can
   # never reach the local filesystem.  Returns nil for any other reference.
@@ -17,14 +17,14 @@ class Prawn::SVG::UrlLoader
 
   attr_reader :enable_cache, :loaders
 
-  def initialize(enable_cache: false, web_requests: false, enable_file_with_root: nil)
+  def initialize(enable_cache: false, web_requests: false, file_requests: false)
     @url_cache = {}
     @enable_cache = enable_cache
 
     @loaders = []
     loaders << Prawn::SVG::Loaders::Data.new
     loaders << Prawn::SVG::Loaders::Web.new(web_requests)
-    loaders << Prawn::SVG::Loaders::File.new(enable_file_with_root) if enable_file_with_root
+    loaders << Prawn::SVG::Loaders::File.new(file_requests)
   end
 
   def load(url)

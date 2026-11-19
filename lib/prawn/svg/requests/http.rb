@@ -3,10 +3,10 @@ require 'openssl'
 require 'ssrf_filter'
 require 'zlib'
 
-module Prawn::SVG::Loaders
-  class HttpRequest
+module Prawn::SVG::Requests
+  class Http
     EXPECTED_ERRORS = [
-      SsrfFilter::Error, SystemCallError, SocketError, OpenSSL::SSL::SSLError, IOError, URI::Error,
+      ::SsrfFilter::Error, SystemCallError, SocketError, OpenSSL::SSL::SSLError, IOError, URI::Error,
       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, Zlib::Error
     ].freeze
 
@@ -27,18 +27,18 @@ module Prawn::SVG::Loaders
           body = ''.b
           chunked_response.read_body do |chunk|
             body << chunk
-            raise Prawn::SVG::UrlLoader::Error, "response is larger than #{@max_response_bytes} bytes" if body.bytesize > @max_response_bytes
+            raise Prawn::SVG::Requests::Error, "response is larger than #{@max_response_bytes} bytes" if body.bytesize > @max_response_bytes
           end
         end
       end
 
-      raise Prawn::SVG::UrlLoader::Error, "request failed with status #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+      raise Prawn::SVG::Requests::Error, "request failed with status #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
 
       body.to_s
     rescue Timeout::Error
-      raise Prawn::SVG::UrlLoader::Error, 'request timed out'
+      raise Prawn::SVG::Requests::Error, 'request timed out'
     rescue *EXPECTED_ERRORS => e
-      raise Prawn::SVG::UrlLoader::Error, e.message
+      raise Prawn::SVG::Requests::Error, e.message
     end
   end
 end

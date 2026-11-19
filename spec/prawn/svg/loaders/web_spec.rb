@@ -42,8 +42,8 @@ RSpec.describe Prawn::SVG::Loaders::Web do
       let(:url) { hostless_url }
       let(:web_requests) { ->(_uri) { raise 'should not be called' } }
 
-      it 'raises a UrlLoader error' do
-        expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'web URL has no host'
+      it 'raises a Requests::Error' do
+        expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'web URL has no host'
       end
     end
   end
@@ -52,8 +52,8 @@ RSpec.describe Prawn::SVG::Loaders::Web do
     context "when web_requests is #{disabled.inspect}" do
       let(:web_requests) { disabled }
 
-      it 'raises a UrlLoader error for web URLs' do
-        expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'web requests are disabled; see the :web_requests option'
+      it 'raises a Requests::Error for web URLs' do
+        expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'web requests are disabled; see the :web_requests option'
       end
 
       context 'with a non-web URL' do
@@ -66,11 +66,11 @@ RSpec.describe Prawn::SVG::Loaders::Web do
     end
   end
 
-  context 'when the callable raises a UrlLoader error' do
-    let(:web_requests) { ->(_uri) { raise Prawn::SVG::UrlLoader::Error, 'argh' } }
+  context 'when the callable raises a Requests::Error' do
+    let(:web_requests) { ->(_uri) { raise Prawn::SVG::Requests::Error, 'argh' } }
 
     it 'passes it on' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, 'argh'
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, 'argh'
     end
   end
 

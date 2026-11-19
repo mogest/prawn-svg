@@ -28,7 +28,7 @@ Option      | Data type | Description
 :width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :web_requests | boolean, callable | If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  Defaults to false, which denies all web requests.
-:enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs and relative paths from your local disk if the file is located under the specified directory. Required for `@font-face` fonts and external `<use>` references loaded via file paths.  Not available to SVGs loaded by `<image>`, or to content fetched from the web.<br><br>It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
+:file_requests | false, string, Pathname, callable | If a directory path, prawn-svg will read `file:` URLs and relative paths for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references from under that directory.  Can also be a callable; see [File requests](#file-requests).  Not available to SVGs loaded by `<image>`, or to content fetched from the web.  Defaults to false, which denies all file requests.
 :cache_requests | boolean | If true, prawn-svg will cache the result of all URL requests (images, fonts, stylesheets and external `<use>` references).  Web requests are always made at most once per render.  `:cache_images` is accepted as an alias.  Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
@@ -48,7 +48,7 @@ Option      | Data type | Description
 
   # Render the logo at the current Y cursor position, and serve file: links relative to its directory
   root_path = "/apps/myapp/current/images"
-  svg IO.read("#{root_path}/logo.svg"), enable_file_requests_with_root: root_path, log_issues: true
+  svg IO.read("#{root_path}/logo.svg"), file_requests: root_path, log_issues: true
 ```
 
 ## Supported features
@@ -66,7 +66,7 @@ prawn-svg supports almost all of the full SVG 1.1 specification:
 
  - `<svg>`, `<g>` and `<symbol>`
 
- - `<use>` with local and external references (e.g. `other.svg#elementId`), subject to `web_requests` and `enable_file_requests_with_root`
+ - `<use>` with local and external references (e.g. `other.svg#elementId`), subject to `web_requests` and `file_requests`
 
  - `<style>` (see CSS section below)
 
@@ -118,14 +118,14 @@ prawn-svg supports almost all of the full SVG 1.1 specification:
 
  - `@font-face` in `<style>` blocks: `url()` sources (TTF/OTF formats) and `local()` references, with `font-weight`,
    `font-style` and `font-stretch` descriptors.  Font loading is subject to the `web_requests` and
-   `enable_file_requests_with_root` options.
+   `file_requests` options.
 
 ## CSS
 
 prawn-svg fully supports CSS2, both in `<style>` blocks and `style` attributes.
 
 `@import` rules are supported for loading external stylesheets (requires `web_requests` or
-`enable_file_requests_with_root` options enabled).
+`file_requests` options enabled).
 
 In CSS selectors you can use element names, IDs, classes, attributes (existence, `=`, `^=`, `$=`, `*=`, `~=`, `|=`)
 and all combinators (` `, `>`, `+`, `~`). The pseudo-classes `:first-child`, `:last-child`, `:link`, `:nth-child()`
@@ -174,24 +174,43 @@ pass a callable as `:web_requests` instead.  prawn-svg provides two:
 
 ```ruby
   # ssrf_filter with your own options
-  svg data, web_requests: Prawn::SVG::Loaders::SsrfFilterRequest.new(http_options: { open_timeout: 5 })
+  svg data, web_requests: Prawn::SVG::Requests::SsrfFilter.new(http_options: { open_timeout: 5 })
 
   # Net::HTTP with no address checks, for trusted SVGs that need internal hosts
-  svg data, web_requests: Prawn::SVG::Loaders::UnfilteredRequest.new(open_timeout: 5)
+  svg data, web_requests: Prawn::SVG::Requests::Unfiltered.new(open_timeout: 5)
 ```
 
-`SsrfFilterRequest` takes [ssrf_filter options](https://github.com/arkadiyt/ssrf_filter#options).  Setting a proxy in
+`Requests::SsrfFilter` takes [ssrf_filter options](https://github.com/arkadiyt/ssrf_filter#options).  Setting a proxy in
 `http_options` bypasses its address checks, and setting `verify_mode` can disable certificate checks.
-`UnfilteredRequest` takes `max_redirects` (default 10) and Net::HTTP options.  Both also take `total_timeout` in seconds
+`Requests::Unfiltered` takes `max_redirects` (default 10) and Net::HTTP options.  Both also take `total_timeout` in seconds
 and `max_response_bytes`.
 
 Your own callable is given a `URI` and returns the response body as a string.  If the resource can't be loaded, raise
-`Prawn::SVG::UrlLoader::Error` and it's reported as a `:resource` issue; any other error aborts rendering.
-`Prawn::SVG::Loaders::HttpRequest::EXPECTED_ERRORS` lists the network errors the provided callables rescue.
+`Prawn::SVG::Requests::Error` and it's reported as a `:resource` issue; any other error aborts rendering.
+`Prawn::SVG::Requests::Http::EXPECTED_ERRORS` lists the network errors the provided callables rescue.
 
 Content fetched from the web can only refer to other web or data URLs, which are resolved against its own URL, so it
-can't read local files even when `:enable_file_requests_with_root` is set.  Its `<use>` elements can't refer to data
+can't read local files even when `:file_requests` is set.  Its `<use>` elements can't refer to data
 URLs either.
+
+### File requests
+
+A directory path given as `:file_requests` reads files only from under that directory, resolving relative paths
+against it and refusing paths that leave it, including through symlinks.  It is very dangerous to use `"/"` if you're
+not fully in control of your input SVG.
+
+```ruby
+  # Read files from under a directory
+  svg data, file_requests: "/apps/myapp/current/images"
+
+  # Your own callable, here serving files from memory
+  files = { "logo.png" => File.binread("logo.png") }
+  svg data, file_requests: ->(path) { files.fetch(path) { raise Prawn::SVG::Requests::Error, "#{path} not found" } }
+```
+
+To change how files are read, pass a callable instead.  It is given the decoded path as a string, which may be
+relative, and returns the file's contents as a binary string.  As with web requests, raise `Prawn::SVG::Requests::Error`
+to report the file as a `:resource` issue.
 
 ### Fonts
 

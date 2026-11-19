@@ -50,9 +50,9 @@ class Prawn::SVG::Document
     @color_mode = load_color_mode
 
     @url_loader = Prawn::SVG::UrlLoader.new(
-      enable_cache:          options.fetch(:cache_requests) { options[:cache_images] },
-      web_requests:          options.fetch(:web_requests) { options[:enable_web_requests] },
-      enable_file_with_root: options[:enable_file_requests_with_root]
+      enable_cache:  options.fetch(:cache_requests) { options[:cache_images] },
+      web_requests:  options.fetch(:web_requests) { options[:enable_web_requests] },
+      file_requests: options.fetch(:file_requests) { options[:enable_file_requests_with_root] }
     )
     @resource_loader =
       root_document ? root_document.resource_loader.with_url_loader(url_loader) : Prawn::SVG::ResourceLoader.new(url_loader, work_budget)
@@ -136,11 +136,9 @@ class Prawn::SVG::Document
   def replicate(data, width, height, attribute_overrides: {})
     # A nested document holds far more memory than its few elements are charged for.
     work_budget.record(250)
-    options = @options.reject { |key, _| key == :enable_file_requests_with_root }
-
     self.class.new(
       data, [width, height],
-      options.merge(width: width, height: height),
+      @options.merge(file_requests: false, width: width, height: height),
       font_registry:       font_registry&.fork,
       attribute_overrides: attribute_overrides,
       root_document:       root_document
@@ -215,11 +213,11 @@ class Prawn::SVG::Document
     end
 
     font_data = resource_loader.load(url)
-    raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
+    raise Prawn::SVG::Requests::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
 
     font_registry.register_font_face(family, weight, style, stretch, StringIO.new(font_data))
     true
-  rescue Prawn::SVG::UrlLoader::Error => e
+  rescue Prawn::SVG::Requests::Error => e
     add_issue(:resource, "Failed to load @font-face font from #{source[:url]}: #{e.message}")
     false
   end

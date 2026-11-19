@@ -7,7 +7,7 @@ module Prawn::SVG::Loaders
 
       matches = url.match(REGEXP)
       if matches.nil?
-        raise Prawn::SVG::UrlLoader::Error,
+        raise Prawn::SVG::Requests::Error,
           'prawn-svg only supports base64-encoded image/png, image/jpeg, and image/svg+xml data URLs'
       end
 

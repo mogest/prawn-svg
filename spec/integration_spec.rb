@@ -141,7 +141,7 @@ describe 'Integration test' do
           )
 
           r = prawn.svg File.read(file), at: [0, prawn.bounds.top], width: prawn.bounds.width,
-            enable_file_requests_with_root: File.dirname(__FILE__) do |doc|
+            file_requests: File.dirname(__FILE__) do |doc|
             doc.url_loader.add_to_cache(
               'https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg', File.read("#{root}/spec/sample_images/mushroom-wide.jpg")
             )

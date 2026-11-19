@@ -49,7 +49,7 @@ RSpec.describe Prawn::SVG::Loaders::Data do
     let(:url) { 'data:application/pdf;base64,aGVsbG8=' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /image/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /image/
     end
   end
 
@@ -57,7 +57,7 @@ RSpec.describe Prawn::SVG::Loaders::Data do
     let(:url) { 'data:image/png;base32,agvsbg' }
 
     it 'raises' do
-      expect { subject }.to raise_error Prawn::SVG::UrlLoader::Error, /base64/
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /base64/
     end
   end
 end

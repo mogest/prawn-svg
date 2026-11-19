@@ -109,8 +109,8 @@ RSpec.describe 'web requests' do
       expect { render(svg, web_requests: ->(_uri) { 1 }) }.to raise_error TypeError
     end
 
-    it 'reports a UrlLoader error as a resource issue' do
-      result = render(svg, web_requests: ->(_uri) { raise Prawn::SVG::UrlLoader::Error, 'nope' })
+    it 'reports a Requests::Error as a resource issue' do
+      result = render(svg, web_requests: ->(_uri) { raise Prawn::SVG::Requests::Error, 'nope' })
       expect(result[:warnings]).to eq ['Error retrieving URL https://web.test/image.jpg: nope']
     end
   end
@@ -119,7 +119,7 @@ RSpec.describe 'web requests' do
     before { expect_any_instance_of(Prawn::SVG::Loaders::File).not_to receive(:from_url) }
 
     let!(:requested) { stub_ssrf_filter }
-    let(:options) { { web_requests: true, enable_file_requests_with_root: File.expand_path('../..', __dir__) } }
+    let(:options) { { web_requests: true, file_requests: File.expand_path('../..', __dir__) } }
 
     it 'resolves an external SVG\'s references against its URL, and may not reference files' do
       web['https://web.test/icons.svg'] = <<~SVG

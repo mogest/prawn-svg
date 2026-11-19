@@ -132,7 +132,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
       [root, element_styles]
     end
-  rescue Prawn::SVG::UrlLoader::Error => e
+  rescue Prawn::SVG::Requests::Error => e
     raise SkipElementError.new("use tag could not load external SVG from '#{url}': #{e.message}", :resource)
   end
 

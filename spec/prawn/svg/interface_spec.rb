@@ -49,7 +49,7 @@ describe Prawn::SVG::Interface do
           </svg>
         SVG
 
-        pdf.svg(svg, enable_file_requests_with_root: File.dirname(ttf))
+        pdf.svg(svg, file_requests: File.dirname(ttf))
 
         expect(pdf.font_families).to eq families
         expect(pdf.font.name).to eq 'Helvetica'
