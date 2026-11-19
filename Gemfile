@@ -5,9 +5,10 @@ source 'https://rubygems.org'
 # development dependencies will be added by default to the :development group.
 gemspec
 
-unless ENV['MIN_PRAWN'].to_s.empty?
+min_prawn = ENV.fetch('MIN_PRAWN', '')
+unless min_prawn.empty?
   gem 'css_parser', '1.17.1'
-  gem 'prawn', ENV['MIN_PRAWN']
+  gem 'prawn', min_prawn
   gem 'rexml', '3.4.2'
 end
 
