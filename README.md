@@ -20,22 +20,79 @@ end
 prawn-svg will do something sensible if you call it with only an SVG document, but you can also
 pass the following options to tailor its operation.  Unknown options raise `ArgumentError`.
 
-Option      | Data type | Description
------------ | --------- | -----------
-:at         | [integer, integer] | Specify the location on the page you want the SVG to appear.
-:position   | :left, :center, :right, integer | If :at not specified, specifies the horizontal position to show the SVG.  Defaults to :left.
-:vposition  | :top, :center, :bottom, integer | If :at not specified, specifies the vertical position to show the SVG.  Defaults to current cursor position.
-:width      | integer   | Desired width of the SVG.  Defaults to horizontal space available.
-:height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
-:web_requests | boolean, callable | If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  Defaults to false, which denies all web requests.
-:file_requests | false, string, Pathname, callable | If a directory path, prawn-svg will read `file:` URLs and relative paths for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references from under that directory.  Can also be a callable; see [File requests](#file-requests).  Not available to SVGs loaded by `<image>`, or to content fetched from the web.  Defaults to false, which denies all file requests.
-:cache_requests | Hash-like, false | Where responses are cached.  prawn-svg looks up each URL in it before making a request, and stores each successful response in it.  Defaults to a new `Hash` for each render, so each URL is requested at most once per render.  To share the cache across renders, pass your own `Hash`, or any object with `[]` and `[]=` that returns `nil` for a missing key.  `false` turns caching off.  Keys are URLs as written in the SVG.  Failed requests and `data:` URLs are not stored.  A cached response is returned without checking `:web_requests` or `:file_requests`.
-:fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
-:color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
-:language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
-:log_issues | boolean | If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not getting the output you expect.  Defaults to false.
-:raise_on_issue | boolean, symbol, array | If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See [Issues](#issues).  Defaults to false.
-:max_work | integer, false | Limits how much work rendering may take, so that a small hostile SVG can't use excessive time or memory.  If exceeded, `Prawn::SVG::Document::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers, patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a higher value.  `false` turns the limit off.  Defaults to 1,000,000.
+- **`:at`**\
+  Type: `[x, y]` · Default: none\
+  Location on the page to draw the SVG.
+
+- **`:position`**\
+  Type: `:left`, `:center`, `:right`, integer · Default: `:left`\
+  Horizontal position, if `:at` isn't given.
+
+- **`:vposition`**\
+  Type: `:top`, `:center`, `:bottom`, integer · Default: current cursor position\
+  Vertical position, if `:at` isn't given.
+
+- **`:width`**\
+  Type: integer · Default: horizontal space available\
+  Desired width of the SVG.
+
+- **`:height`**\
+  Type: integer · Default: vertical space available\
+  Desired height of the SVG.
+
+- **`:web_requests`**\
+  Type: boolean, callable · Default: `false`\
+  If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external
+  `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses
+  private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  `false`
+  denies all web requests.
+
+- **`:file_requests`**\
+  Type: `false`, string, Pathname, callable · Default: `false`\
+  If a directory path, prawn-svg will read `file:` URLs and relative paths for images, `@font-face` fonts, `@import`
+  stylesheets and external `<use>` references from under that directory.  Can also be a callable; see
+  [File requests](#file-requests).  Not available to SVGs loaded by `<image>`, or to content fetched from the web.
+  `false` denies all file requests.
+
+- **`:cache_requests`**\
+  Type: Hash-like, `false` · Default: a new `Hash` for each render\
+  Where responses are cached.  prawn-svg looks up each URL in it before making a request, and stores each successful
+  response in it, so by default each URL is requested at most once per render.  To share the cache across renders, pass
+  your own `Hash`, or any object with `[]` and `[]=` that returns `nil` for a missing key.  `false` turns caching off.
+  Keys are URLs as written in the SVG.  Failed requests and `data:` URLs are not stored.  A cached response is returned
+  without checking `:web_requests` or `:file_requests`.
+
+- **`:fallback_font_name`**\
+  Type: string, `nil` · Default: `"Times-Roman"`\
+  Font used when the SVG asks for an unknown font.  If `nil`, prawn-svg will ignore a request for an unknown font and
+  log a warning.
+
+- **`:color_mode`**\
+  Type: `:rgb`, `:cmyk` · Default: `:rgb`\
+  Output color mode.
+
+- **`:language`**\
+  Type: string · Default: `"en"`\
+  BCP 47 language tag for `<switch>` `systemLanguage` matching.
+
+- **`:log_issues`**\
+  Type: boolean · Default: `false`\
+  If true, issues that occur when parsing/rendering the SVG are output to stderr via `warn`.  Use this when you're not
+  getting the output you expect.
+
+- **`:raise_on_issue`**\
+  Type: boolean, symbol, array · Default: `false`\
+  If true, raises `Prawn::SVG::IssueError` after rendering if any issues occurred.  If a category or array of
+  categories, only issues in those categories raise, and an unknown category raises `ArgumentError`.  See
+  [Issues](#issues).
+
+- **`:max_work`**\
+  Type: integer, `false` · Default: `1_000_000`\
+  Limits how much work rendering may take, so that a small hostile SVG can't use excessive time or memory.  If exceeded,
+  `Prawn::SVG::Document::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a
+  drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers,
+  patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a
+  higher value.  `false` turns the limit off.
 
 ## Examples
 
@@ -49,6 +106,26 @@ Option      | Data type | Description
   # Render the logo at the current Y cursor position, and serve file: links relative to its directory
   root_path = "/apps/myapp/current/images"
   svg IO.read("#{root_path}/logo.svg"), file_requests: root_path, log_issues: true
+```
+
+All options with their defaults:
+
+```ruby
+svg data,
+  at:                 nil,           # [x, y]
+  position:           :left,         # :left, :center, :right, integer
+  vposition:          nil,           # :top, :center, :bottom, integer; nil = cursor
+  width:              nil,           # nil = available width
+  height:             nil,           # nil = available height
+  web_requests:       false,         # true, callable
+  file_requests:      false,         # directory path, callable
+  cache_requests:     {},            # Hash-like, false; default is new per render
+  fallback_font_name: "Times-Roman", # nil = skip unknown fonts
+  color_mode:         :rgb,          # :rgb, :cmyk
+  language:           "en",          # BCP 47 tag
+  log_issues:         false,
+  raise_on_issue:     false,         # true, category, [categories]
+  max_work:           1_000_000      # false = unlimited
 ```
 
 ## Supported features
