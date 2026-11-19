@@ -132,7 +132,7 @@ module Prawn::SVG::CSS
     end
 
     def simple_selector_count(selector)
-      selector.sum { |compound| 1 + compound.except(:combinator, :name).values.sum(&:length) }
+      selector.sum { |compound| 1 + compound.sum { |key, values| [:combinator, :name].include?(key) ? 0 : values.length } }
     end
 
     def calculate_specificity(selector)

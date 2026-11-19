@@ -185,7 +185,7 @@ module Prawn
 
         when 'svg:image'
           begin
-            prawn.image(*arguments)
+            prawn.image(*arguments, **kwarguments)
           rescue StandardError
             # Prawn's image parsers raise arbitrary errors on corrupt data, which may have come from anywhere.  Some
             # are only found when the image is drawn, so they aren't checked when the <image> is parsed.

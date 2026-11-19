@@ -66,9 +66,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
       add_call_and_enter 'translate', @x, @y
       add_call 'svg:render_sub_document', document, sub_document_calls(document)
     else
-      options = { width: @width, height: @height, at: [@x, @y] }
-
-      add_call 'svg:image', FakeIO.new(@image), options
+      add_call 'svg:image', FakeIO.new(@image), width: @width, height: @height, at: [@x, @y]
     end
 
     add_call 'restore' if @aspect.slice?

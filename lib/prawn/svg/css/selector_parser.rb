@@ -25,7 +25,7 @@ module Prawn::SVG::CSS
         end
       end
 
-      result unless result.any? { |compound| (parts = compound.except(:combinator)).empty? || parts.values.any?(&:empty?) }
+      result unless result.any? { |compound| (parts = compound.reject { |key, _| key == :combinator }).empty? || parts.values.any?(&:empty?) }
     end
 
     VALID_CSS_IDENTIFIER_CHAR = /[a-zA-Z0-9_\u00a0-\uffff-]/.freeze
