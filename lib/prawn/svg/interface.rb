@@ -61,11 +61,6 @@ module Prawn
         @renderer.position
       end
 
-      # backwards support for when the font_path used to be stored on this class
-      def self.font_path
-        Prawn::SVG::FontRegistry.font_path
-      end
-
       private
 
       def verify_options(options)
