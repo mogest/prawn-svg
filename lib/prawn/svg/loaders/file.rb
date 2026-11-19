@@ -30,7 +30,7 @@ require 'addressable/uri'
 #
 module Prawn::SVG::Loaders
   class File
-    attr_reader :root_path
+    attr_reader :root_path, :real_root_path
 
     def initialize(root_path)
       if root_path.empty?
@@ -41,6 +41,8 @@ module Prawn::SVG::Loaders
       @root_path = ::File.expand_path(root_path)
 
       raise ArgumentError, "#{root_path} is not a directory" unless Dir.exist?(@root_path)
+
+      @real_root_path = ::File.realpath(@root_path)
     end
 
     def from_url(url)
@@ -60,9 +62,12 @@ module Prawn::SVG::Loaders
 
     def load_file(path)
       path = Addressable::URI.unencode(path)
+      raise Prawn::SVG::UrlLoader::Error, 'file path contains a null byte' if path.include?("\0")
+
       path = build_absolute_and_expand_path(path)
-      assert_valid_path!(path)
-      assert_file_exists!(path)
+      assert_inside!(path, root_path)
+      path = real_path(path)
+      assert_inside!(path, real_root_path)
       ::File.binread(path)
     end
 
@@ -71,13 +76,13 @@ module Prawn::SVG::Loaders
     rescue URI::Error
     end
 
-    def assert_valid_path!(path)
+    def assert_inside!(path, root)
       # TODO : case sensitive comparison, but it's going to be a bit of a headache
       # making it dependent on whether the file system is case sensitive or not.
       # Leaving it like this until it's a problem for someone.
 
-      unless path.start_with?("#{root_path}#{::File::SEPARATOR}")
-        raise Prawn::SVG::UrlLoader::Error, "file path is not inside the root path of #{root_path}"
+      unless path.start_with?("#{root}#{::File::SEPARATOR}")
+        raise Prawn::SVG::UrlLoader::Error, "file path is not inside the root path of #{root}"
       end
     end
 
@@ -88,12 +93,19 @@ module Prawn::SVG::Loaders
     def assert_valid_file_uri!(uri)
       unless uri.host.nil? || uri.host.empty?
         raise Prawn::SVG::UrlLoader::Error,
-          "prawn-svg does not suport file: URLs with a host. Your URL probably doesn't start with three slashes, and it should."
+          "prawn-svg does not support file: URLs with a host. Your URL probably doesn't start with three slashes, and it should."
       end
+
+      raise Prawn::SVG::UrlLoader::Error, 'file: URLs must have an absolute path' unless uri.path
     end
 
-    def assert_file_exists!(path)
-      raise Prawn::SVG::UrlLoader::Error, "File #{path} does not exist" unless ::File.exist?(path)
+    def real_path(path)
+      real = ::File.realpath(path)
+      raise Prawn::SVG::UrlLoader::Error, "#{path} is not a file" unless ::File.file?(real)
+
+      real
+    rescue SystemCallError
+      raise Prawn::SVG::UrlLoader::Error, "File #{path} does not exist"
     end
 
     def fix_windows_path(path)
