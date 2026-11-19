@@ -162,6 +162,8 @@ To reject SVGs that won't render as they would in a browser:
   svg data, raise_on_issue: [:unsupported, :invalid, :resource]
 ```
 
+prawn-svg's own errors, including `Prawn::SVG::IssueError`, inherit from `Prawn::SVG::Error`.
+
 ## Configuration
 
 ### Web requests

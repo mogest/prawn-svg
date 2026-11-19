@@ -2,7 +2,7 @@ module Prawn::SVG
   Issue = Struct.new(:category, :message)
   Issue::CATEGORIES = %i[unsupported unknown invalid resource].freeze
 
-  class IssueError < StandardError
+  class IssueError < Error
     attr_reader :issues
 
     def initialize(issues)

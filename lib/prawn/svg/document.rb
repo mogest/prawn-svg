@@ -1,7 +1,7 @@
 require 'stringio'
 
 class Prawn::SVG::Document
-  Error = Class.new(StandardError)
+  Error = Class.new(Prawn::SVG::Error)
   InvalidSVGData = Class.new(Error)
   WorkLimitExceeded = Class.new(Error)
 

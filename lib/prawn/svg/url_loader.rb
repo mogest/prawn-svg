@@ -1,5 +1,5 @@
 class Prawn::SVG::UrlLoader
-  Error = Class.new(StandardError)
+  Error = Class.new(Prawn::SVG::Error)
 
   # Content fetched from the web may only refer to other web or data URLs, resolved against its own URL, so it can
   # never reach the local filesystem.  Returns nil for any other reference.
