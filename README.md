@@ -103,7 +103,7 @@ pass the following options to tailor its operation.  Unknown options raise `Argu
   # Render the logo at the current Y cursor position, centered in the current bounding box
   svg IO.read("logo.svg"), position: :center
 
-  # Render the logo at the current Y cursor position, and serve file: links relative to its directory
+  # Render the logo and allow loading of file: resources relative to its directory
   root_path = "/apps/myapp/current/images"
   svg IO.read("#{root_path}/logo.svg"), file_requests: root_path, log_issues: true
 ```
