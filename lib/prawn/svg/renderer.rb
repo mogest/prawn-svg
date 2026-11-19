@@ -81,7 +81,7 @@ module Prawn
         when Numeric
           sizing.bounds[1] - options[:vposition]
         else
-          raise ArgumentError, 'options[:vposition] must be one of nil, :top, :right, :bottom or a number'
+          raise ArgumentError, 'options[:vposition] must be one of nil, :top, :center, :bottom or a number'
         end
       end
 
