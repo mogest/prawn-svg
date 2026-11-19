@@ -18,6 +18,8 @@ class Prawn::SVG::Document
     :fallback_font_name,
     :font_registry,
     :url_loader,
+    :resource_loader,
+    :work_budget,
     :elements_by_id, :gradients,
     :element_styles,
     :color_mode,
@@ -38,7 +40,7 @@ class Prawn::SVG::Document
     @issues = []
     @issue_set = Set.new
     @options = options
-    @max_work = @work_remaining = load_max_work unless root_document
+    @work_budget = root_document ? root_document.work_budget : Prawn::SVG::WorkBudget.new(load_max_work)
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}
@@ -52,6 +54,8 @@ class Prawn::SVG::Document
       web_requests:          options.fetch(:web_requests) { options[:enable_web_requests] },
       enable_file_with_root: options[:enable_file_requests_with_root]
     )
+    @resource_loader =
+      root_document ? root_document.resource_loader.with_url_loader(url_loader) : Prawn::SVG::ResourceLoader.new(url_loader, work_budget)
 
     attributes = @root.attributes.dup
     attribute_overrides.each { |key, value| attributes.add(REXML::Attribute.new(key, value)) }
@@ -59,35 +63,12 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, load_url: method(:load_url), record_work: method(:record_work))
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, resource_loader: resource_loader, work_budget: work_budget)
     @element_styles = stylesheets.load
     stylesheets.issues.each { |issue| add_issue(issue.category, issue.message) }
     process_font_face_rules(stylesheets.font_face_rules)
 
     yield self if block_given?
-  end
-
-  # Bounds the time and memory a render can take, so small hostile input can't run away with either.  A unit is
-  # roughly an element, a drawing call recorded or copied, a character of text, a few hundred bytes of loaded data or
-  # 25 elements checked against a simple CSS selector.
-  # The budget is shared by the whole render, including nested documents.
-  def record_work(units)
-    return root_document.record_work(units) unless root_document.equal?(self)
-    return unless @work_remaining
-
-    raise WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if (@work_remaining -= units).negative?
-  end
-
-  # Requests for non-data URLs are charged whether or not they succeed, so fan-out can't make endless requests.
-  # Web responses, including failures, are shared by the whole render so that repeated references fetch only once.
-  def load_url(url)
-    record_work(1000) unless url.match?(/\Adata:/i)
-    data = Prawn::SVG::UrlLoader.web_url?(url) ? root_document.load_web_url(url) : url_loader.load(url)
-    data.tap { record_work(data.bytesize / 256) }
-  end
-
-  def reset_work_budget
-    @work_remaining = @max_work
   end
 
   # REXML expands entities lazily, raising a RuntimeError if they grow too large, so expand them all now where the
@@ -103,7 +84,8 @@ class Prawn::SVG::Document
     @expansion_bytes_remaining ||= MAX_ENTITY_EXPANSION_BYTES
     bytes_remaining = (data.is_a?(String) ? data.bytesize : 0) + @expansion_bytes_remaining
     expand = lambda do |value|
-      raise 'entities expand to too much text' if (bytes_remaining -= value.bytesize).negative?
+      bytes_remaining -= value.bytesize
+      raise 'entities expand to too much text' if bytes_remaining.negative?
     end
 
     stack = [[root, 1]]
@@ -153,7 +135,7 @@ class Prawn::SVG::Document
 
   def replicate(data, width, height, attribute_overrides: {})
     # A nested document holds far more memory than its few elements are charged for.
-    record_work(250)
+    work_budget.record(250)
     options = @options.reject { |key, _| key == :enable_file_requests_with_root }
 
     self.class.new(
@@ -177,17 +159,6 @@ class Prawn::SVG::Document
     yield
   ensure
     @sizing = original
-  end
-
-  protected
-
-  def load_web_url(url)
-    result = (@web_responses ||= {})[url] ||= begin
-      url_loader.load(url)
-    rescue Prawn::SVG::UrlLoader::Error => e
-      e
-    end
-    result.is_a?(Exception) ? raise(result) : result
   end
 
   private
@@ -243,7 +214,7 @@ class Prawn::SVG::Document
       return false
     end
 
-    font_data = load_url(url)
+    font_data = resource_loader.load(url)
     raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
 
     font_registry.register_font_face(family, weight, style, stretch, StringIO.new(font_data))

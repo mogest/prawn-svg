@@ -2,17 +2,17 @@ module Prawn::SVG::CSS
   class Stylesheets
     attr_reader :css_parser, :root, :media, :font_face_rules, :issues
 
-    def initialize(css_parser, root, media = :all, load_url: nil, record_work: nil)
+    def initialize(css_parser, root, media = :all, resource_loader: nil, work_budget: nil)
       @css_parser = css_parser
-      @record_work = record_work
+      @work_budget = work_budget
       @root = root
       @media = media
       @font_face_rules = []
       @issues = []
       @remote_base_urls = {}.compare_by_identity
 
-      @load_url = load_url
-      install_url_loader_on_css_parser(load_url) if load_url
+      @resource_loader = resource_loader
+      install_resource_loader_on_css_parser(resource_loader) if resource_loader
     end
 
     def load
@@ -22,7 +22,7 @@ module Prawn::SVG::CSS
 
     private
 
-    def install_url_loader_on_css_parser(load_url)
+    def install_resource_loader_on_css_parser(resource_loader)
       issues = @issues
       remote_base_urls = @remote_base_urls
       without_invalid_imports = method(:without_invalid_imports)
@@ -40,7 +40,7 @@ module Prawn::SVG::CSS
           end
 
           web = Prawn::SVG::UrlLoader.web_url?(import_url)
-          src = load_url.call(import_url)
+          src = resource_loader.load(import_url)
           src = without_invalid_imports.call(src, web ? import_url : options[:base_uri], "stylesheet from #{import_url}")
 
           if web
@@ -63,7 +63,7 @@ module Prawn::SVG::CSS
       REXML::XPath.match(root, '//style').each do |source|
         data = source.texts.map(&:value).join
 
-        if @load_url
+        if @resource_loader
           css_parser.add_block!(without_invalid_imports(data, '', 'stylesheet'), base_uri: '')
         else
           css_parser.add_block!(data)
@@ -122,7 +122,7 @@ module Prawn::SVG::CSS
       return {} if styles.empty?
 
       matcher = Prawn::SVG::CSS::SelectorMatcher.new(root)
-      @record_work&.call(matcher.size * styles.sum { |selector, _| simple_selector_count(selector) } / 25)
+      @work_budget&.record(matcher.size * styles.sum { |selector, _| simple_selector_count(selector) } / 25)
 
       styles.each_with_object({}) do |(selector, declarations, _), element_styles|
         matcher.match(selector).each do |element|

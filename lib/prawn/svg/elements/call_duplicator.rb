@@ -13,7 +13,7 @@ module Prawn::SVG::Elements::CallDuplicator
 
   def duplicate_array(array)
     # Calls can also be nested in other calls' arguments.
-    document.record_work(copied_call_work(*array)) if call?(array)
+    document.work_budget.record(copied_call_work(*array)) if call?(array)
 
     array.map do |value|
       case value

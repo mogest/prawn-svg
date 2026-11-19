@@ -42,7 +42,7 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
-        document.reset_work_budget
+        document.work_budget.reset
         @renderer.draw
 
         document.warnings.each { |w| warn w } if options[:log_issues] || options[:log_warnings]

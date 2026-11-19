@@ -113,7 +113,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
 
   def load_external_svg(url)
     @document.external_svg_cache[url] ||= begin
-      data = @document.load_url(url)
+      data = @document.resource_loader.load(url)
 
       root = begin
         @document.parse_root(data)
@@ -126,7 +126,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       restrict_remote_references(root, url) if Prawn::SVG::UrlLoader.web_url?(url)
 
       css_parser = CssParser::Parser.new
-      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, record_work: @document.method(:record_work))
+      stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, work_budget: @document.work_budget)
       element_styles = stylesheets.load
       stylesheets.issues.each { |issue| @document.add_issue(issue.category, issue.message) }
 

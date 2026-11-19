@@ -35,7 +35,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     require_positive_value width, height
 
     @image = begin
-      @document.load_url(@url)
+      @document.resource_loader.load(@url)
     rescue Prawn::SVG::UrlLoader::Error => e
       raise SkipElementError.new("Error retrieving URL #{@url}: #{e.message}", :resource)
     end

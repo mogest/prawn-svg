@@ -246,7 +246,7 @@ describe Prawn::SVG::Interface do
         interface = Prawn::SVG::Interface.new('<svg xmlns="http://www.w3.org/2000/svg"><text y="10">hi</text></svg>', pdf, {})
         drawing = false
         allow(pdf).to(receive(:save_font).and_wrap_original { |method, *args, &block| (drawing = true) && method.call(*args, &block) })
-        allow(interface.document).to(receive(:record_work).and_wrap_original { |method, units| drawing ? raise('charged while drawing') : method.call(units) })
+        allow(interface.document.work_budget).to(receive(:record).and_wrap_original { |method, units| drawing ? raise('charged while drawing') : method.call(units) })
 
         expect { interface.draw }.not_to raise_error
       end

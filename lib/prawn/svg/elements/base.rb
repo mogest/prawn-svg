@@ -56,7 +56,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def process
-    document.record_work(source.children.length + 1)
+    document.work_budget.record(source.children.length + 1)
 
     if (state.depth += 1) > Prawn::SVG::Document::MAX_ELEMENT_DEPTH
       add_issue(:invalid, 'elements are nested too deeply')
@@ -114,12 +114,12 @@ class Prawn::SVG::Elements::Base
   end
 
   def add_call(name, *arguments, **kwarguments)
-    document.record_work(call_work(name, kwarguments))
+    document.work_budget.record(call_work(name, kwarguments))
     @calls << [name.to_s, arguments, kwarguments, []]
   end
 
   def add_call_and_enter(name, *arguments, **kwarguments)
-    document.record_work(call_work(name, kwarguments))
+    document.work_budget.record(call_work(name, kwarguments))
     @calls << [name.to_s, arguments, kwarguments, []]
     @calls = @calls.last.last
   end

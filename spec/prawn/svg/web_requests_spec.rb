@@ -279,6 +279,16 @@ RSpec.describe 'web requests' do
       expect(requested).to eq ['https://web.test/b.css']
     end
 
+    it 'gives nested documents responses added to the root URL loader cache' do
+      nested = %(<image href="data:image/svg+xml;base64,#{[svg].pack('m0')}" width="5" height="5"/>)
+      expect(SsrfFilter).not_to receive(:get)
+      pdf = Prawn::Document.new
+      result = pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{nested}</svg>), web_requests: true) do |doc|
+        doc.url_loader.add_to_cache('https://web.test/image.jpg', png)
+      end
+      expect(result[:warnings]).to be_empty
+    end
+
     it 'shares responses with nested documents' do
       nested = %(<image href="data:image/svg+xml;base64,#{[svg].pack('m0')}" width="5" height="5"/>)
       requested = stub_ssrf_filter
