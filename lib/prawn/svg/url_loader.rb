@@ -15,11 +15,13 @@ class Prawn::SVG::UrlLoader
     url.to_s.match?(/\Ahttps?:/i)
   end
 
-  attr_reader :enable_cache, :loaders
+  attr_reader :cache, :loaders
 
-  def initialize(enable_cache: false, web_requests: false, file_requests: false)
-    @url_cache = {}
-    @enable_cache = enable_cache
+  def initialize(cache: {}, web_requests: false, file_requests: false)
+    raise ArgumentError, ':cache_requests must be false, nil or respond to [] and []=' if cache && !hash_like?(cache)
+
+    @cache = cache
+    @failures = {}
 
     @loaders = []
     loaders << Prawn::SVG::Loaders::Data.new
@@ -28,23 +30,23 @@ class Prawn::SVG::UrlLoader
   end
 
   def load(url)
-    retrieve_from_cache(url) || perform_and_cache(url)
-  end
+    return perform(url) if !cache || url.match?(/\Adata:/i)
 
-  def add_to_cache(url, data)
-    @url_cache[url] = data
-  end
-
-  def retrieve_from_cache(url)
-    @url_cache[url]
+    cache[url] ||= perform_once(url)
   end
 
   private
 
-  def perform_and_cache(url)
-    data = perform(url)
-    add_to_cache(url, data) if enable_cache
-    data
+  def hash_like?(object)
+    object.respond_to?(:[]) && object.respond_to?(:[]=)
+  end
+
+  def perform_once(url)
+    raise @failures[url] if @failures.key?(url)
+
+    perform(url)
+  rescue Error => e
+    raise @failures[url] = e
   end
 
   def perform(url)

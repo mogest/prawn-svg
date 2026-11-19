@@ -29,7 +29,7 @@ Option      | Data type | Description
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :web_requests | boolean, callable | If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  Defaults to false, which denies all web requests.
 :file_requests | false, string, Pathname, callable | If a directory path, prawn-svg will read `file:` URLs and relative paths for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references from under that directory.  Can also be a callable; see [File requests](#file-requests).  Not available to SVGs loaded by `<image>`, or to content fetched from the web.  Defaults to false, which denies all file requests.
-:cache_requests | boolean | If true, prawn-svg will cache the result of all URL requests (images, fonts, stylesheets and external `<use>` references).  Web requests are always made at most once per render.  Defaults to false.
+:cache_requests | Hash-like, false | Where responses are cached.  prawn-svg looks up each URL in it before making a request, and stores each successful response in it.  Defaults to a new `Hash` for each render, so each URL is requested at most once per render.  To share the cache across renders, pass your own `Hash`, or any object with `[]` and `[]=` that returns `nil` for a missing key.  `false` turns caching off.  Keys are URLs as written in the SVG.  Failed requests and `data:` URLs are not stored.  A cached response is returned without checking `:web_requests` or `:file_requests`.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
@@ -235,7 +235,7 @@ Deprecated | Replacement
 ---------- | -----------
 `:enable_web_requests` | `:web_requests`.  Note that web requests are now off by default.
 `:enable_file_requests_with_root` | `:file_requests`
-`:cache_images` | `:cache_requests`
+`:cache_images` | `:cache_requests`.  `cache_images: true` is now the default; `cache_images: false` becomes `cache_requests: false`.
 `:log_warnings` | `:log_issues`
 `result[:warnings]` | `result[:issues]`, whose `message`s are the same strings
 

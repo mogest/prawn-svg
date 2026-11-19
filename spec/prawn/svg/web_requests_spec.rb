@@ -263,6 +263,45 @@ RSpec.describe 'web requests' do
       expect(requested).to eq ['https://web.test/image.jpg'] * 2
     end
 
+    it 'requests a URL once across renders sharing a cache_requests cache' do
+      requested = stub_ssrf_filter
+      cache = {}
+      render(svg, web_requests: true, cache_requests: cache)
+      render(svg, web_requests: true, cache_requests: cache)
+      expect(requested).to eq ['https://web.test/image.jpg']
+      expect(cache.keys).to eq ['https://web.test/image.jpg']
+    end
+
+    it 'does not store failures in the cache_requests cache' do
+      web.delete('https://web.test/image.jpg')
+      stub_ssrf_filter
+      cache = {}
+      render(svg, web_requests: true, cache_requests: cache)
+      expect(cache).to be_empty
+    end
+
+    it 'requests a file once per render' do
+      requested = []
+      file_requests = lambda do |path|
+        requested << path
+        png
+      end
+      render(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{%(<image href="image.jpg" width="5" height="5"/>) * 2}</svg>),
+        file_requests: file_requests)
+      expect(requested).to eq ['image.jpg']
+    end
+
+    it 'requests a failing file once per render' do
+      requested = []
+      file_requests = lambda do |path|
+        requested << path
+        raise Prawn::SVG::Requests::Error, 'missing'
+      end
+      render(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{%(<image href="missing.jpg" width="5" height="5"/>) * 2}</svg>),
+        file_requests: file_requests)
+      expect(requested).to eq ['missing.jpg']
+    end
+
     it 'requests a failing URL once per render' do
       web.delete('https://web.test/image.jpg')
       requested = stub_ssrf_filter
@@ -279,13 +318,12 @@ RSpec.describe 'web requests' do
       expect(requested).to eq ['https://web.test/b.css']
     end
 
-    it 'gives nested documents responses added to the root URL loader cache' do
+    it 'gives nested documents responses from the cache_requests cache' do
       nested = %(<image href="data:image/svg+xml;base64,#{[svg].pack('m0')}" width="5" height="5"/>)
       expect(SsrfFilter).not_to receive(:get)
       pdf = Prawn::Document.new
-      result = pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{nested}</svg>), web_requests: true) do |doc|
-        doc.url_loader.add_to_cache('https://web.test/image.jpg', png)
-      end
+      result = pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{nested}</svg>), web_requests: true,
+        cache_requests: { 'https://web.test/image.jpg' => png })
       expect(result[:warnings]).to be_empty
     end
 

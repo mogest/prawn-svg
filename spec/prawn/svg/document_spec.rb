@@ -92,15 +92,31 @@ describe Prawn::SVG::Document do
     end
 
     describe 'request caching' do
-      def cache_enabled_with(options)
-        Prawn::SVG::Document.new('<svg></svg>', bounds, options).url_loader.enable_cache
+      def cache_with(options)
+        Prawn::SVG::Document.new('<svg></svg>', bounds, options).url_loader.cache
       end
 
-      it 'is enabled by cache_requests, or the legacy cache_images option' do
-        expect(cache_enabled_with({})).to be_falsey
-        expect(cache_enabled_with(cache_requests: true)).to be true
-        expect(cache_enabled_with(cache_images: true)).to be true
-        expect(cache_enabled_with(cache_requests: false, cache_images: true)).to be false
+      it 'uses a new hash by default' do
+        expect(cache_with({})).to eq({})
+        expect(cache_with({})).not_to be cache_with({})
+      end
+
+      it 'uses the cache given by cache_requests, which false or nil turns off' do
+        cache = {}
+        expect(cache_with(cache_requests: cache)).to be cache
+        expect(cache_with(cache_requests: false)).to be false
+        expect(cache_with(cache_requests: nil)).to be_nil
+        expect(cache_with(cache_requests: false, cache_images: true)).to be false
+      end
+
+      it 'uses a new hash for the legacy cache_images: true, and no cache for false' do
+        expect(cache_with(cache_images: true)).to eq({})
+        expect(cache_with(cache_images: false)).to be false
+      end
+
+      it 'raises if the cache is not hash-like' do
+        expect { cache_with(cache_requests: true) }.to raise_error ArgumentError, /cache_requests/
+        expect { cache_with(cache_requests: 42) }.to raise_error ArgumentError, /cache_requests/
       end
     end
 
@@ -120,8 +136,9 @@ describe Prawn::SVG::Document do
         expect(child.font_registry.installed_fonts).to eq font_registry.installed_fonts
       end
 
-      it "doesn't inherit file access" do
-        expect { child.url_loader.load('spec_helper.rb') }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
+      it "doesn't inherit file access, even to files the parent has cached" do
+        parent.url_loader.load('spec/spec_helper.rb')
+        expect { child.url_loader.load('spec/spec_helper.rb') }.to raise_error Prawn::SVG::Requests::Error, /file requests are disabled/
       end
 
       it 'shares the root document' do

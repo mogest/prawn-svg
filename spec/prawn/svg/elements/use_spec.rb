@@ -135,7 +135,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -159,7 +159,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -179,7 +179,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -204,7 +204,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -223,7 +223,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -243,8 +243,8 @@ describe Prawn::SVG::Elements::Use do
         end
 
         before do
-          document.url_loader.add_to_cache('http://use-test.invalid/icons.svg',
-            %(<svg xmlns="http://www.w3.org/2000/svg"><rect id=#{id.encode(xml: :attr)} width="5" height="5"/></svg>))
+          document.url_loader.cache['http://use-test.invalid/icons.svg'] =
+            %(<svg xmlns="http://www.w3.org/2000/svg"><rect id=#{id.encode(xml: :attr)} width="5" height="5"/></svg>)
           element.process
         end
 
@@ -282,7 +282,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 
@@ -306,7 +306,7 @@ describe Prawn::SVG::Elements::Use do
       end
 
       before do
-        document.url_loader.add_to_cache('http://use-test.invalid/icons.svg', external_svg)
+        document.url_loader.cache['http://use-test.invalid/icons.svg'] = external_svg
         element.process
       end
 

@@ -28,7 +28,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 
@@ -55,7 +55,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 
@@ -74,7 +74,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 
@@ -103,7 +103,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 
@@ -122,7 +122,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 
@@ -158,7 +158,7 @@ describe Prawn::SVG::Elements::Image do
     end
 
     before do
-      document.url_loader.add_to_cache('http://image-test.invalid/drawing.svg', external_svg)
+      document.url_loader.cache['http://image-test.invalid/drawing.svg'] = external_svg
       element.process
     end
 

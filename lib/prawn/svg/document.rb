@@ -50,7 +50,7 @@ class Prawn::SVG::Document
     @color_mode = load_color_mode
 
     @url_loader = Prawn::SVG::UrlLoader.new(
-      enable_cache:  options.fetch(:cache_requests) { options[:cache_images] },
+      cache:         options.fetch(:cache_requests) { options.fetch(:cache_images, true) && {} },
       web_requests:  options.fetch(:web_requests) { options[:enable_web_requests] },
       file_requests: options.fetch(:file_requests) { options[:enable_file_requests_with_root] }
     )
@@ -138,7 +138,8 @@ class Prawn::SVG::Document
     work_budget.record(250)
     self.class.new(
       data, [width, height],
-      @options.merge(file_requests: false, width: width, height: height),
+      # Without the root's cache, it can't read files the root cached.  Its web URLs still go through the root.
+      @options.merge(file_requests: false, cache_requests: false, width: width, height: height),
       font_registry:       font_registry&.fork,
       attribute_overrides: attribute_overrides,
       root_document:       root_document

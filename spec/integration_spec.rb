@@ -140,15 +140,11 @@ describe 'Integration test' do
             }
           )
 
-          r = prawn.svg File.read(file), at: [0, prawn.bounds.top], width: prawn.bounds.width,
-            file_requests: File.dirname(__FILE__) do |doc|
-            doc.url_loader.add_to_cache(
-              'https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-wide.jpg', File.read("#{root}/spec/sample_images/mushroom-wide.jpg")
-            )
-            doc.url_loader.add_to_cache(
-              'https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/mushroom-long.jpg', File.read("#{root}/spec/sample_images/mushroom-long.jpg")
-            )
+          cache = %w[mushroom-wide.jpg mushroom-long.jpg].to_h do |name|
+            ["https://raw.githubusercontent.com/mogest/prawn-svg/master/spec/sample_images/#{name}", File.binread("#{root}/spec/sample_images/#{name}")]
           end
+          r = prawn.svg File.read(file), at: [0, prawn.bounds.top], width: prawn.bounds.width,
+            file_requests: File.dirname(__FILE__), cache_requests: cache
 
           warnings = r[:warnings].reject do |w|
             (w =~ /Verdana/ && w =~ /is not a known font/) || w =~ /(render gradients$|waiting on the Prawn project)/
