@@ -23,6 +23,7 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>= 2.7.0'
 
+  gem.add_dependency 'addressable', '>= 2.9.1', '< 3'
   gem.add_dependency 'css_parser', '>= 1.17.1', '< 4'
   gem.add_dependency 'matrix', '~> 0.4.2'
   gem.add_dependency 'prawn', '>= 2.3.0', '< 3'
