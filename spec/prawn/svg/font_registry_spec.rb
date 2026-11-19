@@ -1,6 +1,13 @@
 require 'spec_helper'
 
 RSpec.describe Prawn::SVG::FontRegistry do
+  around do |example|
+    families = described_class.external_font_families
+    example.run
+  ensure
+    described_class.instance_variable_set(:@external_font_families, families)
+  end
+
   describe '#load' do
     let(:pdf) { Prawn::Document.new }
     let(:font_registry) { Prawn::SVG::FontRegistry.new(pdf.font_families) }
@@ -376,7 +383,6 @@ RSpec.describe Prawn::SVG::FontRegistry do
     let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
     let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic', weight_class: 400) }
     let(:ttf2) { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Regular', weight_class: 400) }
-    before { Prawn::SVG::FontRegistry.external_font_families.clear }
 
     let(:pdf) do
       doc = Prawn::Document.new
@@ -405,8 +411,6 @@ RSpec.describe Prawn::SVG::FontRegistry do
   end
 
   describe '::load_external_fonts' do
-    before { Prawn::SVG::FontRegistry.external_font_families.clear }
-
     context 'with TTF files' do
       let(:ttc)  { instance_double(Prawn::SVG::TTC, fonts: []) }
       let(:ttf)  { instance_double(Prawn::SVG::TTF, family: 'Awesome Font', subfamily: 'Italic', weight_class: 400) }
