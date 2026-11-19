@@ -78,7 +78,7 @@ module Prawn::SVG::TransformParser
   private
 
   def parse_css_method_calls(string)
-    string.scan(/\s*(\w+)\(([^)]+)\)\s*/).collect do |call|
+    string.scan(/(?<!\w)(\w+)\(([^()]+)\)/).collect do |call|
       name, argument_string = call
       arguments = argument_string.strip.split(/\s*[,\s]\s*/).map { |argument| Prawn::SVG::Number.parse(argument) }
       [name, arguments]

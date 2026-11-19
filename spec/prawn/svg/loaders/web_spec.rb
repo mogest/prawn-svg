@@ -10,7 +10,7 @@ RSpec.describe Prawn::SVG::Loaders::Web do
     let(:web_requests) { true }
 
     it 'loads the URL through ssrf_filter' do
-      expect(SsrfFilter).to receive(:get).with(URI(url), {}).and_return(http_response(Net::HTTPOK, body: 'hello!'))
+      expect(SsrfFilter).to receive(:get).with(URI(url), {}) { |*, &block| http_response(Net::HTTPOK, body: 'hello!').tap(&block) }
       expect(subject).to eq 'hello!'
     end
   end

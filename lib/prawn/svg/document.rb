@@ -8,6 +8,7 @@ class Prawn::SVG::Document
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
   DEFAULT_MAX_WORK = 1_000_000
   MAX_ELEMENT_DEPTH = 200
+  MAX_ENTITY_EXPANSION_BYTES = 10_000_000
 
   # An +Array+ of Prawn::SVG::Issue objects describing problems that occurred while parsing/rendering the SVG data.
   attr_reader :issues
@@ -25,9 +26,11 @@ class Prawn::SVG::Document
     :root_document
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
+    @root_document = root_document || self
+
     begin
       data = data.encode(Encoding::UTF_8) if data.is_a?(String) && data.encoding.name.start_with?('UTF-16', 'UTF-32')
-      @root = self.class.parse_root(data) or raise_parse_error(data)
+      @root = parse_root(data) or raise_parse_error(data)
     rescue RuntimeError, EncodingError => e
       raise_parse_error(data, e.message)
     end
@@ -35,7 +38,6 @@ class Prawn::SVG::Document
     @issues = []
     @issue_set = Set.new
     @options = options
-    @root_document = root_document || self
     @max_work = @work_remaining = load_max_work unless root_document
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
@@ -57,7 +59,7 @@ class Prawn::SVG::Document
     @sizing = Prawn::SVG::Calculators::DocumentSizing.new(bounds, attributes)
     calculate_sizing(requested_width: options[:width], requested_height: options[:height])
 
-    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, url_loader: url_loader, record_work: method(:record_work))
+    stylesheets = Prawn::SVG::CSS::Stylesheets.new(css_parser, root, load_url: method(:load_url), record_work: method(:record_work))
     @element_styles = stylesheets.load
     stylesheets.issues.each { |issue| add_issue(issue.category, issue.message) }
     process_font_face_rules(stylesheets.font_face_rules)
@@ -77,9 +79,11 @@ class Prawn::SVG::Document
   end
 
   # Requests for non-data URLs are charged whether or not they succeed, so fan-out can't make endless requests.
+  # Web responses, including failures, are shared by the whole render so that repeated references fetch only once.
   def load_url(url)
     record_work(1000) unless url.match?(/\Adata:/i)
-    url_loader.load(url).tap { |data| record_work(data.bytesize / 256) }
+    data = Prawn::SVG::UrlLoader.web_url?(url) ? root_document.load_web_url(url) : url_loader.load(url)
+    data.tap { record_work(data.bytesize / 256) }
   end
 
   def reset_work_budget
@@ -88,22 +92,33 @@ class Prawn::SVG::Document
 
   # REXML expands entities lazily, raising a RuntimeError if they grow too large, so expand them all now where the
   # error can be handled.  REXML::ParseException is also a RuntimeError.
-  def self.parse_root(data)
+  # REXML's own limits still allow each of thousands of references to expand to 10KB, so also cap how much the text
+  # of every document parsed in the render may grow beyond the size of its data.
+  def parse_root(data)
+    return root_document.parse_root(data) unless root_document.equal?(self)
+
     root = REXML::Document.new(data).root
     return unless root
+
+    @expansion_bytes_remaining ||= MAX_ENTITY_EXPANSION_BYTES
+    bytes_remaining = (data.is_a?(String) ? data.bytesize : 0) + @expansion_bytes_remaining
+    expand = lambda do |value|
+      raise 'entities expand to too much text' if (bytes_remaining -= value.bytesize).negative?
+    end
 
     stack = [[root, 1]]
     while (element, depth = stack.pop)
       raise 'elements are nested too deeply' if depth > MAX_ELEMENT_DEPTH
 
-      element.attributes.each_attribute(&:value)
+      element.attributes.each_attribute { |attribute| expand.call(attribute.value) }
       element.children.each do |child|
         case child
         when REXML::Element then stack << [child, depth + 1]
-        when REXML::Text then child.value
+        when REXML::Text then expand.call(child.value)
         end
       end
     end
+    @expansion_bytes_remaining = [@expansion_bytes_remaining, bytes_remaining].min
     root
   end
 
@@ -164,6 +179,17 @@ class Prawn::SVG::Document
     @sizing = original
   end
 
+  protected
+
+  def load_web_url(url)
+    result = (@web_responses ||= {})[url] ||= begin
+      url_loader.load(url)
+    rescue Prawn::SVG::UrlLoader::Error => e
+      e
+    end
+    result.is_a?(Exception) ? raise(result) : result
+  end
+
   private
 
   def process_font_face_rules(rules)
@@ -217,7 +243,7 @@ class Prawn::SVG::Document
       return false
     end
 
-    font_data = url_loader.load(url)
+    font_data = load_url(url)
     raise Prawn::SVG::UrlLoader::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
 
     font_registry.register_font_face(family, weight, style, stretch, StringIO.new(font_data))

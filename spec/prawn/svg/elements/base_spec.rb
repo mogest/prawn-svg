@@ -233,6 +233,17 @@ describe Prawn::SVG::Elements::Base do
         ['font', "12px 'A;B'", true]
       ]
     end
+
+    it 'treats an unclosed bracket as running to the end of the declarations' do
+      expect(element.send(:parse_css_declarations, 'stroke: red; fill: url(#a; b')).to eq [
+        ['stroke', 'red', false],
+        ['fill', 'url(#a; b', false]
+      ]
+    end
+
+    it 'parses many unclosed brackets in linear time' do
+      expect(element.send(:parse_css_declarations, '(' * 200_000)).to eq []
+    end
   end
 
   describe 'namespaces' do

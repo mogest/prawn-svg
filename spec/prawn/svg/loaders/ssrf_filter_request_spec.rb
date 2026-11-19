@@ -7,7 +7,7 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
   subject { described_class.new(**options).call(uri) }
 
   it 'returns the body of a successful response' do
-    expect(SsrfFilter).to receive(:get).with(uri, {}).and_return(http_response(Net::HTTPOK, body: 'hello!'))
+    expect(SsrfFilter).to receive(:get).with(uri, {}) { |*, &block| http_response(Net::HTTPOK, body: 'hello!').tap(&block) }
     expect(subject).to eq 'hello!'
   end
 
@@ -20,7 +20,7 @@ RSpec.describe Prawn::SVG::Loaders::SsrfFilterRequest do
     let(:options) { { http_options: { open_timeout: 5 } } }
 
     it 'passes them through to ssrf_filter' do
-      expect(SsrfFilter).to receive(:get).with(uri, options).and_return(http_response(Net::HTTPOK, body: 'hello!'))
+      expect(SsrfFilter).to receive(:get).with(uri, options) { |*, &block| http_response(Net::HTTPOK, body: 'hello!').tap(&block) }
       expect(subject).to eq 'hello!'
     end
   end

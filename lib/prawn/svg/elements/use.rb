@@ -116,7 +116,7 @@ class Prawn::SVG::Elements::Use < Prawn::SVG::Elements::Base
       data = @document.load_url(url)
 
       root = begin
-        Prawn::SVG::Document.parse_root(data)
+        @document.parse_root(data)
       rescue RuntimeError
         raise SkipElementError.new("use tag references external SVG at '#{url}' which could not be parsed", :resource)
       end

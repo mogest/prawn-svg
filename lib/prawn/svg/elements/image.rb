@@ -153,7 +153,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
   end
 
   def find_view_element_attributes(data, fragment)
-    root = Prawn::SVG::Document.parse_root(data)
+    root = @document.parse_root(data)
     return unless root
 
     element = REXML::XPath.match(root, '//*[@id=$id]', nil, 'id' => fragment).first

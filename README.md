@@ -29,7 +29,7 @@ Option      | Data type | Description
 :height     | integer   | Desired height of the SVG.  Defaults to vertical space available.
 :web_requests | boolean, callable | If true, prawn-svg will fetch http and https URLs for images, `@font-face` fonts, `@import` stylesheets and external `<use>` references.  Requests go through [`ssrf_filter`](https://github.com/arkadiyt/ssrf_filter), which refuses private, loopback and link-local addresses.  Can also be a callable; see [Web requests](#web-requests).  Defaults to false, which denies all web requests.
 :enable_file_requests_with_root | string | If not nil, prawn-svg will serve `file:` URLs and relative paths from your local disk if the file is located under the specified directory. Required for `@font-face` fonts and external `<use>` references loaded via file paths.  Not available to SVGs loaded by `<image>`, or to content fetched from the web.<br><br>It is very dangerous to specify the root path ("/") if you're not fully in control of your input SVG.  Defaults to `nil` (off).
-:cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Defaults to false.
+:cache_images | boolean   | If true, prawn-svg will cache the result of all URL requests. Web requests are always made at most once per render.  Defaults to false.
 :fallback_font_name | string | A font name which will override the default fallback font of Times-Roman.  If this value is set to `nil`, prawn-svg will ignore a request for an unknown font and log a warning.
 :color_mode | :rgb, :cmyk | Output color mode.  Defaults to :rgb.
 :language   | string    | BCP 47 language tag for `<switch>` `systemLanguage` matching.  Defaults to `"en"`.
@@ -166,7 +166,8 @@ To reject SVGs that won't render as they would in a browser:
 
 ### Web requests
 
-`web_requests: true` uses `ssrf_filter` with Net::HTTP's default 60 second timeouts.  To change how requests are made,
+`web_requests: true` uses `ssrf_filter` with Net::HTTP's default 60 second timeouts, giving up on any request that takes
+longer than 30 seconds in total or whose response is larger than 20 MB after decompression.  To change how requests are made,
 pass a callable as `:web_requests` instead.  prawn-svg provides two:
 
 ```ruby
@@ -179,7 +180,8 @@ pass a callable as `:web_requests` instead.  prawn-svg provides two:
 
 `SsrfFilterRequest` takes [ssrf_filter options](https://github.com/arkadiyt/ssrf_filter#options).  Setting a proxy in
 `http_options` bypasses its address checks, and setting `verify_mode` can disable certificate checks.
-`UnfilteredRequest` takes `max_redirects` (default 10) and Net::HTTP options.
+`UnfilteredRequest` takes `max_redirects` (default 10) and Net::HTTP options.  Both also take `total_timeout` in seconds
+and `max_response_bytes`.
 
 Your own callable is given a `URI` and returns the response body as a string.  If the resource can't be loaded, raise
 `Prawn::SVG::UrlLoader::Error` and it's reported as a `:resource` issue; any other error aborts rendering.

@@ -361,7 +361,7 @@ class Prawn::SVG::Elements::Base
   end
 
   def parse_css_declarations(declarations)
-    declarations.scan(/(?:"[^"]*"|'[^']*'|\([^)]*\)|[^;"'(])+/).filter_map do |declaration|
+    declarations.scan(/(?:"[^"]*"|'[^']*'|\([^)]*\)?|[^;"'(])+/).filter_map do |declaration|
       property, value = declaration.split(':', 2)
       property = property.strip.downcase
       next if value.nil? || property.empty?

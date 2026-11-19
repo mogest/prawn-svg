@@ -63,6 +63,16 @@ RSpec.describe Prawn::SVG::TransformParser do
     end
   end
 
+  context 'with many unclosed brackets' do
+    let(:transform) { 'a(' * 100_000 }
+    it { is_expected.to eq Matrix.identity(3) }
+  end
+
+  context 'with a long name and no closing bracket' do
+    let(:transform) { "#{' ' * 100_000}#{'a' * 100_000}(" }
+    it { is_expected.to eq Matrix.identity(3) }
+  end
+
   context 'with translate' do
     let(:transform) { 'translate(10 20)' }
     it { is_expected.to eq Matrix[[1, 0, 10.0], [0, 1, -20.0], [0, 0, 1.0]] }

@@ -42,7 +42,7 @@ describe Prawn::SVG::Document do
       end
 
       it 'are made through ssrf_filter when the legacy enable_web_requests option is true' do
-        expect(SsrfFilter).to receive(:get).and_return(http_response(Net::HTTPOK, body: 'data'))
+        expect(SsrfFilter).to receive(:get) { |*, &block| http_response(Net::HTTPOK, body: 'data').tap(&block) }
         expect(load_with(enable_web_requests: true)).to eq 'data'
       end
 
@@ -52,7 +52,7 @@ describe Prawn::SVG::Document do
       end
 
       it 'are enabled when web_requests is true, even if enable_web_requests is false' do
-        expect(SsrfFilter).to receive(:get).and_return(http_response(Net::HTTPOK, body: 'data'))
+        expect(SsrfFilter).to receive(:get) { |*, &block| http_response(Net::HTTPOK, body: 'data').tap(&block) }
         expect(load_with(web_requests: true, enable_web_requests: false)).to eq 'data'
       end
 
@@ -135,6 +135,29 @@ describe Prawn::SVG::Document do
 
       it 'raises an exception when the document is loaded' do
         expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /entity expansion/
+      end
+    end
+
+    context 'when many references to a large entity expand to too much text in total' do
+      let(:svg) do
+        %(<!DOCTYPE svg [<!ENTITY a "#{'x' * 10_000}">]><svg>#{'<text a="&a;">&a;</text>' * 600}</svg>)
+      end
+
+      it 'raises an exception when the document is loaded' do
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /too much text/
+      end
+    end
+
+    context 'when entities in nested documents expand to too much text in total' do
+      def render_images(count)
+        nested = %(<!DOCTYPE svg [<!ENTITY a "#{'x' * 10_000}">]><svg xmlns="http://www.w3.org/2000/svg">#{'<g a="&a;"/>' * 200}</svg>)
+        image = %(<image width="1" height="1" href="data:image/svg+xml;base64,#{[nested].pack('m0')}"/>)
+        Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image * count}</svg>))
+      end
+
+      it 'stops parsing them once the budget for the render is spent' do
+        expect(render_images(4)[:warnings]).not_to include(/could not be parsed/)
+        expect(render_images(6)[:warnings]).to include 'image tag references SVG data which could not be parsed'
       end
     end
 

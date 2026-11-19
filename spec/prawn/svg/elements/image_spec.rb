@@ -186,10 +186,11 @@ describe Prawn::SVG::Elements::Image do
       expect(result[:warnings]).to eq ["image tag references '#{url}?1', which contains it"]
     end
 
-    it 'follows each chain of distinct URLs until it repeats' do
-      requests, = render_self_referencing(3)
+    it 'follows each chain of distinct URLs until it repeats, fetching each URL once' do
+      requests, result = render_self_referencing(3)
 
-      expect(requests).to eq 3 + (3 * 2) + (3 * 2 * 1)
+      expect(requests).to eq 3
+      expect(result[:warnings].length).to eq 3
     end
   end
 

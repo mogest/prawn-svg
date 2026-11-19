@@ -33,9 +33,11 @@ RSpec.describe 'web requests' do
 
   def stub_ssrf_filter
     requested = []
-    allow(SsrfFilter).to receive(:get) do |uri, _options|
+    allow(SsrfFilter).to receive(:get) do |uri, _options, &block|
       requested << uri.to_s
-      web.key?(uri.to_s) ? http_response(Net::HTTPOK, body: web[uri.to_s]) : http_response(Net::HTTPNotFound, code: '404', message: 'Not Found')
+      response = web.key?(uri.to_s) ? http_response(Net::HTTPOK, body: web[uri.to_s]) : http_response(Net::HTTPNotFound, code: '404', message: 'Not Found')
+      block.call(response)
+      response
     end
     requested
   end
@@ -254,17 +256,34 @@ RSpec.describe 'web requests' do
     let(:image) { %(<image href="https://web.test/image.jpg" width="5" height="5"/>) }
     let(:svg) { %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image}#{image}</svg>) }
 
-    it 'requests a URL once with cache_images' do
+    it 'requests a URL once per render, even without cache_images' do
       requested = stub_ssrf_filter
-      render(svg, web_requests: true, cache_images: true)
-      expect(requested).to eq ['https://web.test/image.jpg']
+      render(svg, web_requests: true)
+      render(svg, web_requests: true)
+      expect(requested).to eq ['https://web.test/image.jpg'] * 2
     end
 
-    it 'does not cache failures' do
+    it 'requests a failing URL once per render' do
       web.delete('https://web.test/image.jpg')
       requested = stub_ssrf_filter
-      render(svg, web_requests: true, cache_images: true)
-      expect(requested).to eq ['https://web.test/image.jpg'] * 2
+      result = render(svg, web_requests: true)
+      expect(requested).to eq ['https://web.test/image.jpg']
+      expect(result[:warnings].length).to eq 1
+    end
+
+    it 'requests an @import stylesheet once per render, including from nested documents' do
+      nested = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><style>@import url("https://web.test/b.css");</style></svg>)
+      image = %(<image href="data:image/svg+xml;base64,#{[nested].pack('m0')}" width="5" height="5"/>)
+      requested = stub_ssrf_filter
+      render(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image * 3}</svg>), web_requests: true)
+      expect(requested).to eq ['https://web.test/b.css']
+    end
+
+    it 'shares responses with nested documents' do
+      nested = %(<image href="data:image/svg+xml;base64,#{[svg].pack('m0')}" width="5" height="5"/>)
+      requested = stub_ssrf_filter
+      render(%(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">#{image}#{nested}</svg>), web_requests: true)
+      expect(requested).to eq ['https://web.test/image.jpg']
     end
   end
 end
