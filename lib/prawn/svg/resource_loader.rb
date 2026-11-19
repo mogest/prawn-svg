@@ -2,6 +2,9 @@
 # succeed, so fan-out can't make endless requests.  Web responses, including failures, are shared by every document in
 # the render so that repeated references fetch only once.
 class Prawn::SVG::ResourceLoader
+  REQUEST_WORK = 1000
+  BYTES_PER_WORK_UNIT = 256
+
   def initialize(url_loader, work_budget, web_url_loader = url_loader, web_responses = {})
     @url_loader = url_loader
     @work_budget = work_budget
@@ -15,9 +18,9 @@ class Prawn::SVG::ResourceLoader
   end
 
   def load(url)
-    @work_budget.record(1000) unless url.match?(/\Adata:/i)
+    @work_budget.record(REQUEST_WORK) unless url.match?(/\Adata:/i)
     data = Prawn::SVG::UrlLoader.web_url?(url) ? load_web_url(url) : @url_loader.load(url)
-    data.tap { @work_budget.record(data.bytesize / 256) }
+    data.tap { @work_budget.record(data.bytesize / BYTES_PER_WORK_UNIT) }
   end
 
   private
