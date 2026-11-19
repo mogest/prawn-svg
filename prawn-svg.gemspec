@@ -9,13 +9,17 @@ Gem::Specification.new do |gem|
   DESC
   gem.author = 'Mog Nesbitt'
   gem.email = 'mog@seriousorange.com'
-  gem.homepage = 'http://github.com/mogest/prawn-svg'
+  gem.homepage = 'https://github.com/mogest/prawn-svg'
   gem.license = 'MIT'
 
-  gem.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
-  gem.files         = `git ls-files`.split("\n")
+  gem.files         = Dir['lib/**/*.rb'] + %w[README.md LICENSE]
   gem.require_paths = ['lib']
-  gem.metadata      = { 'rubygems_mfa_required' => 'true' }
+  gem.metadata      = {
+    'rubygems_mfa_required' => 'true',
+    'source_code_uri'       => gem.homepage,
+    'changelog_uri'         => "#{gem.homepage}/releases",
+    'bug_tracker_uri'       => "#{gem.homepage}/issues"
+  }
 
   gem.required_ruby_version = '>= 2.7.0'
 
