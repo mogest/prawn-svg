@@ -518,6 +518,38 @@ describe Prawn::SVG::Elements::Text do
     end
   end
 
+  describe 'characters a built-in font cannot encode' do
+    let(:pdf) { Prawn::Document.new }
+    let(:message) { "text contains characters that the built-in font 'Courier' can't draw; use a TTF font" }
+
+    def drawn_text(svg)
+      drawn = []
+      allow(pdf).to(receive(:draw_text).and_wrap_original { |method, text, **opts| (drawn << text) && method.call(text, **opts) })
+      [pdf.svg(svg)[:issues], drawn]
+    end
+
+    it 'replaces them and reports an issue' do
+      issues, drawn = drawn_text(%(<svg xmlns="http://www.w3.org/2000/svg"><text font-family="Courier" y="10">a\u6f22b</text></svg>))
+
+      expect(issues).to eq [Prawn::SVG::Issue.new(:unsupported, message)]
+      expect(drawn).to eq ['a?b']
+    end
+
+    it 'replaces them on a text path, drawing others with the fallback font' do
+      pdf.font_families.update('Open Sans' => { normal: File.expand_path('../../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__) })
+      svg = <<~SVG
+        <svg xmlns="http://www.w3.org/2000/svg"><path id="p" d="M0 10 H500"/>
+          <text font-family="Courier, 'Open Sans'"><textPath href="#p">a\u0167\u6f22</textPath></text>
+        </svg>
+      SVG
+
+      issues, drawn = drawn_text(svg)
+
+      expect(issues).to eq [Prawn::SVG::Issue.new(:unsupported, message)]
+      expect(drawn).to eq ['a', "\u0167", '?']
+    end
+  end
+
   describe '<tref>' do
     let(:svg) { '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><defs><text id="ref" fill="green">my reference text</text></defs><text x="10"><tref xlink:href="#ref" fill="red" /></text></svg>' }
     let(:element) { Prawn::SVG::Elements::Root.new(document, document.root, [], fake_state) }

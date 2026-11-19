@@ -66,10 +66,11 @@ module Prawn::SVG
 
     def render_text_node_along_path(prawn, text_node, size, y_offset, current_distance)
       text_node.chunks.each do |chunk|
-        advances = kerned_advances(prawn, text_node, chunk.text, size)
+        fonts = (chunk.font_runs || [[nil, chunk.text]]).flat_map { |font, text| [font] * text.length }
+        advances = kerned_advances(prawn, text_node, chunk.text, fonts, size)
 
         chunk.text.each_char.with_index do |char, i|
-          char_width = text_node.width_of_text(prawn, char, nil, { size: size, kerning: false })
+          char_width = text_node.width_of_text(prawn, char, runs(fonts[i], char), { size: size, kerning: false })
           advance = advances[i]
 
           midpoint = current_distance + (char_width / 2.0)
@@ -91,7 +92,7 @@ module Prawn::SVG
           render_mode = calculate_text_rendering_mode(text_node.component)
 
           prawn.text_rendering_mode(render_mode) do
-            text_node.render_text_directly(prawn, char, nil, draw_opts)
+            text_node.render_text_directly(prawn, char, runs(fonts[i], char), draw_opts)
           end
 
           current_distance += advance
@@ -104,22 +105,28 @@ module Prawn::SVG
     # Compute the advance width for each character, accounting for kerning
     # with the following character. The advance is the character's own width
     # plus any kerning adjustment with its neighbour.
-    def kerned_advances(prawn, text_node, text, size)
+    def kerned_advances(prawn, text_node, text, fonts, size)
       opts_no_kern = { size: size, kerning: false }
       opts_kern = { size: size, kerning: true }
 
       text.each_char.with_index.map do |char, i|
-        char_width = text_node.width_of_text(prawn, char, nil, opts_no_kern)
+        font = fonts[i]
+        char_width = text_node.width_of_text(prawn, char, runs(font, char), opts_no_kern)
         next_char = text[i + 1]
 
-        if next_char
-          pair_width = text_node.width_of_text(prawn, "#{char}#{next_char}", nil, opts_kern)
-          next_width = text_node.width_of_text(prawn, next_char, nil, opts_no_kern)
+        if next_char && fonts[i + 1] == font
+          pair_width = text_node.width_of_text(prawn, "#{char}#{next_char}", runs(font, "#{char}#{next_char}"), opts_kern)
+          next_width = text_node.width_of_text(prawn, next_char, runs(font, next_char), opts_no_kern)
           char_width + (pair_width - char_width - next_width)
         else
           char_width
         end
       end
+    end
+
+    # Text in the primary font is drawn without runs, which are slower.
+    def runs(font, text)
+      [[font, text]] if font
     end
 
     def calculate_text_rendering_mode(component)

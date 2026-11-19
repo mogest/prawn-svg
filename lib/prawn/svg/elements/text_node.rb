@@ -76,8 +76,11 @@ module Prawn::SVG
         kerning = component.kerning_enabled?
         opts = { size: component.computed_properties.numeric_font_size, kerning: kerning }
 
-        fallback_fonts = component.fallback_fonts
-        font_runs = fallback_fonts&.any? ? split_into_font_runs(prawn, text_to_draw, fallback_fonts) : nil
+        fallback_fonts = component.fallback_fonts || []
+        if fallback_fonts.any? || !prawn.font.unicode?
+          font_runs = split_into_font_runs(prawn, text_to_draw, fallback_fonts)
+          text_to_draw = font_runs.map(&:last).join
+        end
 
         kerning_spacing = text_to_draw.length > 1 ? (component.kerning_pixels || 0) * (text_to_draw.length - 1) : 0
         letter_spacing = text_to_draw.length > 1 ? (component.letter_spacing_pixels || 0) * (text_to_draw.length - 1) : 0
@@ -220,6 +223,10 @@ module Prawn::SVG
       prawn.save_font do
         text.each_char do |char|
           font_for_char = font_for_glyph(prawn, char, primary_font, fallback_fonts)
+          if font_for_char == :none
+            font_for_char = nil
+            char = undrawable_character(primary_font) unless primary_font.unicode?
+          end
 
           if font_for_char != current_font && !current_text.empty?
             runs << [current_font, current_text]
@@ -234,6 +241,12 @@ module Prawn::SVG
       runs
     end
 
+    # Prawn's built-in fonts can't encode characters outside Windows-1252 at all, so they're replaced.
+    def undrawable_character(font)
+      component.add_issue(:unsupported, "text contains characters that the built-in font '#{font.family}' can't draw; use a TTF font")
+      '?'
+    end
+
     def font_for_glyph(prawn, char, primary_font, fallback_fonts)
       return nil if primary_font.glyph_present?(char)
 
@@ -242,7 +255,7 @@ module Prawn::SVG
         return fb if prawn.font.glyph_present?(char)
       end
 
-      nil
+      :none
     end
 
     def render_underline(prawn, size, cursor, y_offset, width)
