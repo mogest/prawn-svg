@@ -236,11 +236,19 @@ describe Prawn::SVG::Interface do
         expect(pdf.state.page.content.stream.filtered_stream).to eq content
       end
 
-      it 'gives each draw the whole budget' do
+      it 'gives each draw a fresh budget' do
         interface = Prawn::SVG::Interface.new(%(<svg xmlns="http://www.w3.org/2000/svg">#{'<rect width="1" height="1"/>' * 100}</svg>), Prawn::Document.new, max_work: 1000)
         interface.draw
 
         expect { interface.draw }.not_to raise_error
+      end
+
+      it 'reports the work used, even with no limit' do
+        svg = %(<svg xmlns="http://www.w3.org/2000/svg">#{'<rect width="1" height="1"/>' * 100}</svg>)
+        work = Prawn::Document.new.svg(svg)[:work]
+
+        expect(work).to be > 100
+        expect(Prawn::Document.new.svg(svg, max_work: false)[:work]).to eq work
       end
 
       it 'charges nothing once drawing has started' do
@@ -261,14 +269,22 @@ describe Prawn::SVG::Interface do
         expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::WorkLimitExceeded
       end
 
-      it 'charges for matching CSS selectors against elements' do
-        rects = '<rect width="1" height="1"/>' * 1000
-        style = %(<style>#{(1..500).map { |n| "g.c#{n} rect" }.join(',')} { fill: red; }</style>)
+      context 'with a stylesheet' do
+        let(:rects) { '<rect width="1" height="1"/>' * 1000 }
+        let(:styled_svg) { %(<svg xmlns="http://www.w3.org/2000/svg"><style>#{(1..500).map { |n| "g.c#{n} rect" }.join(',')} { fill: red; }</style>#{rects}</svg>) }
 
-        expect { Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{rects}</svg>), max_work: 20_000) }.not_to raise_error
-        expect do
-          Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{style}#{rects}</svg>), max_work: 20_000)
-        end.to raise_error Prawn::SVG::WorkLimitExceeded
+        it 'charges for matching CSS selectors against elements' do
+          expect { Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{rects}</svg>), max_work: 20_000) }.not_to raise_error
+          expect { Prawn::Document.new.svg(styled_svg, max_work: 20_000) }.to raise_error Prawn::SVG::WorkLimitExceeded
+        end
+
+        it 'counts stylesheet work towards the limit on every draw' do
+          construction_work = Prawn::SVG::Interface.new(styled_svg, Prawn::Document.new, {}).work_used
+          interface = Prawn::SVG::Interface.new(styled_svg, Prawn::Document.new, max_work: construction_work + 100)
+
+          expect { interface.draw }.to raise_error Prawn::SVG::WorkLimitExceeded
+          expect { interface.draw }.to raise_error Prawn::SVG::WorkLimitExceeded
+        end
       end
     end
 

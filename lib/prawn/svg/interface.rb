@@ -34,6 +34,7 @@ module Prawn
           data, [prawn.bounds.width, prawn.bounds.height], options,
           font_registry: font_registry, &block
         )
+        @construction_work = document.work_budget.used
 
         @renderer = Renderer.new(prawn, document, options)
       end
@@ -42,11 +43,15 @@ module Prawn
       # Draws the SVG to the Prawn::Document object.
       #
       def draw
-        document.work_budget.reset
+        document.work_budget.used = @construction_work
         @renderer.draw
 
         document.warnings.each { |w| warn w } if options.fetch(:log_issues) { options[:log_warnings] }
         raise_on_issues
+      end
+
+      def work_used
+        document.work_budget.used
       end
 
       def sizing

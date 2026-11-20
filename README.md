@@ -92,7 +92,7 @@ pass the following options to tailor its operation.  Unknown options raise `Argu
   `Prawn::SVG::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a
   drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers,
   patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a
-  higher value.  `false` turns the limit off.
+  higher value.  `false` turns the limit off.  `svg` returns the work used in `result[:work]`.
 
 ## Examples
 

@@ -18,7 +18,7 @@ module Prawn
         svg = Prawn::SVG::Interface.new(data, self, options, &block)
         svg.draw
         { issues: svg.document.issues, warnings: svg.document.warnings, width: svg.document.sizing.output_width,
-          height: svg.document.sizing.output_height }
+          height: svg.document.sizing.output_height, work: svg.work_used }
       end
     end
   end

@@ -3,19 +3,16 @@
 # 25 elements checked against a simple CSS selector.
 # The budget is shared by the whole render, including nested documents.
 class Prawn::SVG::WorkBudget
+  attr_accessor :used
+
   # +max_work+ is a positive integer, or false for no limit.
   def initialize(max_work)
-    @max_work = @remaining = max_work
+    @max_work = max_work
+    @used = 0
   end
 
   def record(units)
-    return unless @remaining
-
-    @remaining -= units
-    raise Prawn::SVG::WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if @remaining.negative?
-  end
-
-  def reset
-    @remaining = @max_work
+    @used += units
+    raise Prawn::SVG::WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if @max_work && @used > @max_work
   end
 end
