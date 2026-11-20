@@ -64,8 +64,8 @@ pass the following options to tailor its operation.  Unknown options raise `Argu
 
 - **`:fallback_font_name`**\
   Type: string, `nil` · Default: `"Times-Roman"`\
-  Font used when the SVG asks for an unknown font.  If `nil`, prawn-svg will ignore a request for an unknown font and
-  log a warning.
+  Font used when the SVG asks for an unknown font.  If `nil`, text in an unknown font is skipped and reported as a
+  `:resource` issue.
 
 - **`:color_mode`**\
   Type: `:rgb`, `:cmyk` · Default: `:rgb`\
@@ -293,8 +293,8 @@ to report the file as a `:resource` issue.
 ### Fonts
 
 By default, prawn-svg has a fonts path of `["/Library/Fonts", "/System/Library/Fonts",
-"#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype"]` to catch MacOS and Debian Linux users.  You can add
-to the font path:
+"#{ENV["HOME"]}/Library/Fonts", "/usr/share/fonts/truetype", "/mnt/c/Windows/Fonts"]` to catch MacOS, Debian Linux
+and WSL users.  You can add to the font path:
 
 ```ruby
   Prawn::SVG::FontRegistry.font_path << "/my/font/directory"
