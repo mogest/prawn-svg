@@ -29,6 +29,7 @@ class Prawn::SVG::Document
 
   def initialize(data, bounds, options, font_registry: nil, css_parser: CssParser::Parser.new, attribute_overrides: {}, root_document: nil)
     @root_document = root_document || self
+    @font_registry = font_registry
 
     begin
       data = data.encode(Encoding::UTF_8) if data.is_a?(String) && data.encoding.name.start_with?('UTF-16', 'UTF-32')
@@ -46,7 +47,6 @@ class Prawn::SVG::Document
     @external_svg_cache = {}
     @image_dimensions = {}
     @fallback_font_name = options.fetch(:fallback_font_name, DEFAULT_FALLBACK_FONT_NAME)
-    @font_registry = font_registry
     @color_mode = load_color_mode
 
     @url_loader = Prawn::SVG::UrlLoader.new(
@@ -87,6 +87,7 @@ class Prawn::SVG::Document
       bytes_remaining -= value.bytesize
       raise 'entities expand to too much text' if bytes_remaining.negative?
     end
+    text = +''
 
     stack = [[root, 1]]
     while (element, depth = stack.pop)
@@ -96,11 +97,14 @@ class Prawn::SVG::Document
       element.children.each do |child|
         case child
         when REXML::Element then stack << [child, depth + 1]
-        when REXML::Text then expand.call(child.value)
+        when REXML::Text
+          expand.call(child.value)
+          text << child.value
         end
       end
     end
     @expansion_bytes_remaining = [@expansion_bytes_remaining, bytes_remaining].min
+    font_registry&.add_text(text)
     root
   end
 
@@ -213,10 +217,10 @@ class Prawn::SVG::Document
       return false
     end
 
-    font_data = resource_loader.load(url)
-    raise Prawn::SVG::Requests::Error, 'font data could not be parsed' unless font_registry.usable_font_face_data?(font_data)
+    font_data = StringIO.new(resource_loader.load(url))
+    raise Prawn::SVG::Requests::Error, 'font data could not be parsed' unless font_registry.usable?(font_data)
 
-    font_registry.register_font_face(family, weight, style, stretch, StringIO.new(font_data))
+    font_registry.register_font_face(family, weight, style, stretch, font_data)
     true
   rescue Prawn::SVG::Requests::Error => e
     add_issue(:resource, "Failed to load @font-face font from #{source[:url]}: #{e.message}")

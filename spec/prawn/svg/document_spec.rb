@@ -120,6 +120,12 @@ describe Prawn::SVG::Document do
       end
     end
 
+    it 'gives the font registry all the text in the document' do
+      font_registry = Prawn::SVG::FontRegistry.new({})
+      expect(font_registry).to receive(:add_text) { |text| expect(text.chars.sort.join).to eq 'abx' }
+      Prawn::SVG::Document.new('<svg><style>x</style><text>a<tspan>b</tspan></text></svg>', bounds, options, font_registry: font_registry)
+    end
+
     describe '#replicate' do
       let(:web_requests) { ->(_uri) { 'data' } }
       let(:font_registry) { Prawn::SVG::FontRegistry.new({}) }

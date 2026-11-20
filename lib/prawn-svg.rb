@@ -1,6 +1,7 @@
 require 'digest'
 require 'matrix'
 require 'rexml/document'
+require 'set'
 require 'strscan'
 
 require 'prawn'

@@ -63,12 +63,15 @@ module Prawn::SVG
     ].freeze
 
     @font_path = DEFAULT_FONT_PATHS.select { |path| Dir.exist?(path) }
-    @usable = Hash.new { |hash, font_data| hash[font_data] = check_usable(font_data) }
+    @drawn = {}
+    @drawn_lock = Mutex.new
 
-    def initialize(font_families, font_face_data = [], font_face_checks = {})
+    # All but the font families are shared by every registry in a render.
+    def initialize(font_families, characters = Set[' '.ord], digests = {}.compare_by_identity, usable = {})
       @font_families = font_families
-      @font_face_data = font_face_data
-      @font_face_checks = font_face_checks
+      @characters = characters
+      @digests = digests
+      @usable = usable
     end
 
     def installed_fonts
@@ -77,7 +80,7 @@ module Prawn::SVG
     end
 
     def fork
-      self.class.new(installed_fonts.dup, @font_face_data.dup, @font_face_checks)
+      self.class.new(installed_fonts.dup, @characters, @digests, @usable)
     end
 
     def correctly_cased_font_name(name)
@@ -108,14 +111,22 @@ module Prawn::SVG
       font = Font.new(family_name, weight, style, effective_stretch)
       # Family hashes are shared with other registries and the installed font cache, so replace rather than modify.
       @font_families[family_name] = @font_families.fetch(family_name, {}).merge(font.subfamily => font_data)
-      @font_face_data << font_data
       @font_case_mapping[family_name.downcase] = family_name
     end
 
-    def usable_font_face_data?(data)
-      @font_face_checks.fetch(Digest::SHA256.digest(data)) do |digest|
-        @font_face_checks[digest] = self.class.usable_font_face_data?(data)
-      end
+    # Called with the text of each document in the render, any of which a font may be asked to draw.
+    def add_text(text)
+      count = @characters.size
+      @characters.merge(text.codepoints.uniq)
+      @usable.delete_if { |_, usable| usable } if @characters.size > count
+    end
+
+    # Whether the font can draw the render's text.  Prawn and ttfunk read a font's tables and glyphs as they are
+    # needed, raising arbitrary errors when they are corrupt, so the only way to know is to try it.  A font that
+    # fails is not used again in the render.
+    def usable?(font_data)
+      key = font_data.respond_to?(:read) ? (@digests[font_data] ||= Digest::SHA256.digest(font_data.tap(&:rewind).read)) : font_data
+      @usable.fetch(key) { @usable[key] = self.class.draws?(font_data, @characters) }
     end
 
     # Prawn always uses a fallback font's normal subfamily.
@@ -238,11 +249,6 @@ module Prawn::SVG
       !subfamilies.nil? && subfamilies.key?(font.subfamily) && usable?(subfamilies[font.subfamily])
     end
 
-    # @font-face fonts were checked when they were loaded, and are kept out of the cache as they only last for one render.
-    def usable?(font_data)
-      @font_face_data.include?(font_data) || self.class.usable?(font_data)
-    end
-
     def weight_for_css_font_weight(weight)
       case weight
       when '100'          then :thin
@@ -282,8 +288,20 @@ module Prawn::SVG
     class << self
       attr_reader :external_font_families, :font_path
 
-      def usable?(font_data)
-        @usable[font_data]
+      # The characters an installed font has drawn are remembered, so each is only tried once.  Fonts held in memory
+      # may have come from the SVG, so aren't remembered beyond the render.
+      def draws?(font_data, characters)
+        return test_render(font_data, characters) if font_file(font_data).respond_to?(:read)
+
+        drawn = @drawn_lock.synchronize { @drawn.fetch(font_data, Set.new) }
+        return true if characters.subset?(drawn)
+
+        # ttfunk reads more of the font the more glyphs a subset has, so every character must be tried together.
+        characters |= drawn
+        return false unless test_render(font_data, characters)
+
+        @drawn_lock.synchronize { @drawn[font_data] = @drawn.fetch(font_data, Set.new) | characters }
+        true
       end
 
       def load_external_fonts
@@ -313,40 +331,31 @@ module Prawn::SVG
         end
       end
 
-      # Prawn and ttfunk crash when using a font that lacks any of these, either immediately or when rendering.
-      def check_usable(font_data)
-        file, options = font_data.is_a?(Hash) ? [font_data[:file], { font: font_data[:font] }] : [font_data, {}]
-        return true unless file.respond_to?(:read) || File.file?(file.to_s)
-
-        usable_font?(Prawn::Font.load(Prawn::Document.new, file, options))
-      rescue StandardError
-        # Prawn and ttfunk raise arbitrary errors on corrupt data, which may have come from anywhere.
-        false
-      end
-
-      # @font-face data comes from the SVG, so it is also test-rendered, which catches corruption that usable_font?
-      # misses.
-      def usable_font_face_data?(data)
-        pdf = Prawn::Document.new
-        pdf.font_families['font-face'] = { normal: StringIO.new(data) }
-        return false unless usable_font?(pdf.font('font-face'))
-
-        pdf.text 'a'
-        pdf.render
-        true
-      rescue StandardError
-        false
-      end
-
       private
 
-      def usable_font?(font)
-        return true unless font.is_a?(Prawn::Fonts::TTF)
+      # Does everything to the font that rendering the document will.
+      def test_render(font_data, characters)
+        file = font_file(font_data)
+        return true unless file.respond_to?(:read) || File.file?(file.to_s)
 
-        tables = font.ttf.directory.tables
-        tables.key?('head') && tables.key?('OS/2') && (tables.key?('glyf') || tables.key?('CFF ')) &&
-          font.ttf.cmap.unicode.any? && !font.ttf.name.postscript_name.nil? &&
-          (!tables.key?('glyf') || font.ttf.glyph_locations.offsets.max <= tables['glyf'][:length])
+        # Prawn drops a trailing newline from text it draws
+        text = "#{characters.to_a.pack('U*')} "
+        pdf = Prawn::Document.new
+        pdf.font_families['font'] = { normal: font_data }
+        pdf.font('font')
+        pdf.width_of(text, kerning: true)
+        pdf.draw_text(text, at: [0, 0], kerning: true)
+        FontMetrics.x_height_in_points(pdf, 1)
+        FontMetrics.underline_metrics(pdf, 1)
+        FontMetrics.strikethrough_metrics(pdf, 1)
+        pdf.render
+        true
+      rescue StandardError, ScriptError, SystemStackError
+        false
+      end
+
+      def font_file(font_data)
+        font_data.is_a?(Hash) ? font_data[:file] : font_data
       end
 
       WEIGHT_CLASS_TO_SYMBOL = {

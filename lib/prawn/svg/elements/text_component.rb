@@ -73,11 +73,9 @@ module Prawn::SVG
 
         size = computed_properties.numeric_font_size
 
-        y_offset = dominant_baseline_offset(prawn, size || prawn.font_size) || 0
-
         with_svg_fonts(prawn) do
           total_baseline_shift = accumulated_baseline_shift + baseline_shift_offset(prawn, size)
-          y_offset += total_baseline_shift
+          y_offset = (dominant_baseline_offset(prawn, size || prawn.font_size) || 0) + total_baseline_shift
 
           children.each do |child|
             case child

@@ -75,60 +75,122 @@ RSpec.describe Prawn::SVG::FontRegistry do
       end
     end
 
-    describe '.check_usable' do
-      it 'checks font data held in memory' do
-        font_data = File.binread(File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__))
+    describe '#usable?' do
+      let(:font_path) { File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__) }
+      let(:font_data) { File.binread(font_path) }
 
-        expect(described_class.check_usable(StringIO.new(font_data))).to be true
-        expect(described_class.check_usable(StringIO.new(font_data[0, 1000]))).to be false
-        expect(described_class.check_usable(StringIO.new('not a font'))).to be false
+      it 'accepts a usable font and rejects corrupt data' do
+        expect(font_registry.usable?(StringIO.new(font_data))).to be true
+        expect(font_registry.usable?(StringIO.new(font_data[0, 1000]))).to be false
+        expect(font_registry.usable?(StringIO.new('not a font'))).to be false
 
         loca_format_offset = font_data.index('head') + 8
         head_offset = font_data[loca_format_offset, 4].unpack1('N')
         corrupt = font_data.dup
         corrupt[head_offset + 50, 2] = [17_408].pack('n')
-        expect(described_class.check_usable(StringIO.new(corrupt))).to be false
-      end
-    end
-
-    describe '.usable_font_face_data?' do
-      let(:font_data) { File.binread(File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)) }
-
-      it 'accepts a usable font and rejects corrupt data' do
-        expect(described_class.usable_font_face_data?(font_data)).to be true
-        expect(described_class.usable_font_face_data?(font_data[0, 1000])).to be false
-        expect(described_class.usable_font_face_data?('not a font')).to be false
+        expect(font_registry.usable?(StringIO.new(corrupt))).to be false
       end
 
-      it 'rejects a font that cannot be rendered' do
-        allow_any_instance_of(Prawn::Document).to receive(:render).and_raise(ArgumentError)
-
-        expect(described_class.usable_font_face_data?(font_data)).to be false
+      it 'rejects a font that fails when the PDF is rendered, whatever it raises' do
+        [ArgumentError, NotImplementedError, SystemStackError].each do |error|
+          allow_any_instance_of(Prawn::Document).to receive(:render).and_raise(error)
+          expect(described_class.new({}).usable?(StringIO.new(font_data))).to be false
+        end
       end
-    end
 
-    describe '#usable_font_face_data?' do
-      it 'caches results for the registry and its forks only' do
-        allow(described_class).to receive(:usable_font_face_data?).and_return(true)
+      it 'tries everything an installed font has drawn together with any new characters' do
+        allow(described_class).to receive(:test_render).and_call_original
+        # Characters an installed font has drawn are remembered for the process, so use a file nothing else has
+        file = Tempfile.new(['font', '.ttf']).tap { |f| f.write(font_data) }.tap(&:close)
+
+        registry = described_class.new({})
+        registry.add_text('pqrs')
+        registry.usable?(file.path)
+        registry.add_text('pqrst')
+        registry.usable?(file.path)
+
+        other = described_class.new({})
+        other.add_text('qp')
+        other.usable?(file.path)
+
+        expect(described_class).to have_received(:test_render).with(file.path, Set.new(' pqrs'.codepoints))
+        expect(described_class).to have_received(:test_render).with(file.path, Set.new(' pqrst'.codepoints))
+        expect(described_class).to have_received(:test_render).twice
+      end
+
+      it 'tries a font again when new text arrives, unless it has already failed' do
+        allow(described_class).to receive(:test_render).and_return(true, false)
+        usable = StringIO.new(font_data)
+        unusable = StringIO.new(font_data[0, 1000])
+
+        font_registry.add_text('a')
+        font_registry.usable?(unusable)
+        font_registry.usable?(usable)
+        font_registry.add_text('a')
+        font_registry.usable?(usable)
+        font_registry.add_text('b')
+        font_registry.usable?(unusable)
+        expect(font_registry.usable?(usable)).to be false
+
+        expect(described_class).to have_received(:test_render).exactly(3).times
+      end
+
+      it "doesn't end the text it tries with a character Prawn would drop" do
+        drawn = []
+        allow_any_instance_of(Prawn::Document).to receive(:draw_text) { |_, text| drawn << text }
+        font_registry.add_text("a\r")
+        font_registry.usable?(StringIO.new(font_data))
+        expect(drawn.last.chomp).to eq drawn.last
+      end
+
+      it 'tries fonts with the text of nested documents' do
+        allow(described_class).to receive(:test_render).and_call_original
+        image = ['<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><text font-family="Open Sans">Z</text></svg>'].pack('m0')
+        pdf.font_families['Open Sans'] = { normal: StringIO.new(font_data) }
+        pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg"><text font-family="Open Sans">a</text><image href="data:image/svg+xml;base64,#{image}" width="10" height="10"/></svg>))
+
+        expect(described_class).to have_received(:test_render).with(anything, satisfy { |characters| characters.include?('Z'.ord) }).at_least(:once)
+      end
+
+      it 'remembers results for fonts held in memory for the registry and its forks only' do
+        allow(described_class).to receive(:test_render).and_return(true)
         registry = described_class.new({})
 
-        registry.usable_font_face_data?('data')
-        registry.fork.usable_font_face_data?('data'.dup)
-        described_class.new({}).usable_font_face_data?('data')
+        registry.usable?(StringIO.new(font_data))
+        registry.fork.usable?(StringIO.new(font_data))
+        described_class.new({}).usable?(StringIO.new(font_data))
 
-        expect(described_class).to have_received(:usable_font_face_data?).twice
+        expect(described_class).to have_received(:test_render).twice
       end
-    end
 
-    it 'does not cache the usability of @font-face fonts beyond the registry' do
-      font_path = File.expand_path('../../sample_ttf/OpenSans-SemiboldItalic.ttf', __dir__)
-      allow(described_class).to receive(:usable?).and_call_original
+      describe 'a font with a glyph that cannot be drawn' do
+        let(:pdf) { Prawn::Document.new }
 
-      font_registry.register_font_face('Web Font', nil, nil, nil, font_path)
+        # Makes the glyph for Z a compound glyph made of itself
+        let(:bad_font) do
+          ttf = TTFunk::File.new(font_data)
+          glyph_offset = ttf.directory.tables['glyf'][:offset] + ttf.glyph_locations.index_of(ttf.cmap.unicode.first['Z'.ord])
+          font_data.dup.tap do |data|
+            data[glyph_offset, 2] = [-1].pack('s>')
+            data[glyph_offset + 10, 4] = [0x20, ttf.cmap.unicode.first['Z'.ord]].pack('nn')
+          end
+        end
 
-      expect(font_registry.load('Web Font').name).to eq('Web Font')
-      expect(font_registry.fork.load('Web Font').name).to eq('Web Font')
-      expect(described_class).not_to have_received(:usable?).with(font_path)
+        before { pdf.font_families['Bad'] = { normal: StringIO.new(bad_font) } }
+
+        def font_used(content)
+          pdf.svg(%(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">#{content}</svg>))
+          pdf.render.include?('OpenSans') ? 'Bad' : 'other'
+        end
+
+        it 'is used for text without that glyph' do
+          expect(font_used('<text font-family="Bad">a</text>')).to eq 'Bad'
+        end
+
+        it 'is not used for a document containing that glyph, wherever it is' do
+          expect(font_used('<script id="s">Z</script><text font-family="Bad">a<tref xlink:href="#s"/></text>')).to eq 'other'
+        end
+      end
     end
 
     it 'handles CSS font weights' do

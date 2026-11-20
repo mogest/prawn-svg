@@ -4,100 +4,19 @@ class Prawn::SVG::FontMetrics
     DEFAULT_X_HEIGHT_RATIO = 0.5
 
     def x_height_in_points(pdf, font_size)
-      x_height = cache(:x_height, pdf.font) { calculate_x_height_ratio(pdf) }
-      x_height * font_size
+      ttf = ttf_file(pdf)
+      glyph = ttf.glyph_outlines.for(ttf.cmap.unicode.first['x'.ord]) if ttf&.glyph_outlines&.exists?
+      height = glyph ? glyph.y_max - glyph.y_min : 0
+
+      (height.positive? ? height / ttf.header.units_per_em.to_f : DEFAULT_X_HEIGHT_RATIO) * font_size
     end
 
     def underline_metrics(pdf, size)
-      cache(:underline, pdf.font, size) do
-        fetch_underline_metrics(pdf, size)
-      end
-    end
-
-    def overline_metrics(pdf, size)
-      cache(:overline, pdf.font, size) do
-        fetch_overline_metrics(pdf, size)
-      end
-    end
-
-    def strikethrough_metrics(pdf, size)
-      cache(:strikethrough, pdf.font, size) do
-        fetch_strikethrough_metrics(pdf, size)
-      end
-    end
-
-    private
-
-    def cache(name, *args)
-      @font_metrics_cache ||= {}
-
-      cache_key = generate_cache_key([name, *args])
-      return @font_metrics_cache[cache_key] if @font_metrics_cache.key?(cache_key)
-
-      @font_metrics_cache[cache_key] = yield
-      @font_metrics_cache[cache_key]
-    end
-
-    def generate_cache_key(key)
-      case
-      when key.is_a?(Prawn::Fonts::TTF) then font_cache_key(key)
-      when key.is_a?(Prawn::Font)       then 'default'
-      when key.is_a?(Array)             then key.map { |element| generate_cache_key(element) }.join('/')
-      when key.respond_to?(:to_a)       then generate_cache_key(key.to_a)
-      else                              key.to_s
-      end.to_s
-    end
-
-    def font_cache_key(font)
-      ttf = font.ttf
-      return 'default' unless ttf
-
-      # Use font family name from TTF metadata, which doesn't include size
-      ttf.name&.font_family&.first || font&.name || 'default'
-    end
-
-    def calculate_x_height_ratio(pdf)
-      return DEFAULT_X_HEIGHT_RATIO unless pdf && pdf.font.is_a?(Prawn::Fonts::TTF)
-
-      ttf = pdf.font.ttf
-      return DEFAULT_X_HEIGHT_RATIO unless ttf
-
-      units_per_em = ttf.header&.units_per_em&.to_f
-      return DEFAULT_X_HEIGHT_RATIO unless units_per_em&.positive?
-
-      cmap = ttf.cmap&.unicode&.first
-      return DEFAULT_X_HEIGHT_RATIO unless cmap
-
-      xid = cmap['x'.ord]
-      return DEFAULT_X_HEIGHT_RATIO unless xid
-
-      bbox = ttf.glyph_outlines&.for(xid)
-      return DEFAULT_X_HEIGHT_RATIO unless bbox
-
-      y_max = bbox.y_max
-      y_min = bbox.y_min
-      return DEFAULT_X_HEIGHT_RATIO unless y_max && y_min
-
-      glyph_height_units = y_max - y_min
-      return DEFAULT_X_HEIGHT_RATIO if glyph_height_units <= 0
-
-      glyph_height_units / units_per_em
-    end
-
-    def fetch_underline_metrics(pdf, size)
-      top = font_thick = nil
-      if pdf.font.is_a?(Prawn::Fonts::TTF)
-        ttf = begin
-          pdf.font.ttf
-        rescue StandardError
-          nil
-        end
-        if ttf&.postscript && ttf&.header
-          scale = size / ttf.header.units_per_em.to_f
-          # ttfunk (as of 1.8.0) reads this signed value as unsigned
-          top = [ttf.postscript.underline_position].pack('n').unpack1('s>') * scale
-          font_thick = ttf.postscript.underline_thickness * scale
-        end
+      if (ttf = ttf_file(pdf))
+        scale = size / ttf.header.units_per_em.to_f
+        # ttfunk (as of 1.8.0) reads this signed value as unsigned
+        top = [ttf.postscript.underline_position].pack('n').unpack1('s>') * scale
+        font_thick = ttf.postscript.underline_thickness * scale
       end
 
       thick = [font_thick&.positive? ? font_thick : size * 0.07, 1.0].max
@@ -109,36 +28,21 @@ class Prawn::SVG::FontMetrics
       [offset, thick]
     end
 
-    def fetch_overline_metrics(pdf, size)
-      _, underline_thickness = fetch_underline_metrics(pdf, size)
-      [size, underline_thickness]
+    def overline_metrics(pdf, size)
+      [size, underline_metrics(pdf, size).last]
     end
 
-    def fetch_strikethrough_metrics(pdf, size)
-      _, underline_thickness = fetch_underline_metrics(pdf, size)
+    def strikethrough_metrics(pdf, size)
+      ttf = ttf_file(pdf)
+      offset = ttf ? ttf.os2.y_strikeout_position * size / ttf.header.units_per_em.to_f : 0.3 * size
 
-      units_per_em = nil
-      strikeout_pos = nil
-      if pdf.font.is_a?(Prawn::Fonts::TTF)
-        ttf = begin
-          pdf.font.ttf
-        rescue StandardError
-          nil
-        end
-        if ttf&.os2 && ttf&.header
-          units_per_em = ttf.header.units_per_em.to_f
-          strikeout_pos = ttf.os2.y_strikeout_position.to_f
-        end
-      end
+      [offset, underline_metrics(pdf, size).last]
+    end
 
-      offset =
-        if units_per_em && strikeout_pos
-          (strikeout_pos / units_per_em) * size
-        else
-          0.3 * size
-        end
+    private
 
-      [offset, underline_thickness]
+    def ttf_file(pdf)
+      pdf.font.ttf if pdf.font.is_a?(Prawn::Fonts::TTF)
     end
   end
 end
