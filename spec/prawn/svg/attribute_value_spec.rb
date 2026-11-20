@@ -20,5 +20,9 @@ describe Prawn::SVG::AttributeValue do
   check :view_box, valid: ['0 0 100 100', '-10,-10,20,20', '0 0 0 0', '0 0 -1 10'], invalid: ['0 0 100', '0 0 100px 100']
   check :preserve_aspect_ratio, valid: ['none', 'xMidYMid', 'defer xMinYMax slice'], invalid: ['xmidymid', 'xMidYMid fill', 'meet']
   check :orient, valid: ['auto', '45', '1rad', '100grad'], invalid: ['up', 'auto-start-reverse', '0.5turn']
+  it 'raises on an unknown type' do
+    expect { described_class.valid?(:colour, 'red') }.to raise_error(ArgumentError, 'Unknown attribute type :colour')
+  end
+
   check %w[pad reflect], valid: ['pad', 'reflect'], invalid: ['Pad', ' reflect ', 'repeat']
 end

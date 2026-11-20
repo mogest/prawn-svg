@@ -107,6 +107,16 @@ RSpec.describe Prawn::SVG::TransformParser do
     it { is_expected.to eq Matrix[[cos30, sin30, 113.39745962155611], [-sin30, cos30, 23.205080756887753], [0.0, 0.0, 1.0]] }
   end
 
+  context 'with two argument rotate' do
+    let(:transform) { 'rotate(30 100)' }
+
+    it 'reports it as invalid' do
+      test = Test.new
+      expect(test).to receive(:add_issue).with(:invalid, "transform 'rotate' must have either one or three arguments")
+      expect(test.parse_transform_attribute(transform)).to eq Matrix.identity(3)
+    end
+  end
+
   context 'with scale' do
     let(:transform) { 'scale(1.5)' }
     it { is_expected.to eq Matrix[[1.5, 0.0, 0], [0.0, 1.5, 0], [0.0, 0.0, 1]] }
@@ -125,6 +135,16 @@ RSpec.describe Prawn::SVG::TransformParser do
   context 'with matrix' do
     let(:transform) { 'matrix(1 2 3 4 5 6)' }
     it { is_expected.to eq Matrix[[1.0, -3.0, 5.0], [-2.0, 4.0, -6.0], [0.0, 0.0, 1.0]] }
+  end
+
+  context 'with a matrix missing an argument' do
+    let(:transform) { 'matrix(1 2 3 4 5)' }
+
+    it 'reports it as invalid' do
+      test = Test.new
+      expect(test).to receive(:add_issue).with(:invalid, "transform 'matrix' must have six arguments")
+      expect(test.parse_transform_attribute(transform)).to eq Matrix.identity(3)
+    end
   end
 
   context 'with multiple' do

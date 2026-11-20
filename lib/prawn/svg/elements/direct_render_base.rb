@@ -13,11 +13,6 @@ class Prawn::SVG::Elements::DirectRenderBase < Prawn::SVG::Elements::Base
   # Called by Renderer when it finds the svg:render call added below.
   def render(prawn, renderer); end
 
-  # Charged to the work budget each time a copy of the svg:render call is made.
-  def work
-    1
-  end
-
   protected
 
   def parse_and_apply

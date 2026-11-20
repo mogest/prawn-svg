@@ -1042,4 +1042,21 @@ describe Prawn::SVG::Elements::Text do
       expect(flatten_calls(element.base_calls).map(&:first)).to include 'svg:render'
     end
   end
+
+  describe 'a SkipElementError' do
+    let(:pdf) { Prawn::Document.new }
+    let(:svg) { '<svg xmlns="http://www.w3.org/2000/svg"><text y="10">Hi</text></svg>' }
+    let(:error) { Prawn::SVG::Elements::Base::SkipElementError.new('bad text', :invalid) }
+
+    it 'skips the element when raised while parsing' do
+      allow_any_instance_of(Prawn::SVG::Elements::Text).to receive(:parse).and_raise(error)
+      expect(pdf).not_to receive(:draw_text)
+      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, 'bad text')]
+    end
+
+    it 'is reported when raised while rendering' do
+      allow_any_instance_of(Prawn::SVG::Elements::Text).to receive(:render).and_raise(error)
+      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, 'bad text')]
+    end
+  end
 end

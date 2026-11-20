@@ -14,6 +14,7 @@ module Prawn::SVG
       reintroduce_trailing_and_leading_whitespace if @root_component.children
     end
 
+    # Charged to the work budget each time a copy of the svg:render call is made.
     def work
       @work ||= [].tap { |text_nodes| build_text_node_queue(text_nodes, @root_component) }.sum { |node| node.text.length } + 1
     end

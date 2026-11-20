@@ -238,6 +238,20 @@ RSpec.describe Prawn::SVG::FontRegistry do
         expect(font.subfamily).to eq(:condensed_italic)
       end
 
+      it 'drops style within the requested stretch before trying another stretch' do
+        font = font_registry.load('TestFont', :normal, :italic, 'expanded')
+        expect(font.subfamily).to eq(:expanded)
+      end
+
+      it 'drops style at normal stretch when no stretch variant is available' do
+        allow(font_registry).to receive(:installed_fonts).and_return({
+          'TestFont' => { normal: 'test.ttf', bold: 'test-bold.ttf' }
+        })
+
+        font = font_registry.load('TestFont', :bold, :italic, 'condensed')
+        expect(font.subfamily).to eq(:bold)
+      end
+
       it 'picks closest heavier weight in stretch when exact weight is unavailable' do
         allow(font_registry).to receive(:installed_fonts).and_return({
           'TestFont' => {
