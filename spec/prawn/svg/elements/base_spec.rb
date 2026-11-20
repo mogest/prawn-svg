@@ -97,13 +97,13 @@ describe Prawn::SVG::Elements::Base do
       expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError, 'hello')
       expect(element).to_not receive(:apply)
       element.process
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'hello')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'hello')]
     end
 
     it 'records the category of a SkipElementError' do
       expect(element).to receive(:parse).and_raise(Prawn::SVG::Elements::Base::SkipElementError.new('hello', :unsupported))
       element.process
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, 'hello')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: 'hello')]
     end
   end
 
@@ -205,7 +205,7 @@ describe Prawn::SVG::Elements::Base do
 
     it 'skips zero-sized shapes quietly, and reports negative sizes' do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Invalid attributes on tag rect; skipping tag')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'Invalid attributes on tag rect; skipping tag')]
     end
   end
 
@@ -286,18 +286,18 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'pathLength' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'r' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'Width' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'mix-blend-mode' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'zIndex' on <text>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'transform' on <tspan>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'side' on <textPath>"),
-        Prawn::SVG::Issue.new(:invalid, '<textPath> must reference a path element'),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'color-interpolation' on <g>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'method' on <textPath>")
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported attribute 'pathLength' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'zIndex' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'r' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported property 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'Width' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'mix-blend-mode' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'zIndex' on <text>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'transform' on <tspan>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported attribute 'side' on <textPath>"),
+        Prawn::SVG::Issue.new(category: :invalid, message: '<textPath> must reference a path element'),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported property 'color-interpolation' on <g>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported attribute 'method' on <textPath>")
       ]
     end
   end
@@ -327,16 +327,16 @@ describe Prawn::SVG::Elements::Base do
 
       expect(document.elements_by_id['fallback'].base_calls).not_to be_empty
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'script'; ignoring"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'foreignObject'; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animate'; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'set'; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'animateColor'; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'a' inside text tag; ignoring"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown tag 'bar' inside text tag; ignoring"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported attribute 'refX' on <symbol>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported tag 'font'; ignoring")
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'script'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown tag 'foo'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'foreignObject'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'animate'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'set'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'animateColor'; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'a' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown tag 'bar' inside text tag; ignoring"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported attribute 'refX' on <symbol>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported tag 'font'; ignoring")
       ]
     end
   end
@@ -358,11 +358,11 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:invalid, 'Could not resolve fill URI to a gradient or pattern element'),
-        Prawn::SVG::Issue.new(:invalid, 'Could not resolve clip-path URI to a clipPath element'),
-        Prawn::SVG::Issue.new(:invalid, 'Could not resolve mask URI to a mask element'),
-        Prawn::SVG::Issue.new(:invalid, 'Could not resolve marker-start URI to a marker element'),
-        Prawn::SVG::Issue.new(:invalid, 'Could not resolve marker-mid URI to a marker element')
+        Prawn::SVG::Issue.new(category: :invalid, message: 'Could not resolve fill URI to a gradient or pattern element'),
+        Prawn::SVG::Issue.new(category: :invalid, message: 'Could not resolve clip-path URI to a clipPath element'),
+        Prawn::SVG::Issue.new(category: :invalid, message: 'Could not resolve mask URI to a mask element'),
+        Prawn::SVG::Issue.new(category: :invalid, message: 'Could not resolve marker-start URI to a marker element'),
+        Prawn::SVG::Issue.new(category: :invalid, message: 'Could not resolve marker-mid URI to a marker element')
       ]
     end
   end
@@ -384,8 +384,8 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:unsupported, 'Unsupported clip-path reference to a clipPath that is defined later or not rendered'),
-        Prawn::SVG::Issue.new(:unsupported, 'Unsupported marker-end reference to a marker that is defined later or not rendered')
+        Prawn::SVG::Issue.new(category: :unsupported, message: 'Unsupported clip-path reference to a clipPath that is defined later or not rendered'),
+        Prawn::SVG::Issue.new(category: :unsupported, message: 'Unsupported marker-end reference to a marker that is defined later or not rendered')
       ]
     end
   end
@@ -433,12 +433,12 @@ describe Prawn::SVG::Elements::Base do
       Prawn::SVG::Elements::Root.new(document, document.root, []).process
 
       expect(document.issues).to eq [
-        Prawn::SVG::Issue.new(:invalid, "Invalid value 'gren' for property 'fill' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'filter' on <rect>"),
-        Prawn::SVG::Issue.new(:invalid, "Invalid value 'nope' for property 'stroke' on <rect>"),
-        Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <rect>"),
-        Prawn::SVG::Issue.new(:invalid, "Invalid value 'lots' for property 'fill-opacity' on <rect>"),
-        Prawn::SVG::Issue.new(:unknown, "Unknown property 'zindex' on <rect>")
+        Prawn::SVG::Issue.new(category: :invalid, message: "Invalid value 'gren' for property 'fill' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported property 'filter' on <rect>"),
+        Prawn::SVG::Issue.new(category: :invalid, message: "Invalid value 'nope' for property 'stroke' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported property 'paint-order' on <rect>"),
+        Prawn::SVG::Issue.new(category: :invalid, message: "Invalid value 'lots' for property 'fill-opacity' on <rect>"),
+        Prawn::SVG::Issue.new(category: :unknown, message: "Unknown property 'zindex' on <rect>")
       ]
     end
 
@@ -451,7 +451,7 @@ describe Prawn::SVG::Elements::Base do
 
       it 'adds the issue once' do
         Prawn::SVG::Elements::Root.new(document, document.root, []).process
-        expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, "Unsupported property 'paint-order' on <text>")]
+        expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: "Unsupported property 'paint-order' on <text>")]
       end
     end
 

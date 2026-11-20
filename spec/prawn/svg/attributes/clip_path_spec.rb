@@ -255,7 +255,7 @@ RSpec.describe Prawn::SVG::Attributes::ClipPath do
     end
 
     it 'skips the content that references it and reports an invalid issue' do
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<clipPath> references itself')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: '<clipPath> references itself')]
     end
   end
 end

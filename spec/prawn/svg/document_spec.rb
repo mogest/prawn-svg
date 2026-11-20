@@ -160,7 +160,7 @@ describe Prawn::SVG::Document do
         child = parent.replicate('<svg></svg>', 10, 20)
         child.work_budget.record(4)
 
-        expect { child.work_budget.record(1) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        expect { child.work_budget.record(1) }.to raise_error Prawn::SVG::WorkLimitExceeded
       end
 
       it 'never raises when max_work is false' do
@@ -179,7 +179,7 @@ describe Prawn::SVG::Document do
         document = Prawn::SVG::Document.new('<svg></svg>', bounds, { max_work: 1500, web_requests: ->(_uri) { raise Prawn::SVG::Requests::Error, 'no' } })
 
         expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::Requests::Error
-        expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        expect { document.resource_loader.load('https://example.com/a.png') }.to raise_error Prawn::SVG::WorkLimitExceeded
       end
     end
 
@@ -189,7 +189,7 @@ describe Prawn::SVG::Document do
       it "raises an exception, passing on REXML's error message" do
         expect do
           Prawn::SVG::Document.new(svg, bounds, options)
-        end.to raise_error Prawn::SVG::Document::InvalidSVGData,
+        end.to raise_error Prawn::SVG::InvalidSVGData,
           /\AThe data supplied is not a valid SVG document.+Malformed.+#{Regexp.escape(svg)}/m
       end
     end
@@ -201,7 +201,7 @@ describe Prawn::SVG::Document do
       end
 
       it 'raises an exception when the document is loaded' do
-        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /entity expansion/
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::InvalidSVGData, /entity expansion/
       end
     end
 
@@ -211,7 +211,7 @@ describe Prawn::SVG::Document do
       end
 
       it 'raises an exception when the document is loaded' do
-        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /too much text/
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::InvalidSVGData, /too much text/
       end
     end
 
@@ -232,7 +232,7 @@ describe Prawn::SVG::Document do
       let(:svg) { "<svg>#{'<g>' * 5000}#{'</g>' * 5000}</svg>" }
 
       it 'raises an exception when the document is loaded' do
-        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData, /nested too deeply/
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::InvalidSVGData, /nested too deeply/
       end
     end
 
@@ -250,7 +250,7 @@ describe Prawn::SVG::Document do
       it "raises an exception, passing on REXML's error message" do
         expect do
           Prawn::SVG::Document.new(svg, bounds, options)
-        end.to raise_error Prawn::SVG::Document::InvalidSVGData,
+        end.to raise_error Prawn::SVG::InvalidSVGData,
           /\AThe data supplied is not a valid SVG document.+Missing end tag for 'g'/m
       end
     end
@@ -267,7 +267,7 @@ describe Prawn::SVG::Document do
       let(:svg) { (+"\xD8\x00").force_encoding('UTF-16BE') }
 
       it 'raises an exception' do
-        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::InvalidSVGData
       end
     end
 
@@ -275,7 +275,7 @@ describe Prawn::SVG::Document do
       let(:svg) { (+"\xFF\xFE").b }
 
       it 'raises an exception' do
-        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::Document::InvalidSVGData
+        expect { Prawn::SVG::Document.new(svg, bounds, options) }.to raise_error Prawn::SVG::InvalidSVGData
       end
     end
 
@@ -484,7 +484,7 @@ describe Prawn::SVG::Document do
 
         expect do
           Prawn::SVG::Document.new(svg, bounds, options)
-        end.to raise_error Prawn::SVG::Document::InvalidSVGData, /\A#{Regexp.escape(message)}/
+        end.to raise_error Prawn::SVG::InvalidSVGData, /\A#{Regexp.escape(message)}/
       end
     end
   end
@@ -509,7 +509,7 @@ describe Prawn::SVG::Document do
       subject.add_issue(:unknown, 'a')
       subject.add_issue(:unknown, 'a')
       subject.add_issue(:unsupported, 'a')
-      expect(subject.issues).to eq [Prawn::SVG::Issue.new(:unknown, 'a'), Prawn::SVG::Issue.new(:unsupported, 'a')]
+      expect(subject.issues).to eq [Prawn::SVG::Issue.new(category: :unknown, message: 'a'), Prawn::SVG::Issue.new(category: :unsupported, message: 'a')]
     end
   end
 end

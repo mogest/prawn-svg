@@ -109,7 +109,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       subject.process
       line_element.process
       subject.apply_marker(line_element, point: [10, 10], angle: 0)
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<marker> cannot be rendered due to negative sizing information')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: '<marker> cannot be rendered due to negative sizing information')]
     end
   end
 
@@ -120,7 +120,7 @@ RSpec.describe Prawn::SVG::Elements::Marker do
       subject.process
       line_element.process
       subject.apply_marker(line_element, point: [10, 10], angle: 0)
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unsupported, '<marker> with a percentage markerWidth or markerHeight is not supported')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: '<marker> with a percentage markerWidth or markerHeight is not supported')]
     end
   end
 

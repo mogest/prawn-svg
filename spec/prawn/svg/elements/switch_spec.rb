@@ -387,7 +387,7 @@ describe Prawn::SVG::Elements::Switch do
 
     it 'ignores them and reports them as unknown' do
       expect(flattened_calls).to include ['fill_color', ['ff0000'], {}]
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:unknown, "Unknown attribute 'systemLanguage' on <symbol>")]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :unknown, message: "Unknown attribute 'systemLanguage' on <symbol>")]
     end
   end
 

@@ -241,7 +241,7 @@ describe Prawn::SVG::Elements::Gradient do
 
     it "counts each reference's stops towards the work budget" do
       expect { Prawn::Document.new.svg(svg, max_work: 5000) }.not_to raise_error
-      expect { Prawn::Document.new.svg(svg, max_work: 500) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect { Prawn::Document.new.svg(svg, max_work: 500) }.to raise_error Prawn::SVG::WorkLimitExceeded
     end
 
     it 'counts the stops of every copy made by a pattern' do
@@ -250,7 +250,7 @@ describe Prawn::SVG::Elements::Gradient do
       rects = '<rect width="1" height="1" fill="url(#p)"/>' * 20
       patterned = %(<svg xmlns="http://www.w3.org/2000/svg"><linearGradient id="flag">#{stops}</linearGradient>#{pattern}#{rects}</svg>)
 
-      expect { Prawn::Document.new.svg(patterned, max_work: 500) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect { Prawn::Document.new.svg(patterned, max_work: 500) }.to raise_error Prawn::SVG::WorkLimitExceeded
     end
   end
 

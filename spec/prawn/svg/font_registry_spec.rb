@@ -161,7 +161,7 @@ RSpec.describe Prawn::SVG::FontRegistry do
         end
         svg = %(<svg xmlns="http://www.w3.org/2000/svg"><style>#{css}</style><text font-family="T">a</text>#{images.join}</svg>)
 
-        expect { pdf.svg(svg, max_work: 10_000) }.to raise_error(Prawn::SVG::Document::WorkLimitExceeded)
+        expect { pdf.svg(svg, max_work: 10_000) }.to raise_error(Prawn::SVG::WorkLimitExceeded)
       end
 
       it "doesn't end the text it tries with a character Prawn would drop" do

@@ -323,7 +323,7 @@ RSpec.describe Prawn::SVG::CSS::Stylesheets do
       )
       result = stylesheets.load
 
-      expect(stylesheets.issues).to include(Prawn::SVG::Issue.new(:resource, 'Failed to load @import CSS from missing.css: not found'))
+      expect(stylesheets.issues).to include(Prawn::SVG::Issue.new(category: :resource, message: 'Failed to load @import CSS from missing.css: not found'))
       styles = result.values.first
       expect(styles).to include(['fill', 'red', false])
     end

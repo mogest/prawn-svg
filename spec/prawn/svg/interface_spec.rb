@@ -134,7 +134,7 @@ describe Prawn::SVG::Interface do
 
         it 'raises an IssueError containing the issues' do
           expect { interface.draw }.to raise_error(Prawn::SVG::IssueError, 'Negative sizing data means this SVG cannot be rendered') { |e|
-            expect(e.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Negative sizing data means this SVG cannot be rendered')]
+            expect(e.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'Negative sizing data means this SVG cannot be rendered')]
           }
         end
       end
@@ -189,7 +189,7 @@ describe Prawn::SVG::Interface do
 
       it 'records the image issues once' do
         result = Prawn::Document.new.svg(svg)
-        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unknown, "Unknown tag 'foo'; ignoring")]
+        expect(result[:issues]).to eq [Prawn::SVG::Issue.new(category: :unknown, message: "Unknown tag 'foo'; ignoring")]
       end
     end
 
@@ -232,7 +232,7 @@ describe Prawn::SVG::Interface do
         pdf = Prawn::Document.new
         content = pdf.state.page.content.stream.filtered_stream
 
-        expect { pdf.svg(svg, max_work: 300) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        expect { pdf.svg(svg, max_work: 300) }.to raise_error Prawn::SVG::WorkLimitExceeded
         expect(pdf.state.page.content.stream.filtered_stream).to eq content
       end
 
@@ -258,7 +258,7 @@ describe Prawn::SVG::Interface do
         svg = %(<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="c"><text y="10">#{'x' * 1000}</text></clipPath>#{rects}</svg>)
 
         expect { Prawn::Document.new.svg(svg, max_work: 50_000) }.not_to raise_error
-        expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::WorkLimitExceeded
       end
 
       it 'charges for matching CSS selectors against elements' do
@@ -268,7 +268,7 @@ describe Prawn::SVG::Interface do
         expect { Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{rects}</svg>), max_work: 20_000) }.not_to raise_error
         expect do
           Prawn::Document.new.svg(%(<svg xmlns="http://www.w3.org/2000/svg">#{style}#{rects}</svg>), max_work: 20_000)
-        end.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+        end.to raise_error Prawn::SVG::WorkLimitExceeded
       end
     end
 

@@ -531,7 +531,7 @@ describe Prawn::SVG::Elements::Text do
     it 'replaces them and reports an issue' do
       issues, drawn = drawn_text(%(<svg xmlns="http://www.w3.org/2000/svg"><text font-family="Courier" y="10">a\u6f22b</text></svg>))
 
-      expect(issues).to eq [Prawn::SVG::Issue.new(:unsupported, message)]
+      expect(issues).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: message)]
       expect(drawn).to eq ['a?b']
     end
 
@@ -545,7 +545,7 @@ describe Prawn::SVG::Elements::Text do
 
       issues, drawn = drawn_text(svg)
 
-      expect(issues).to eq [Prawn::SVG::Issue.new(:unsupported, message)]
+      expect(issues).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: message)]
       expect(drawn).to eq ['a', "\u0167", '?']
     end
   end
@@ -565,7 +565,7 @@ describe Prawn::SVG::Elements::Text do
     let(:svg) { '<svg xmlns="http://www.w3.org/2000/svg"><text>a<tref href="#missing"/></text></svg>' }
 
     it 'renders nothing for the tref and reports an issue' do
-      expect(prawn.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, "tref tag references '#missing' which could not be resolved")]
+      expect(prawn.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(category: :invalid, message: "tref tag references '#missing' which could not be resolved")]
     end
   end
 
@@ -1051,12 +1051,12 @@ describe Prawn::SVG::Elements::Text do
     it 'skips the element when raised while parsing' do
       allow_any_instance_of(Prawn::SVG::Elements::Text).to receive(:parse).and_raise(error)
       expect(pdf).not_to receive(:draw_text)
-      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, 'bad text')]
+      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'bad text')]
     end
 
     it 'is reported when raised while rendering' do
       allow_any_instance_of(Prawn::SVG::Elements::Text).to receive(:render).and_raise(error)
-      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(:invalid, 'bad text')]
+      expect(pdf.svg(svg)[:issues]).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'bad text')]
     end
   end
 end

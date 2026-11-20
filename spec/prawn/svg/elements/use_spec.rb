@@ -366,7 +366,7 @@ describe Prawn::SVG::Elements::Use do
       svg = %(<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><defs>#{groups}<rect id="g10" width="1" height="1"/></defs><use href="#g0"/></svg>)
 
       expect(Prawn::Document.new.svg(svg, max_work: 50_000)[:warnings]).to be_empty
-      expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect { Prawn::Document.new.svg(svg, max_work: 10_000) }.to raise_error Prawn::SVG::WorkLimitExceeded
     end
 
     it 'limits how deeply elements are nested through use tags' do
@@ -386,7 +386,7 @@ describe Prawn::SVG::Elements::Use do
         %(<svg xmlns="http://www.w3.org/2000/svg"><g id="x"><use href="#{n + 1}.svg#x"/><use href="#{n + 1000}.svg#x"/></g></svg>)
       end
 
-      expect { Prawn::Document.new.svg(svg, web_requests: web_requests, max_work: 10_000) }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect { Prawn::Document.new.svg(svg, web_requests: web_requests, max_work: 10_000) }.to raise_error Prawn::SVG::WorkLimitExceeded
       expect(requests).to be <= 100
     end
   end

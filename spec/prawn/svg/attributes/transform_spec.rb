@@ -12,7 +12,7 @@ describe Prawn::SVG::Attributes::Transform do
     end
 
     def add_issue(category, message)
-      issues << Prawn::SVG::Issue.new(category, message)
+      issues << Prawn::SVG::Issue.new(category: category, message: message)
     end
 
     def transformable?

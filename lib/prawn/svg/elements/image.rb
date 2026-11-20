@@ -99,7 +99,7 @@ class Prawn::SVG::Elements::Image < Prawn::SVG::Elements::Base
     else
       raise_invalid_image_type
     end
-  rescue Prawn::SVG::Document::InvalidSVGData
+  rescue Prawn::SVG::InvalidSVGData
     raise SkipElementError.new('image tag references SVG data which could not be parsed', :resource)
   end
 

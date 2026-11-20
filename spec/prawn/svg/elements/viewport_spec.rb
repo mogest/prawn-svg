@@ -27,7 +27,7 @@ describe Prawn::SVG::Elements::Viewport do
       it 'reports it once and renders nothing' do
         element.process
         expect(flatten_calls(element.base_calls).map(&:first)).not_to include('rectangle')
-        expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, 'Invalid attributes on tag svg; skipping tag')]
+        expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: 'Invalid attributes on tag svg; skipping tag')]
       end
     end
   end

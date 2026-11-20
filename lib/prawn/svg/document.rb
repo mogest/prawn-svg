@@ -1,9 +1,9 @@
 require 'stringio'
 
 class Prawn::SVG::Document
-  Error = Class.new(Prawn::SVG::Error)
-  InvalidSVGData = Class.new(Error)
-  WorkLimitExceeded = Class.new(Error)
+  # Retained for backwards compatibility; use Prawn::SVG::Error and Prawn::SVG::InvalidSVGData instead.
+  Error = Prawn::SVG::Error
+  InvalidSVGData = Prawn::SVG::InvalidSVGData
 
   DEFAULT_FALLBACK_FONT_NAME = 'Times-Roman'.freeze
   DEFAULT_MAX_WORK = 1_000_000
@@ -129,7 +129,7 @@ class Prawn::SVG::Document
   def add_issue(category, message)
     return root_document.add_issue(category, message) unless root_document.equal?(self)
 
-    issue = Prawn::SVG::Issue.new(category, message)
+    issue = Prawn::SVG::Issue.new(category: category, message: message)
     issues << issue if @issue_set.add?(issue)
   end
 

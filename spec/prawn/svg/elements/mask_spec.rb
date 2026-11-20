@@ -427,7 +427,7 @@ describe Prawn::SVG::Elements::Mask do
     end
 
     it 'skips the content that references it and reports an invalid issue' do
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<mask> references itself')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: '<mask> references itself')]
       expect(find_call(element.base_calls, 'soft_mask')).not_to be_nil
     end
   end

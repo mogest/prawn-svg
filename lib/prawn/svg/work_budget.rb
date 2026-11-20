@@ -12,7 +12,7 @@ class Prawn::SVG::WorkBudget
     return unless @remaining
 
     @remaining -= units
-    raise Prawn::SVG::Document::WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if @remaining.negative?
+    raise Prawn::SVG::WorkLimitExceeded, 'The SVG needs too much work to render; see the :max_work option' if @remaining.negative?
   end
 
   def reset

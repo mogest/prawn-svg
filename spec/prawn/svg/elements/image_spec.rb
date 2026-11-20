@@ -364,7 +364,7 @@ describe Prawn::SVG::Elements::Image do
     it 'skips the image and reports it as unsupported' do
       svg = %(<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,#{['not an image'].pack('m0')}" width="10" height="10"/></svg>)
       result = Prawn::Document.new.svg(svg)
-      expect(result[:issues]).to eq [Prawn::SVG::Issue.new(:unsupported, 'Unsupported image type supplied to image tag')]
+      expect(result[:issues]).to eq [Prawn::SVG::Issue.new(category: :unsupported, message: 'Unsupported image type supplied to image tag')]
     end
   end
 end

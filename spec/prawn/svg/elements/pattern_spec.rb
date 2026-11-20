@@ -271,7 +271,7 @@ describe Prawn::SVG::Elements::Pattern do
     it 'skips the content that references it and reports an invalid issue' do
       root_element.process
 
-      expect(document.issues).to eq [Prawn::SVG::Issue.new(:invalid, '<pattern> references itself')]
+      expect(document.issues).to eq [Prawn::SVG::Issue.new(category: :invalid, message: '<pattern> references itself')]
     end
   end
 
@@ -298,7 +298,7 @@ describe Prawn::SVG::Elements::Pattern do
       fan_out = %(<svg>#{patterns.join}<pattern id="p10" width="1" height="1"><rect width="1" height="1"/></pattern><rect width="10" height="10" fill="url(#p0)"/></svg>)
       document = Prawn::SVG::Document.new(fan_out, [800, 600], { max_work: 10_000 })
 
-      expect { Prawn::SVG::Elements::Root.new(document, document.root, []).process }.to raise_error Prawn::SVG::Document::WorkLimitExceeded
+      expect { Prawn::SVG::Elements::Root.new(document, document.root, []).process }.to raise_error Prawn::SVG::WorkLimitExceeded
     end
   end
 end

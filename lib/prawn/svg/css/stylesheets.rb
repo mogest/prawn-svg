@@ -35,7 +35,7 @@ module Prawn::SVG::CSS
           return unless circular_reference_check(import_url)
 
           if Prawn::SVG::UrlLoader.web_url?(options[:base_uri]) && !Prawn::SVG::UrlLoader.web_url?(import_url)
-            issues << Prawn::SVG::Issue.new(:resource, "stylesheet from '#{options[:base_uri]}' may not @import '#{import_url}'")
+            issues << Prawn::SVG::Issue.new(category: :resource, message: "stylesheet from '#{options[:base_uri]}' may not @import '#{import_url}'")
             return
           end
 
@@ -54,7 +54,7 @@ module Prawn::SVG::CSS
         rescue CssParser::CircularReferenceError
           # Silently ignore circular @import references
         rescue Prawn::SVG::Requests::Error => e
-          issues << Prawn::SVG::Issue.new(:resource, "Failed to load @import CSS from #{import_url}: #{e.message}")
+          issues << Prawn::SVG::Issue.new(category: :resource, message: "Failed to load @import CSS from #{import_url}: #{e.message}")
         end
       end
     end
@@ -81,7 +81,7 @@ module Prawn::SVG::CSS
         Addressable::URI.join(base_uri.to_s, path)
         rule
       rescue Addressable::URI::InvalidURIError => e
-        issues << Prawn::SVG::Issue.new(:invalid, "#{description} has an invalid @import URL: #{e.message}")
+        issues << Prawn::SVG::Issue.new(category: :invalid, message: "#{description} has an invalid @import URL: #{e.message}")
         # Removing the rule entirely could join the text either side of it into a new @import rule.
         ' '
       end
@@ -103,7 +103,7 @@ module Prawn::SVG::CSS
           next if selector_text.lstrip.start_with?('@')
 
           unless (selector = Prawn::SVG::CSS::SelectorParser.parse(selector_text))
-            issues << Prawn::SVG::Issue.new(:unsupported, "CSS selector '#{selector_text}' could not be parsed")
+            issues << Prawn::SVG::Issue.new(category: :unsupported, message: "CSS selector '#{selector_text}' could not be parsed")
             next
           end
 

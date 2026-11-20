@@ -89,7 +89,7 @@ pass the following options to tailor its operation.  Unknown options raise `Argu
 - **`:max_work`**\
   Type: integer, `false` · Default: `1_000_000`\
   Limits how much work rendering may take, so that a small hostile SVG can't use excessive time or memory.  If exceeded,
-  `Prawn::SVG::Document::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a
+  `Prawn::SVG::WorkLimitExceeded` is raised before anything is drawn.  One unit is roughly an element, a
   drawing call, a character of text, or a few hundred bytes of image data, counting every time `<use>`, markers,
   patterns, masks and clip paths repeat them.  Very large drawings, such as a path with millions of points, may need a
   higher value.  `false` turns the limit off.
@@ -239,7 +239,8 @@ To reject SVGs that won't render as they would in a browser:
   svg data, raise_on_issue: [:unsupported, :invalid, :resource]
 ```
 
-prawn-svg's own errors, including `Prawn::SVG::IssueError`, inherit from `Prawn::SVG::Error`.
+SVG data that can't be parsed raises `Prawn::SVG::InvalidSVGData`.  prawn-svg's own errors, including
+`Prawn::SVG::IssueError`, inherit from `Prawn::SVG::Error`.
 
 ## Configuration
 
@@ -315,6 +316,8 @@ Deprecated | Replacement
 `:cache_images` | `:cache_requests`.  `cache_images: true` is now the default; `cache_images: false` becomes `cache_requests: false`.
 `:log_warnings` | `:log_issues`
 `result[:warnings]` | `result[:issues]`, whose `message`s are the same strings
+`Prawn::SVG::Document::InvalidSVGData` | `Prawn::SVG::InvalidSVGData`
+`Prawn::SVG::Document::Error` | `Prawn::SVG::Error`
 
 ## Licence
 
