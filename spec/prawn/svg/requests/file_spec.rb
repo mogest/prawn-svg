@@ -76,8 +76,30 @@ RSpec.describe Prawn::SVG::Requests::File do
     end
   end
 
+  context 'when the root path is the filesystem root' do
+    let(:root) { '/' }
+    let(:path) { "#{@dir}/secret" }
+
+    it 'loads the file' do
+      expect(subject).to eq 'secret'
+    end
+  end
+
   context 'when a path outside of our root is specified' do
     let(:path) { '../secret' }
+
+    it 'raises' do
+      expect { subject }.to raise_error Prawn::SVG::Requests::Error, /not inside the root path/
+    end
+  end
+
+  context 'when a path is in a sibling directory that starts with the root path' do
+    let(:path) { "#{root}x/file" }
+
+    before do
+      Dir.mkdir("#{root}x")
+      File.write(path, 'data')
+    end
 
     it 'raises' do
       expect { subject }.to raise_error Prawn::SVG::Requests::Error, /not inside the root path/

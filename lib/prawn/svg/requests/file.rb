@@ -35,7 +35,7 @@ module Prawn::SVG::Requests
       # making it dependent on whether the file system is case sensitive or not.
       # Leaving it like this until it's a problem for someone.
 
-      raise Prawn::SVG::Requests::Error, "file path is not inside the root path of #{root}" unless path.start_with?("#{root}#{::File::SEPARATOR}")
+      raise Prawn::SVG::Requests::Error, "file path is not inside the root path of #{root}" unless path.start_with?(::File.join(root, ''))
     end
 
     def real_path(path)
