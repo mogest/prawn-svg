@@ -135,6 +135,35 @@ RSpec.describe Prawn::SVG::FontRegistry do
         expect(described_class).to have_received(:test_render).exactly(3).times
       end
 
+      it 'charges the work budget for the text each time it tries a font, and for loading a font held in memory' do
+        budget = Prawn::SVG::WorkBudget.new(false)
+        allow(budget).to receive(:record)
+        font_registry.work_budget = budget
+        file = Tempfile.new(['font', '.ttf']).tap { |f| f.write(font_data) }.tap(&:close)
+
+        font_registry.usable?(StringIO.new(font_data))
+        font_registry.usable?(StringIO.new(font_data))
+        font_registry.add_text('ab')
+        font_registry.usable?(StringIO.new(font_data))
+        font_registry.usable?(file.path)
+
+        expect(budget).to have_received(:record).with(1 + (font_data.bytesize / 256))
+        expect(budget).to have_received(:record).with(3 + (font_data.bytesize / 256))
+        expect(budget).to have_received(:record).with(3)
+        expect(budget).to have_received(:record).exactly(3).times
+      end
+
+      it 'stops a render that makes it try a font held in memory too many times' do
+        css = "@font-face { font-family: 'T'; src: url(\"data:image/png;base64,#{[font_data].pack('m0')}\"); }"
+        images = (0...20).map do |i|
+          image = [%(<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><text font-family="T">#{(0x4E00 + i).chr('UTF-8')}</text></svg>)].pack('m0')
+          %(<image href="data:image/svg+xml;base64,#{image}" width="1" height="1"/>)
+        end
+        svg = %(<svg xmlns="http://www.w3.org/2000/svg"><style>#{css}</style><text font-family="T">a</text>#{images.join}</svg>)
+
+        expect { pdf.svg(svg, max_work: 10_000) }.to raise_error(Prawn::SVG::Document::WorkLimitExceeded)
+      end
+
       it "doesn't end the text it tries with a character Prawn would drop" do
         drawn = []
         allow_any_instance_of(Prawn::Document).to receive(:draw_text) { |_, text| drawn << text }

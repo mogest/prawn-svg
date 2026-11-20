@@ -42,6 +42,7 @@ class Prawn::SVG::Document
     @issue_set = Set.new
     @options = options
     @work_budget = root_document ? root_document.work_budget : Prawn::SVG::WorkBudget.new(load_max_work)
+    font_registry&.work_budget = @work_budget
     @elements_by_id = {}
     @gradients = Prawn::SVG::Gradients.new(self)
     @external_svg_cache = {}

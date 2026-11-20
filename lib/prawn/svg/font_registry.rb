@@ -66,6 +66,8 @@ module Prawn::SVG
     @drawn = {}
     @drawn_lock = Mutex.new
 
+    attr_writer :work_budget
+
     # All but the font families are shared by every registry in a render.
     def initialize(font_families, characters = Set[' '.ord], digests = {}.compare_by_identity, usable = {})
       @font_families = font_families
@@ -126,7 +128,12 @@ module Prawn::SVG
     # fails is not used again in the render.
     def usable?(font_data)
       key = font_data.respond_to?(:read) ? (@digests[font_data] ||= Digest::SHA256.digest(font_data.tap(&:rewind).read)) : font_data
-      @usable.fetch(key) { @usable[key] = self.class.draws?(font_data, @characters) }
+      @usable.fetch(key) do
+        # Each try draws all the render's text, and loads the font again if it's held in memory.
+        file = self.class.font_file(font_data)
+        @work_budget&.record(@characters.size + (file.respond_to?(:read) ? file.size / ResourceLoader::BYTES_PER_WORK_UNIT : 0))
+        @usable[key] = self.class.draws?(font_data, @characters)
+      end
     end
 
     # Prawn always uses a fallback font's normal subfamily.
@@ -304,6 +311,10 @@ module Prawn::SVG
         true
       end
 
+      def font_file(font_data)
+        font_data.is_a?(Hash) ? font_data[:file] : font_data
+      end
+
       def load_external_fonts
         @external_font_families = {}
 
@@ -352,10 +363,6 @@ module Prawn::SVG
         true
       rescue StandardError, ScriptError, SystemStackError
         false
-      end
-
-      def font_file(font_data)
-        font_data.is_a?(Hash) ? font_data[:file] : font_data
       end
 
       WEIGHT_CLASS_TO_SYMBOL = {
